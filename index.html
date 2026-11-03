@@ -99,17 +99,21 @@ input:focus,textarea:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 4
 .empty{text-align:center;color:var(--mut);padding:30px;font-weight:700}
 #toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,90px);background:var(--navy);color:#fff;padding:11px 20px;border-radius:99px;transition:.25s;z-index:30;max-width:90%;font-weight:700}
 #toast.show{transform:translate(-50%,0)}#toast.er{background:#d23a62}
-.lg{min-height:100vh;display:grid;place-items:center;padding:14px;position:relative;overflow:hidden}
+.lg{height:100vh;height:100dvh;display:grid;place-items:center;padding:10px;position:relative;overflow:hidden}
 .lg::after{content:"";position:fixed;left:-10%;right:-10%;bottom:-130px;height:240px;border-radius:50%;background:#8fd14f;z-index:0}
-.lgbox{position:relative;z-index:1;background:#fff;border-radius:32px;padding:26px 22px;width:100%;max-width:430px;text-align:center;box-shadow:0 14px 40px #1e88e533}
-.logo{font-size:46px;line-height:1}.lgbox h1{font-size:32px;margin:4px 0}.lgbox .sub{margin-bottom:14px}
-.lgbox .fd{text-align:left;margin-bottom:12px}
-.lgo{max-height:184px;overflow:auto;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));padding:2px}
-.dots{display:flex;gap:12px;justify-content:center;margin:12px 0 14px}
+.lgbox{position:relative;z-index:1;background:#fff;border-radius:28px;padding:14px 16px 16px;width:100%;max-width:400px;max-height:100%;box-shadow:0 14px 40px #1e88e533;display:flex;flex-direction:column;gap:8px}
+.lh{display:flex;align-items:center;gap:10px}.logo{font-size:38px;line-height:1}.lh h1{font-size:25px;line-height:1.1}.lh .sub{font-size:13px}
+.stp2{font:600 14px Fredoka;color:var(--navy);display:flex;align-items:center;gap:8px}
+.stp2 b{width:22px;height:22px;border-radius:50%;background:var(--yel);display:grid;place-items:center;font-size:13px}
+.lgo{max-height:clamp(88px,20vh,150px);overflow:auto;grid-template-columns:repeat(2,1fr);gap:6px;padding:2px}
+.lgo .op{min-height:42px;padding:6px 10px;font-size:13px}
+.dots{display:flex;gap:12px;justify-content:center;margin:2px 0}
 .dots i{width:16px;height:16px;border-radius:50%;border:2px solid var(--blue)}.dots i.on{background:var(--blue)}
-.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:270px;margin:0 auto}
-.pad button{height:54px;border-radius:18px;border:0;background:#fff4cf;font-size:22px;font-weight:600;color:var(--navy)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;max-width:300px;width:100%;margin:0 auto}
+.pad button{height:clamp(40px,6.8vh,52px);border-radius:16px;border:0;background:#fff4cf;font-size:22px;font-weight:600;color:var(--navy)}
 .pad button:active{background:var(--yel)}
+@media(max-height:600px){.logo{font-size:30px}.lh h1{font-size:20px}.lgo{max-height:80px}.pad button{height:38px}}
+.bdg{display:inline-block;background:#fff4cf;color:var(--navy);border-radius:99px;padding:2px 12px;font:600 13px Fredoka;margin-left:8px;vertical-align:middle}
 .shake{animation:sh .35s}@keyframes sh{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
 .foot{background:#7cc243;color:#fff;text-align:center;padding:42px 20px 18px;border-radius:50% 50% 0 0/34px 34px 0 0;font-weight:800;margin-top:30px;font-size:13px}
 .paper{background:#fff;color:#111;max-width:1050px;margin:0 auto;padding:30px 34px;font:13px/1.55 Georgia,'Times New Roman',serif;box-shadow:var(--sh);border-radius:6px}
@@ -291,10 +295,9 @@ const nilai=n=>(document.querySelector(`input[name=${n}]:checked`)||{value:''}).
 /* ---------- login (tanpa foto) ---------- */
 let PIN='',busy=false,GID='';
 async function viewLogin(){S.mode='login';PIN='';GID='';
-$('#app').innerHTML=`<div class="lg"><div class="lgbox"><div class="logo">⭐</div><h1><span style="color:var(--blue)">Jurnal</span> <span style="color:var(--yel)">Guru</span></h1><p class="sub">Masuk untuk mengisi jurnal</p>
-<div class="fd"><label>Pilih nama Anda</label><div class="opts lgo" id="gs"><span class="sub">Memuat daftar guru...</span></div></div>
-<label style="font-weight:800;font-size:13px;color:var(--navy)">PIN 6 angka</label>
-<div class="dots" id="dots">${'<i></i>'.repeat(6)}</div>
+$('#app').innerHTML=`<div class="lg"><div class="lgbox"><div class="lh"><span class="logo">⭐</span><div><h1><span style="color:var(--blue)">Jurnal</span> <span style="color:var(--yel)">Guru</span></h1><p class="sub">Masuk untuk mengisi jurnal</p></div></div>
+<div class="stp2"><b>1</b>Pilih nama Anda</div><div class="opts lgo" id="gs"><span class="sub">Memuat daftar guru...</span></div>
+<div class="stp2"><b>2</b>Ketik PIN 6 angka</div><div class="dots" id="dots">${'<i></i>'.repeat(6)}</div>
 <div class="pad" id="pad">${['1','2','3','4','5','6','7','8','9','C','0','⌫'].map(k=>`<button data-k="${k}">${k}</button>`).join('')}</div></div></div>`;
 $('#pad').onclick=e=>{const b=e.target.closest('button');if(b)tekan(b.dataset.k)};
 try{const j=await api('daftarGuru');
@@ -311,7 +314,7 @@ async function masuk(){busy=true;
 try{const j=await api('login',{id:GID,pin:PIN});S.token=j.token;S.guru=j.guru;simpanSesi();bunyi('ok');shell()}
 catch(e){toast(e.message,1);PIN='';const d=$('#dots');d.classList.add('shake');setTimeout(()=>{d.classList.remove('shake');d.querySelectorAll('i').forEach(i=>i.classList.remove('on'))},400)}
 busy=false}
-function keluar(){S.token=null;S.guru=null;ROWS={};try{localStorage.removeItem('jg')}catch(e){}viewLogin()}
+function keluar(){S.token=null;S.guru=null;ROWS={};SISWA=null;try{localStorage.removeItem('jg')}catch(e){}viewLogin()}
 
 /* ---------- kerangka ---------- */
 const SHORT=k=>J[k].no+'. '+J[k].n.replace('Jurnal ','').replace(' Guru dan Sekolah','');
@@ -322,7 +325,7 @@ $('#app').innerHTML=`<header class="top"><div class="brand"><span class="st">⭐
 <div class="page"><h1 class="pt" id="pt"></h1><main id="main"></main></div>
 <footer class="foot">⭐ Jurnal Guru TK: mencatat langkah kecil, mendukung mimpi besar ⭐</footer>`;
 $('#nav').onclick=e=>{const b=e.target.closest('.nv');if(b)go(b.dataset.v)};
-isiAkun();go(S.view)}
+isiAkun();loadSiswa();go(S.view)}
 function isiAkun(){const g=S.guru;
 $('#me').innerHTML=`${av(g.foto,g.nama)}<span>${esc(g.nama)}</span><button class="btn y s" id="out">Keluar</button>`;$('#out').onclick=keluar}
 function go(v){S.view=v;document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.dataset.v===v));window.scrollTo(0,0);
@@ -346,7 +349,7 @@ let acc=0;const cg=pk.length?cnt.map((n,i)=>{const a=acc/pk.length*100;acc+=n;re
 const rec=KEYS.flatMap(k=>ROWS[k].map(r=>({k,r}))).sort((a,b)=>String(b.r.tanggal).localeCompare(String(a.r.tanggal))).slice(0,5);
 const h=new Date().getHours(),sapa=h<11?'Selamat pagi':h<15?'Selamat siang':h<18?'Selamat sore':'Selamat malam',nm=esc(S.guru.nama.split(/[ ,]/)[0]);
 const st=[['📒','Catatan bulan ini',tot,blnNama(bln),'#fde7bf'],['🧒','Kehadiran anak',pct(sum(kh,'hadir'),sum(kh,'jumlah')),kh.length+' hari tercatat','#d7ecfb'],['🌱','Anak BSH dan BSB',pk.length?pct(baik,pk.length):'-','dari '+pk.length+' catatan','#e1f2c9'],['✅','Jurnal harian hari ini',isi+'/3','harian, hadir, refleksi','#fbd3e0']];
-m.innerHTML=`<section class="hero"><div><h1>${sapa}, <span class="c1">${nm}</span>!<br>Tumbuhkan <span class="c2">Mimpi Besar</span> Anak</h1><p>${fmt(hari())}. Catat kegiatan, kehadiran, dan perkembangan anak dengan mudah setiap hari.</p><div class="hb"><button class="btn y" data-v="harian">Isi Jurnal Hari Ini →</button><button class="btn o" data-v="laporan">Lihat Laporan</button></div></div>
+m.innerHTML=`<section class="hero"><div><h1>${sapa}, <span class="c1">${nm}</span>!<br>Tumbuhkan <span class="c2">Mimpi Besar</span> Anak</h1><p>${fmt(hari())}${klf()?', '+klf():''}. Catat kegiatan, kehadiran, dan perkembangan anak dengan mudah setiap hari.</p><div class="hb"><button class="btn y" data-v="harian">Isi Jurnal Hari Ini →</button><button class="btn o" data-v="laporan">Lihat Laporan</button></div></div>
 <div class="scene"><span class="e e5">⭐</span><span class="e e6">☁️</span><span class="e e7">🦋</span><span class="e e2">🌳</span><span class="e e1">🏫</span><span class="e e3">🚌</span><span class="e e4">🧸</span><div class="hill"></div></div></section>
 <div class="strip">${st.map(x=>`<div class="sti"><i style="background:${x[4]}">${x[0]}</i><div><b>${x[2]}</b><small>${x[1]}</small><small style="font-weight:700">${x[3]}</small></div></div>`).join('')}</div>
 <h2 class="sec">Menu Jurnal</h2>
@@ -371,7 +374,7 @@ $('#sv').disabled=true;try{const j=await api('simpanProfil',{data:d});S.guru=j.g
 
 /* ---------- daftar jurnal ---------- */
 async function viewJurnal(k){const j=J[k],m=$('#main');
-m.innerHTML=`<div class="jh c${j.no%4}"><span class="em">${j.ic}</span><div><h2>${j.n}</h2><small>${j.no}. ${j.per}</small></div><button class="btn y" id="ad">+ Tambah Catatan</button></div>
+m.innerHTML=`<div class="jh c${j.no%4}"><span class="em">${j.ic}</span><div><h2>${j.n}</h2><small>${j.no}. ${j.per}${klf()?' - '+klf():''}</small></div><button class="btn y" id="ad">+ Tambah Catatan</button></div>
 <div class="card filt"><div class="fd"><label for="bln">Bulan</label><input type="month" id="bln" value="${hari().slice(0,7)}" style="width:210px"></div><small class="sub">Kosongkan untuk melihat semua</small></div><div id="ls">${muat()}</div>`;
 $('#ad').onclick=()=>bukaForm(k);$('#bln').onchange=()=>tampil(k);
 try{const r=await api('list',{jenis:k});ROWS[k]=urut(r.rows);if(S.view===k)tampil(k)}
@@ -391,8 +394,8 @@ let SISWA=null;
 async function loadSiswa(){if(SISWA)return SISWA;try{const j=await api('siswa');SISWA=j.siswa}catch(e){SISWA=[]}return SISWA}
 async function simpanBanyak(k,list){try{await api('simpanBanyak',{jenis:k,data:list})}catch(e){if(!/tidak dikenal/i.test(e.message))throw e;for(const d of list)await api('simpan',{jenis:k,data:d})}}
 function bukaForm(k,row){const j=J[k],tb=(!row&&TB[k])||null,md=document.createElement('div');md.className='md';
-const rkBtn=k==='kehadiran'?`<div class="fd full"><button type="button" class="btn y s" data-rk>Isi otomatis dari Rekap Absen</button> <small class="sub">Pilih tanggal dan kelompok dulu.</small></div>`:'';
-md.innerHTML=`<div class="sheet"><h2>${row?'Ubah':'Tambah'} ${j.n}</h2><div class="fg">${rkBtn}${j.f.map(f=>fld(f,row?row[f.k]:'')).join('')}</div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn" data-s>Simpan</button></div></div>`;
+const rkBtn=k==='kehadiran'?`<div class="fd full"><button type="button" class="btn y s" data-rk>Isi otomatis dari Rekap Absen</button> <small class="sub">${klf()?'Pilih tanggal dulu.':'Pilih tanggal dan kelompok dulu.'}</small></div>`:'';
+md.innerHTML=`<div class="sheet"><h2>${row?'Ubah':'Tambah'} ${j.n}${klf()?`<span class="bdg">${klf()}</span>`:''}</h2><div class="fg">${rkBtn}${j.f.map(f=>f.k==='kelas'&&klf()?`<input type="hidden" name="kelas" value="${esc((row&&row.kelas)||klf())}">`:fld(f,row?row[f.k]:'')).join('')}</div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn" data-s>Simpan</button></div></div>`;
 document.body.appendChild(md);
 const E=n=>md.querySelector(`[name=${n}]`),T={};let aktif=false,auto='';
 const setV=(n,v)=>{const e=E(n);if(!e)return;v=String(v);if(e.type==='hidden')pilih(md,n,v);else e.value=v};
@@ -407,14 +410,14 @@ if(k==='penilaian'){TKT.forEach((t,i)=>setV(['bb','mb','bsh','bsb'][i],cnt(t)));
 const sm=md.querySelector('#sm');if(sm)sm.textContent=k==='kehadiran'?`Hadir ${cnt('hadir')}, Sakit ${cnt('sakit')}, Izin ${cnt('izin')}, Alpa ${cnt('alpha')} dari ${daftar().length} anak`:`${nm.length} anak sudah dinilai`};
 const isiNama=()=>{const dl=md.querySelector('#dl_nama');if(!dl||!SISWA)return;const kl=E('kelas').value;dl.innerHTML=SISWA.filter(s=>!kl||s.kelas===kl).map(s=>`<option value="${esc(s.nama)}">`).join('')};
 const gambar=()=>{if(!tb)return;let box=md.querySelector('#tbl');
-if(!box){box=document.createElement('div');box.id='tbl';box.className='fd full';E(tb.after).closest('.fd').after(box)}
+if(!box){box=document.createElement('div');box.id='tbl';box.className='fd full';E(klf()&&tb.after==='kelas'?'tanggal':tb.after).closest('.fd').after(box)}
 const names=daftar();aktif=names.length>0;
-tb.hide.forEach(n=>{E(n).closest('.fd').style.display=aktif?'none':''});
+tb.hide.forEach(n=>{E(n).closest('.fd').style.display=(aktif||SISWA===null)?'none':''});
 Object.keys(T).forEach(n=>delete T[n]);
 if(!aktif){box.innerHTML=`<small class="sub">${SISWA===null?'Memuat daftar anak...':'Pilih kelompok untuk menampilkan daftar anak. Jika daftar tidak muncul, isi kolom secara manual.'}</small>`;return}
 if(tb.def)names.forEach(n=>T[n]=tb.def);
 box.innerHTML=`<label>Daftar anak (${names.length})</label><div class="tba">${tb.def?'<button type="button" class="btn o s" data-all>Semua hadir</button>':'<button type="button" class="btn o s" data-clr>Kosongkan pilihan</button>'}</div><div class="ta ${tb.cls}">${names.map((n,ix)=>`<div class="tr" data-n="${esc(n)}"><span>${esc(n)}</span><div class="opts">${tb.lab.map(([c,l],i)=>`<label class="op" data-i="${i}"><input type="radio" name="c_${ix}" value="${esc(c)}"${T[n]===c?' checked':''}><span>${l}</span></label>`).join('')}</div></div>`).join('')}</div><small class="sub" id="sm"></small>${tb.cls==='nl'?'<br><small class="sub">BB = Belum Berkembang, MB = Mulai Berkembang, BSH = Berkembang Sesuai Harapan, BSB = Berkembang Sangat Baik</small>':''}`};
-if(!row&&E('kelas')&&KELAS.includes(S.guru.kelas))setV('kelas',S.guru.kelas);
+if(!row&&E('kelas')&&!klf()&&KELAS.includes(S.guru.kelas))setV('kelas',S.guru.kelas);
 if(k==='perkembangan')E('nama').placeholder='Pilih nama anak atau ketik';
 md.addEventListener('change',e=>{const t=e.target;
 if(t.name==='kelas'){isiNama();gambar();hitung()}
@@ -451,9 +454,10 @@ const rs=j.rows,T=['hadir','sakit','izin','alpha'].map(k=>sum(rs,k)),tot=T.reduc
 return`<p style="margin:0 0 6px">Hari tercatat pada periode ini: <b>${j.hari}</b></p><div class="ov"><table class="rt ${cls}"><thead><tr><th>No</th><th>Nama anak</th><th>Kelompok</th><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Tanpa keterangan</th><th>% hadir</th></tr></thead><tbody>${rs.length?rs.map((r,i)=>{const t=r.hadir+r.sakit+r.izin+r.alpha;return`<tr><td class="c">${i+1}</td><td>${esc(r.nama)}</td><td>${esc(r.kelas)}</td><td class="c">${r.hadir}</td><td class="c">${r.sakit}</td><td class="c">${r.izin}</td><td class="c">${r.alpha}</td><td class="c">${pct(r.hadir,t)}</td></tr>`}).join('')+`<tr class="tt"><td colspan="3">Total</td>${T.map(x=>`<td class="c">${x}</td>`).join('')}<td class="c">${pct(T[0],tot)}</td></tr>`:'<tr><td class="c" colspan="8">Tidak ada data.</td></tr>'}</tbody></table></div>`}
 
 function viewSiswa(){const m=$('#main');
-m.innerHTML=`<div class="card"><div class="fd"><label>Kelompok</label>${radioGrup('sk',[['','Semua'],...KELAS.map(x=>[x,x])],klf(),'sk')}</div><div class="filt" style="margin-top:14px"><div class="fd"><label for="sb">Bulan</label><input type="month" id="sb" value="${hari().slice(0,7)}" style="width:210px"></div><small class="sub">Sumber: sheet Data Siswa dan Rekap Absen</small></div></div><div class="card" id="sr">${muat()}</div>`;
-const r=async()=>{$('#sr').innerHTML=muat();try{const j=await api('presensi',{bulan:$('#sb').value,kelas:nilai('sk')});if(S.view==='siswa')$('#sr').innerHTML=presTabel(j,'ap')}catch(e){$('#sr').innerHTML=`<div class="empty">${esc(e.message)}</div>`}};
-$('#sb').onchange=r;$('#sk').onchange=r;r()}
+const kf=klf();
+m.innerHTML=`<div class="card">${kf?`<p><b>Kelompok</b><span class="bdg">${kf}</span></p>`:`<div class="fd"><label>Kelompok</label>${radioGrup('sk',[['','Semua'],...KELAS.map(x=>[x,x])],'','sk')}</div>`}<div class="filt" style="margin-top:14px"><div class="fd"><label for="sb">Bulan</label><input type="month" id="sb" value="${hari().slice(0,7)}" style="width:210px"></div><small class="sub">Sumber: sheet Data Siswa dan Rekap Absen</small></div></div><div class="card" id="sr">${muat()}</div>`;
+const r=async()=>{$('#sr').innerHTML=muat();try{const j=await api('presensi',{bulan:$('#sb').value,kelas:kf||nilai('sk')});if(S.view==='siswa')$('#sr').innerHTML=presTabel(j,'ap')}catch(e){$('#sr').innerHTML=`<div class="empty">${esc(e.message)}</div>`}};
+$('#sb').onchange=r;if(!kf)$('#sk').onchange=r;r()}
 
 /* ---------- laporan formal ---------- */
 const iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
