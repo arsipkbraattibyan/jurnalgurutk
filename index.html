@@ -267,7 +267,7 @@ t:r=>r.jenis||''}};
 const ORDER=['identitas','harian','kehadiran','perkembangan','penilaian','kokurikuler','refleksi','tambahan'];
 const PROFIL=[
 {k:'nama',l:'Nama lengkap',t:'txt'},{k:'nip',l:'NIP / NUPTK',t:'txt',opt:1},{k:'sekolah',l:'Nama TK',t:'txt'},{k:'npsn',l:'NPSN',t:'txt',opt:1},
-{k:'jenjang',l:'Jenjang',t:'sel',o:['TK','RA','KB','PAUD']},{k:'kelas',l:'Kelompok yang diampu',t:'sel',o:KELAS.concat(['Guru pendamping','Semua kelompok'])},
+{k:'jenjang',l:'Jenjang',t:'sel',o:['TK','RA','KB','PAUD']},{k:'kelas',l:'Kelompok yang diampu',t:'sel',o:KELAS.concat(['KB','Guru pendamping','Semua kelompok'])},
 {k:'tahun',l:'Tahun ajaran',t:'sel',o:['2025/2026','2026/2027','2027/2028']},{k:'semester',l:'Semester',t:'sel',o:['Ganjil','Genap']},
 {k:'status',l:'Status kepegawaian',t:'sel',o:['PNS','PPPK','Guru tetap yayasan','Guru honorer']},{k:'kepsek',l:'Nama kepala TK',t:'txt',opt:1}];
 
@@ -339,7 +339,7 @@ $('#app').innerHTML=`<header class="top"><div class="brand"><span class="st">⭐
 <div class="page"><h1 class="pt" id="pt"></h1><main id="main"></main></div>
 <footer class="foot">⭐ Jurnal Guru TK: mencatat langkah kecil, mendukung mimpi besar ⭐</footer>`;
 $('#nav').onclick=e=>{const b=e.target.closest('.nv');if(b)go(b.dataset.v)};
-isiAkun();loadSiswa();go(S.view)}
+isiAkun();loadSiswa();go(S.view);if(!String(S.guru.kelas||'').trim())pilihKelompok()}
 function isiAkun(){const g=S.guru;
 $('#me').innerHTML=`${av(g.foto,g.nama)}<span>${esc(g.nama)}</span><button class="btn y s" id="out">Keluar</button>`;$('#out').onclick=keluar}
 function go(v){S.view=v;document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.dataset.v===v));window.scrollTo(0,0);
@@ -347,6 +347,15 @@ $('#pt').textContent=v==='laporan'?'Laporan':v==='siswa'?'Data siswa dan presens
 $('#pt').style.display=['laporan','siswa','identitas'].includes(v)?'':'none';
 v==='beranda'?viewBeranda():v==='identitas'?viewIdentitas():v==='laporan'?viewLaporan():v==='siswa'?viewSiswa():viewJurnal(v)}
 const muat=()=>'<div class="empty">Memuat data...</div>';
+
+/* ---------- wajib pilih kelompok jika belum diisi ---------- */
+function pilihKelompok(){const md=document.createElement('div');md.className='md';
+md.innerHTML=`<div class="sheet"><h2>Pilih kelompok Anda</h2><p class="sub" style="margin-bottom:12px">Cukup sekali. Setelah itu seluruh jurnal, data siswa, dan laporan otomatis hanya untuk kelompok ini.</p><div class="fd">${radioGrup('kp',['Kelompok A','Kelompok B','KB','Semua kelompok'].map(x=>[x,x]),'','kp')}</div><div class="act"><button class="btn" data-s>Simpan</button></div></div>`;
+document.body.appendChild(md);
+md.onclick=async e=>{const b=e.target.closest('[data-s]');if(!b)return;const v=nilai('kp');if(!v)return toast('Pilih kelompok dulu',1);
+b.disabled=true;
+try{const j=await api('simpanProfil',{data:{kelas:v}});S.guru=j.guru;simpanSesi();md.remove();isiAkun();go(S.view);toast('Kelompok tersimpan')}
+catch(er){toast(er.message,1);b.disabled=false}}}
 
 /* ---------- dashboard ---------- */
 const WARNA=['#1e88e5','#fdb913','#ee4f9a','#7cc243','#f89a2c','#8e6bd8','#26b5c9'];
@@ -378,7 +387,7 @@ catch(e){m.innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
 
 /* ---------- identitas (tanpa foto) ---------- */
 function viewIdentitas(){const g=S.guru,P=k=>PROFIL.find(f=>f.k===k);
-const sek=(ic,jd,ket,ks)=>`<div class="card"><h3>${ic} ${jd}</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">${ket}</p><div class="fg">${ks.map(k=>fld(P(k),g[k])).join('')}</div></div>`;
+const sek=(ic,jd,ket,ks)=>`<div class="card"><h3>${ic} ${jd}</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">${ket}</p><div class="fg">${ks.map(k=>fld(P(k),k==='kelas'?kelNorm(g[k]):g[k])).join('')}</div></div>`;
 $('#main').innerHTML=`<div id="pf">${sek('👩‍🏫','Data guru','Nama dan nomor pegawai Anda.',['nama','nip'])}
 ${sek('🏫','Data sekolah','Informasi TK tempat Anda mengajar.',['sekolah','npsn','jenjang','kepsek'])}
 ${sek('📋','Penugasan','Kelompok dan tahun ajaran yang sedang berjalan.',['kelas','tahun','semester','status'])}</div>
@@ -447,7 +456,6 @@ Object.keys(T).forEach(n=>delete T[n]);
 if(!aktif){box.innerHTML=`<small class="sub">${SISWA===null?'Memuat daftar anak...':'Pilih kelompok untuk menampilkan daftar anak. Jika daftar tidak muncul, isi kolom secara manual.'}</small>`;return}
 if(tb.def)names.forEach(n=>T[n]=tb.def);
 box.innerHTML=`<label>Daftar anak (${names.length})</label><div class="tba">${tb.def?'<button type="button" class="btn o s" data-all>Semua hadir</button>':'<button type="button" class="btn o s" data-clr>Kosongkan pilihan</button>'}</div><div class="ta ${tb.cls}">${names.map((n,ix)=>`<div class="tr" data-n="${esc(n)}"><span>${esc(n)}</span><div class="opts">${tb.lab.map(([c,l],i)=>`<label class="op" data-i="${i}"><input type="radio" name="c_${ix}" value="${esc(c)}"${T[n]===c?' checked':''}><span>${l}</span></label>`).join('')}</div></div>`).join('')}</div><small class="sub" id="sm"></small>${tb.cls==='nl'?'<br><small class="sub">BB = Belum Berkembang, MB = Mulai Berkembang, BSH = Berkembang Sesuai Harapan, BSB = Berkembang Sangat Baik</small>':''}`};
-if(!row&&E('kelas')&&!klf()&&KELAS.includes(S.guru.kelas))setV('kelas',S.guru.kelas);
 if(k==='perkembangan')E('nama').placeholder='Pilih nama anak atau ketik';
 md.addEventListener('change',e=>{const t=e.target;
 if(t.name==='kelas'){isiNama();gambar();hitung()}
@@ -478,7 +486,8 @@ try{if(list)await simpanBanyak(k,list);else await api('simpan',{jenis:k,data:d})
 catch(er){toast(er.message,1);b.disabled=false;b.textContent='Simpan'}}}}
 
 /* ---------- data siswa dan presensi (dari spreadsheet sumber) ---------- */
-const klf=()=>KELAS.includes(S.guru.kelas)?S.guru.kelas:'';
+const kelNorm=v=>{const m=String(v||'').trim().match(/^(?:TK|KELOMPOK)?[\s\-_]*([AB])$/i);return m?'Kelompok '+m[1].toUpperCase():String(v||'').trim()};
+const klf=()=>{const k=kelNorm(S.guru&&S.guru.kelas);return k&&!/^(semua|guru )/i.test(k)?k:''};
 function presTabel(j,cls=''){if(!j||j.err)return`<p>Data presensi belum dapat dimuat${j&&j.err?': '+esc(j.err):''}.</p>`;
 const rs=j.rows,T=['hadir','sakit','izin','alpha'].map(k=>sum(rs,k)),tot=T.reduce((a,b)=>a+b,0);
 return`<p style="margin:0 0 6px">Hari tercatat pada periode ini: <b>${j.hari}</b></p><div class="ov"><table class="rt ${cls}"><thead><tr><th>No</th><th>Nama anak</th><th>Kelompok</th><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Tanpa keterangan</th><th>% hadir</th></tr></thead><tbody>${rs.length?rs.map((r,i)=>{const t=r.hadir+r.sakit+r.izin+r.alpha;return`<tr><td class="c">${i+1}</td><td>${esc(r.nama)}</td><td>${esc(r.kelas)}</td><td class="c">${r.hadir}</td><td class="c">${r.sakit}</td><td class="c">${r.izin}</td><td class="c">${r.alpha}</td><td class="c">${pct(r.hadir,t)}</td></tr>`}).join('')+`<tr class="tt"><td colspan="3">Total</td>${T.map(x=>`<td class="c">${x}</td>`).join('')}<td class="c">${pct(T[0],tot)}</td></tr>`:'<tr><td class="c" colspan="8">Tidak ada data.</td></tr>'}</tbody></table></div>`}
