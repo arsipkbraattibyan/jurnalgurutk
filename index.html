@@ -358,25 +358,35 @@ const r=async()=>{$('#sr').innerHTML=muat();try{const j=await api('presensi',{bu
 $('#sb').onchange=r;$('#sk').onchange=r;r()}
 
 /* ---------- laporan formal ---------- */
+const iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+function rentang(j,tg,bl){
+if(j==='harian')return{dari:tg,sampai:tg,label:fmt(tg),judul:'HARIAN'};
+if(j==='mingguan'){const d=new Date(tg+'T00:00'),a=new Date(d);a.setDate(d.getDate()-(d.getDay()+6)%7);const e=new Date(a);e.setDate(a.getDate()+6);
+return{dari:iso(a),sampai:iso(e),label:`Minggu ${tgl(iso(a))} s.d. ${tgl(iso(e))}`,judul:'MINGGUAN'}}
+if(j==='bulanan'){const[y,m]=bl.split('-');return{dari:bl+'-01',sampai:bl+'-'+String(new Date(y,m,0).getDate()).padStart(2,'0'),label:blnNama(bl),judul:'BULANAN'}}
+return{dari:'',sampai:'',label:'Seluruh periode',judul:''}}
 async function viewLaporan(){const m=$('#main');
-m.innerHTML=`<div class="card noprint" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><label for="lb"><b>Periode</b></label><input type="month" id="lb" value="${hari().slice(0,7)}" style="max-width:200px"><small class="sub">Kosongkan untuk seluruh periode</small></div><button class="btn" id="cp">Cetak / simpan PDF</button></div><div id="lap">${muat()}</div>`;
+m.innerHTML=`<div class="card noprint" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><label for="lj"><b>Laporan</b></label><select id="lj" style="max-width:170px"><option value="harian">Per hari</option><option value="mingguan">Per minggu</option><option value="bulanan" selected>Per bulan</option><option value="semua">Seluruh periode</option></select><input type="date" id="lt" value="${hari()}" style="max-width:190px"><input type="month" id="lb" value="${hari().slice(0,7)}" style="max-width:190px"><small class="sub" id="lh"></small></div><button class="btn" id="cp">Cetak / simpan PDF</button></div><div id="lap">${muat()}</div>`;
 $('#cp').onclick=()=>window.print();
+const inp=()=>{const j=$('#lj').value;$('#lt').style.display=j==='harian'||j==='mingguan'?'':'none';$('#lb').style.display=j==='bulanan'?'':'none';$('#lh').textContent=j==='mingguan'?'Pilih tanggal mana saja di minggu itu (Senin sampai Minggu)':''};
 try{await muatSemua();if(S.view!=='laporan')return;
-const r=async()=>{const b=$('#lb').value;$('#lap').innerHTML=muat();let p;try{p=await api('presensi',{bulan:b,kelas:klf()})}catch(e){p={err:e.message}}if(S.view==='laporan')$('#lap').innerHTML=laporan(b,p)};
-r();$('#lb').onchange=r}
+const r=async()=>{inp();const rg=rentang($('#lj').value,$('#lt').value||hari(),$('#lb').value||hari().slice(0,7));$('#lap').innerHTML=muat();
+let p;try{p=await api('presensi',{dari:rg.dari,sampai:rg.sampai,kelas:klf()})}catch(e){p={err:e.message}}
+if(S.view==='laporan')$('#lap').innerHTML=laporan(rg,p)};
+['#lj','#lt','#lb'].forEach(x=>$(x).onchange=r);r()}
 catch(e){$('#lap').innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
 const opsi=(k,f)=>J[k].f.find(x=>x.k===f).o;
 function dist(jd,rs,key,ops){const t=rs.length;
 return`<table class="rt sm"><thead><tr><th>${jd}</th><th>Jumlah</th><th>Persentase</th></tr></thead><tbody>${ops.map(o=>{const n=rs.filter(r=>r[key]===o).length;return`<tr><td>${esc(o)}</td><td class="c">${n}</td><td class="c">${pct(n,t)}</td></tr>`}).join('')}<tr class="tt"><td>Total</td><td class="c">${t}</td><td class="c">${t?'100%':'-'}</td></tr></tbody></table>`}
 function tabel(k,rs){const j=J[k];
 return`<table class="rt"><thead><tr><th>No</th>${j.f.map(f=>`<th>${f.l}</th>`).join('')}</tr></thead><tbody>${rs.length?rs.map((r,i)=>`<tr><td class="c">${i+1}</td>${j.f.map(f=>`<td>${f.k==='tanggal'?tgl(r.tanggal):esc(r[f.k])}</td>`).join('')}</tr>`).join(''):`<tr><td class="c" colspan="${j.f.length+1}">Tidak ada catatan pada periode ini.</td></tr>`}</tbody></table>`}
-function laporan(bln,pres){const g=S.guru,per=bln?blnNama(bln):'Seluruh periode';
-const F=k=>(ROWS[k]||[]).filter(r=>!bln||String(r.tanggal).slice(0,7)===bln).slice().sort((a,b)=>String(a.tanggal).localeCompare(String(b.tanggal)));
+function laporan(rg,pres){const g=S.guru,per=rg.label;
+const F=k=>(ROWS[k]||[]).filter(r=>!rg.dari||(r.tanggal>=rg.dari&&r.tanggal<=rg.sampai)).slice().sort((a,b)=>String(a.tanggal).localeCompare(String(b.tanggal)));
 const kh=F('kehadiran'),pn=F('penilaian'),jh=sum(kh,'jumlah'),tn=sum(pn,'bb')+sum(pn,'mb')+sum(pn,'bsh')+sum(pn,'bsb');
 const idn=[['Nama guru',g.nama],['NIP / NUPTK',g.nip],['Status kepegawaian',g.status],['Nama sekolah',g.sekolah],['NPSN',g.npsn],['Jenjang',g.jenjang],['Kelompok yang diampu',g.kelas],['Tahun ajaran',g.tahun],['Semester',g.semester],['Kepala sekolah',g.kepsek]];
 const today=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
 return`<div class="paper"><div class="kop"><h2>${esc((g.sekolah||'NAMA SEKOLAH').toUpperCase())}</h2><p>${esc(g.jenjang||'')}${g.npsn?' - NPSN '+esc(g.npsn):''}</p></div>
-<h1 class="jd">LAPORAN JURNAL GURU</h1><p class="sj">Tahun ajaran ${esc(g.tahun||'-')}, semester ${esc(g.semester||'-')}<br>Periode: ${esc(per)}</p>
+<h1 class="jd">LAPORAN JURNAL GURU${rg.judul?' '+rg.judul:''}</h1><p class="sj">Tahun ajaran ${esc(g.tahun||'-')}, semester ${esc(g.semester||'-')}<br>Periode: ${esc(per)}</p>
 <h3>A. Identitas guru dan sekolah</h3><table class="rt id">${idn.map(x=>`<tr><td>${x[0]}</td><td>${esc(x[1]||'-')}</td></tr>`).join('')}</table>
 <h3>B. Ringkasan hasil</h3>
 <h4>1. Jumlah catatan per jurnal</h4><table class="rt sm"><thead><tr><th>No</th><th>Jenis jurnal</th><th>Periode pengisian</th><th>Jumlah catatan</th></tr></thead><tbody>${KEYS.map((k,i)=>`<tr><td class="c">${i+1}</td><td>${J[k].n}</td><td>${J[k].per}</td><td class="c">${F(k).length}</td></tr>`).join('')}<tr class="tt"><td colspan="3">Total</td><td class="c">${KEYS.reduce((a,k)=>a+F(k).length,0)}</td></tr></tbody></table>
