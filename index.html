@@ -154,6 +154,16 @@ input:focus,textarea:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 4
 .ukb{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#f3f9ff;border-radius:16px;padding:10px 12px}
 .ukb b{flex:1 1 100%;font:600 14px Fredoka;color:var(--navy)}.ukb b small{color:var(--mut);font:700 12px Nunito}
 .cap .paper{box-shadow:none;padding:0;max-width:none;border-radius:0;margin:0}.cap .ov{overflow:visible}.cap .rt{font-size:9px}.cap .rt.ap{font-size:10px}
+.fup{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.avb .av{width:96px;height:96px;font-size:38px}
+.fts{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.fth{position:relative}
+.fth button{position:absolute;top:-8px;right:-8px;width:28px;height:28px;border-radius:50%;border:0;background:#c2185b;color:#fff;font:800 16px/1 Nunito,sans-serif;padding:0}
+.ft{width:96px;height:96px;object-fit:cover;border-radius:14px;border:2px solid var(--ln);background:#eaf6ff;cursor:zoom-in;display:block}
+.gal{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.gal figure{margin:0;border:1px solid #333;padding:4px;break-inside:avoid}
+.gal img{display:block;width:100%;height:auto;background:#eee}
+.gal figcaption{font-size:10px;text-align:center;line-height:1.3;padding-top:3px}
 </style>
 </head>
 <body>
@@ -270,10 +280,10 @@ f:[TGL,{k:'jenis',l:'Jenis kegiatan',t:'sel',o:['Rapat guru','Pelatihan / worksh
 t:r=>r.jenis||''}};
 const ORDER=['identitas','harian','kehadiran','perkembangan','penilaian','kokurikuler','refleksi','tambahan'];
 const PROFIL=[
-{k:'nama',l:'Nama lengkap',t:'txt'},{k:'nip',l:'NIP / NUPTK',t:'txt',opt:1},{k:'sekolah',l:'Nama TK',t:'txt'},{k:'npsn',l:'NPSN',t:'txt',opt:1},
-{k:'jenjang',l:'Jenjang',t:'sel',o:['TK','RA','KB','PAUD']},{k:'kelas',l:'Kelompok yang diampu',t:'sel',o:KELAS.concat(['KB','Guru pendamping','Semua kelompok'])},
+{k:'nama',l:'Nama lengkap',t:'txt'},{k:'nip',l:'NIP / NUPTK',t:'txt',opt:1},{k:'sekolah',l:'Nama Sekolah',t:'txt'},{k:'npsn',l:'NPSN',t:'txt',opt:1},
+{k:'jenjang',l:'Jenjang',t:'sel',o:['TK','RA','KB']},{k:'kelas',l:'Kelompok yang diampu',t:'sel',o:KELAS.concat(['KB','Guru pendamping','Semua kelompok'])},
 {k:'tahun',l:'Tahun ajaran',t:'sel',o:['2025/2026','2026/2027','2027/2028']},{k:'semester',l:'Semester',t:'sel',o:['Ganjil','Genap']},
-{k:'status',l:'Status kepegawaian',t:'sel',o:['PNS','PPPK','Guru tetap yayasan','Guru honorer']},{k:'kepsek',l:'Nama kepala TK',t:'txt',opt:1}];
+{k:'status',l:'Status kepegawaian',t:'sel',o:['PNS','PPPK','Guru tetap yayasan','Guru honorer']},{k:'kepsek',l:'Nama Kepala Sekolah',t:'txt',opt:1}];
 
 
 const KEYS=ORDER.slice(1);
@@ -308,6 +318,39 @@ return{d,kurang}}
 const radioGrup=(name,list,sel,id)=>`<div class="opts" id="${id}">${list.map(([v,l])=>`<label class="op"><input type="radio" name="${name}" value="${esc(v)}"${v===sel?' checked':''}><span>${esc(l)}</span></label>`).join('')}</div>`;
 const nilai=n=>(document.querySelector(`input[name=${n}]:checked`)||{value:''}).value;
 
+/* ---------- foto lampiran bukti (privat di Drive, ditampilkan lewat server) ---------- */
+const MAXF=3,BLANK='data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+const FOTO={harian:'Foto kegiatan inti (boleh dikosongkan).',perkembangan:'Foto hasil karya atau kegiatan anak sebagai bukti penilaian.',penilaian:'Foto bukti penilaian: hasil karya, foto berseri, atau lembar ceklis.',kokurikuler:'Dokumentasi kegiatan projek, pentas, atau pameran karya.',tambahan:'Bukti kegiatan: foto, daftar hadir, atau sertifikat.'};
+const FP={};let fAkt=0;const fAntri=[];
+function fotoSrc(id){return FP[id]||(FP[id]=new Promise((ok,no)=>{fAntri.push({id,ok,no});fJalan()}))}
+function fJalan(){while(fAkt<3&&fAntri.length){const t=fAntri.shift();fAkt++;
+api('fotoData',{id:t.id}).then(j=>t.ok(j.data)).catch(e=>{delete FP[t.id];t.no(e)}).finally(()=>{fAkt--;fJalan()})}}
+function isiFoto(root){root.querySelectorAll('img[data-fid]:not([data-ok])').forEach(im=>{im.dataset.ok=1;
+fotoSrc(im.dataset.fid).then(s=>{im.src=s;im.dataset.loaded=1}).catch(()=>{im.alt='Foto gagal dimuat'})})}
+async function siapFoto(){const ims=[...document.querySelectorAll('#lap img[data-fid]')];
+await Promise.all(ims.map(im=>fotoSrc(im.dataset.fid).then(s=>{im.src=s;im.dataset.loaded=1;return im.decode?im.decode().catch(()=>{}):0}).catch(()=>{})))}
+const fotoHtml=r=>{const a=String(r.foto||'').split(/\s+/).filter(Boolean);
+return a.length?`<div class="fts">${a.map(id=>`<img class="ft" data-fid="${esc(id)}" src="${BLANK}" alt="Foto">`).join('')}</div>`:''};
+const fotoBlok=k=>`<div class="fd full"><label>Foto bukti (opsional, maks. ${MAXF})</label><p class="sub" style="font-size:12px;margin:-2px 0 8px">${FOTO[k]}</p><div class="fup"><button type="button" class="btn o s" data-fp>📷 Tambah foto</button><input type="file" id="fin" accept="image/*" multiple style="display:none"><small class="sub" id="fotn"></small></div><div class="fts" id="fot" style="margin-top:10px"></div></div>`;
+function lihatFoto(src){const md=document.createElement('div');md.className='md';
+md.innerHTML=`<div class="sheet" style="max-width:900px;text-align:center"><img src="${src}" alt="Foto" style="max-width:100%;max-height:75vh;border-radius:16px"><div class="act" style="justify-content:center"><button class="btn gh" data-x>Tutup</button></div></div>`;
+document.body.appendChild(md);md.onclick=e=>{if(e.target.closest('[data-x]'))md.remove()}}
+// kecilkan foto di browser: maks. sisi mx piksel, opsional dipotong persegi (untuk foto profil)
+async function kecil(file,mx,persegi){if(!/^image\//.test(file.type))throw new Error('bukan gambar');
+const url=URL.createObjectURL(file);
+try{const im=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=()=>no(new Error('bukan gambar'));i.src=url});
+for(const[m,q]of[[mx,.75],[Math.round(mx*.8),.62],[Math.round(mx*.6),.5]]){
+let sx=0,sy=0,sw=im.naturalWidth,sh=im.naturalHeight;
+if(persegi){const s=Math.min(sw,sh);sx=(sw-s)/2;sy=(sh-s)/2;sw=sh=s}
+const sc=Math.min(1,m/Math.max(sw,sh)),cw=Math.round(sw*sc),ch=Math.round(sh*sc);
+const c=document.createElement('canvas');c.width=cw;c.height=ch;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,cw,ch);x.drawImage(im,sx,sy,sw,sh,0,0,cw,ch);
+const d=c.toDataURL('image/jpeg',q);if(d.length<390000)return d}
+throw new Error('Foto terlalu besar')}
+finally{URL.revokeObjectURL(url)}}
+async function kirimFoto(Fo,btn){const n=Fo.baru.length;
+for(let i=0;i<n;i++){btn.textContent=`Mengunggah foto ${i+1}/${n}...`;const j=await api('unggahLampiran',{b64:Fo.baru[0].split(',')[1]});Fo.lama.push(j.id);Fo.baru.shift()}
+btn.textContent='Menyimpan...'}
+
 /* ---------- login (tanpa foto) ---------- */
 let PIN='',busy=false,GID='';
 async function viewLogin(){S.mode='login';PIN='';GID='';
@@ -332,7 +375,7 @@ async function masuk(){busy=true;
 try{const j=await api('login',{id:GID,pin:PIN});S.token=j.token;S.guru=j.guru;simpanSesi();bunyi('ok');shell()}
 catch(e){toast(e.message,1);PIN='';const d=$('#dots');d.classList.add('shake');setTimeout(()=>{d.classList.remove('shake');d.querySelectorAll('i').forEach(i=>i.classList.remove('on'))},400)}
 busy=false}
-function keluar(){S.token=null;S.guru=null;ROWS={};SISWA=null;try{localStorage.removeItem('jg')}catch(e){}viewLogin()}
+function keluar(){S.token=null;S.guru=null;ROWS={};SISWA=null;Object.keys(FP).forEach(k=>delete FP[k]);try{localStorage.removeItem('jg')}catch(e){}viewLogin()}
 
 /* ---------- kerangka ---------- */
 const SHORT=k=>J[k].no+'. '+J[k].n.replace('Jurnal ','').replace(' Guru dan Sekolah','');
@@ -391,13 +434,18 @@ catch(e){m.innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
 
 /* ---------- identitas (tanpa foto) ---------- */
 function viewIdentitas(){const g=S.guru,P=k=>PROFIL.find(f=>f.k===k);
-const sek=(ic,jd,ket,ks)=>`<div class="card"><h3>${ic} ${jd}</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">${ket}</p><div class="fg">${ks.map(k=>fld(P(k),k==='kelas'?kelNorm(g[k]):g[k])).join('')}</div></div>`;
-$('#main').innerHTML=`<div id="pf">${sek('👩‍🏫','Data guru','Nama dan nomor pegawai Anda.',['nama','nip'])}
-${sek('🏫','Data sekolah','Informasi TK tempat Anda mengajar.',['sekolah','npsn','jenjang','kepsek'])}
+const sek=(ic,jd,ket,ks)=>`<div class="card"><h3>${ic} ${jd}</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">${ket}</p><div class="fg">${ks.map(k=>fld(P(k),k==='kelas'?kelNorm(g[k]):k==='jenjang'&&g[k]==='PAUD'?'':g[k])).join('')}</div></div>`;
+$('#main').innerHTML=`<div class="card"><h3>📷 Foto profil</h3><div class="fup"><div class="avb" id="avp">${av(g.foto,g.nama)}</div><div><button class="btn o s" id="fpb" type="button">Unggah / Ganti Foto</button><input type="file" id="fpi" accept="image/*" style="display:none"><p class="sub" style="font-size:12px;margin-top:6px">Foto dipotong persegi dan dikecilkan otomatis. Tampil di pojok kanan atas.</p></div></div></div><div id="pf">${sek('👩‍🏫','Data guru','Nama dan nomor pegawai Anda.',['nama','nip'])}
+${sek('🏫','Data sekolah','Informasi sekolah tempat Anda mengajar.',['sekolah','npsn','jenjang','kepsek'])}
 ${sek('📋','Penugasan','Kelompok dan tahun ajaran yang sedang berjalan.',['kelas','tahun','semester','status'])}</div>
 <div class="act"><button class="btn y" id="sv">Simpan Identitas</button></div>`;
 $('#sv').onclick=async()=>{const{d,kurang}=ambil($('#pf'),PROFIL);if(kurang)return toast('Lengkapi dulu: '+kurang,1);
-$('#sv').disabled=true;try{const j=await api('simpanProfil',{data:d});S.guru=j.guru;simpanSesi();isiAkun();toast('Identitas tersimpan')}catch(er){toast(er.message,1)}$('#sv').disabled=false}}
+$('#sv').disabled=true;try{const j=await api('simpanProfil',{data:d});S.guru=j.guru;simpanSesi();isiAkun();toast('Identitas tersimpan')}catch(er){toast(er.message,1)}$('#sv').disabled=false};
+$('#fpb').onclick=()=>$('#fpi').click();
+$('#fpi').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const b=$('#fpb');b.disabled=true;b.textContent='Mengunggah...';
+try{const d=await kecil(f,400,true),j=await api('unggahFoto',{b64:d.split(',')[1]});S.guru.foto=j.foto;simpanSesi();isiAkun();$('#avp').innerHTML=av(j.foto,S.guru.nama);toast('Foto profil tersimpan')}
+catch(er){toast(er.message==='bukan gambar'?'Berkas bukan gambar yang valid':er.message,1)}
+b.disabled=false;b.textContent='Unggah / Ganti Foto'}}
 
 /* ---------- daftar jurnal ---------- */
 async function viewJurnal(k){const j=J[k],m=$('#main');
@@ -407,8 +455,9 @@ $('#ad').onclick=()=>bukaForm(k);$('#hh').onclick=()=>hapusHariDialog(k);$('#bln
 try{const r=await api('list',{jenis:k});ROWS[k]=urut(r.rows);if(S.view===k)tampil(k)}
 catch(e){$('#ls').innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
 function tampil(k){const j=J[k],b=$('#bln').value,rs=(ROWS[k]||[]).filter(r=>!b||String(r.tanggal).slice(0,7)===b);
-$('#ls').innerHTML=rs.length?rs.map(r=>`<div class="card row"><small>${fmt(r.tanggal)}</small><h3>${esc(j.t(r))}</h3><div class="kv">${j.f.filter(f=>f.k!=='tanggal'&&r[f.k]!==''&&r[f.k]!==undefined).map(f=>`<div><small>${f.l}</small>${esc(r[f.k])}</div>`).join('')}</div><button class="btn gh s" data-e="${r.ID}">Ubah</button> <button class="btn rd s" data-d="${r.ID}">Hapus</button></div>`).join(''):`<div class="card empty">Belum ada catatan. Ketuk <b>+ Tambah Catatan</b> untuk mengisi jurnal.</div>`;
-$('#ls').onclick=async e=>{const be=e.target.closest('[data-e]'),bd=e.target.closest('[data-d]');
+$('#ls').innerHTML=rs.length?rs.map(r=>`<div class="card row"><small>${fmt(r.tanggal)}</small><h3>${esc(j.t(r))}</h3><div class="kv">${j.f.filter(f=>f.k!=='tanggal'&&r[f.k]!==''&&r[f.k]!==undefined).map(f=>`<div><small>${f.l}</small>${esc(r[f.k])}</div>`).join('')}</div>${fotoHtml(r)}<button class="btn gh s" data-e="${r.ID}">Ubah</button> <button class="btn rd s" data-d="${r.ID}">Hapus</button></div>`).join(''):`<div class="card empty">Belum ada catatan. Ketuk <b>+ Tambah Catatan</b> untuk mengisi jurnal.</div>`;
+isiFoto($('#ls'));
+$('#ls').onclick=async e=>{const bf=e.target.closest('img.ft');if(bf&&bf.dataset.loaded)return lihatFoto(bf.src);const be=e.target.closest('[data-e]'),bd=e.target.closest('[data-d]');
 if(be)bukaForm(k,ROWS[k].find(r=>r.ID===be.dataset.e));
 if(bd&&confirm('Hapus catatan ini?')){try{await api('hapus',{jenis:k,id:bd.dataset.d});ROWS[k]=ROWS[k].filter(r=>r.ID!==bd.dataset.d);tampil(k);toast('Catatan dihapus')}catch(er){toast(er.message,1)}}}}
 
@@ -438,9 +487,14 @@ async function loadSiswa(){if(SISWA)return SISWA;try{const j=await api('siswa');
 async function simpanBanyak(k,list){try{await api('simpanBanyak',{jenis:k,data:list})}catch(e){if(!/tidak dikenal/i.test(e.message))throw e;for(const d of list)await api('simpan',{jenis:k,data:d})}}
 function bukaForm(k,row){const j=J[k],tb=(!row&&TB[k])||null,md=document.createElement('div');md.className='md';
 const rkBtn=k==='kehadiran'?`<div class="fd full"><button type="button" class="btn y s" data-rk>Isi otomatis dari Rekap Absen</button> <small class="sub">${klf()?'Pilih tanggal dulu.':'Pilih tanggal dan kelompok dulu.'}</small></div>`:'';
-md.innerHTML=`<div class="sheet"><h2>${row?'Ubah':'Tambah'} ${j.n}${klf()?`<span class="bdg">${klf()}</span>`:''}</h2><div class="fg">${rkBtn}${j.f.map(f=>f.k==='kelas'&&klf()?`<input type="hidden" name="kelas" value="${esc((row&&row.kelas)||klf())}">`:fld(f,row?row[f.k]:'')).join('')}</div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn" data-s>Simpan</button></div></div>`;
+md.innerHTML=`<div class="sheet"><h2>${row?'Ubah':'Tambah'} ${j.n}${klf()?`<span class="bdg">${klf()}</span>`:''}</h2><div class="fg">${rkBtn}${j.f.map(f=>f.k==='kelas'&&klf()?`<input type="hidden" name="kelas" value="${esc((row&&row.kelas)||klf())}">`:fld(f,row?row[f.k]:'')).join('')}${FOTO[k]?fotoBlok(k):''}</div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn" data-s>Simpan</button></div></div>`;
 document.body.appendChild(md);
 const E=n=>md.querySelector(`[name=${n}]`),T={};let aktif=false,auto='';
+const Fo={lama:row&&row.foto?String(row.foto).split(/\s+/).filter(Boolean):[],baru:[]};
+const gFoto=()=>{const c=md.querySelector('#fot');if(!c)return;
+c.innerHTML=Fo.lama.map((id,i)=>`<div class="fth"><img class="ft" data-fid="${esc(id)}" src="${BLANK}" alt="Foto"><button type="button" data-fl="${i}" aria-label="Hapus foto">×</button></div>`).join('')+Fo.baru.map((s,i)=>`<div class="fth"><img class="ft" data-loaded="1" src="${s}" alt="Foto"><button type="button" data-fb="${i}" aria-label="Hapus foto">×</button></div>`).join('');
+isiFoto(c);md.querySelector('#fotn').textContent=(Fo.lama.length+Fo.baru.length)+' dari '+MAXF+' foto'};
+gFoto();
 const setV=(n,v)=>{const e=E(n);if(!e)return;v=String(v);if(e.type==='hidden')pilih(md,n,v);else e.value=v};
 const setArea=(n,txt)=>{const fd=E(n).closest('.fd');fd.querySelector('.ex').value=txt;syncOpt(fd)};
 const daftar=()=>(SISWA||[]).filter(s=>s.kelas===E('kelas').value).map(s=>s.nama);
@@ -463,10 +517,19 @@ box.innerHTML=`<label>Daftar anak (${names.length})</label><div class="tba">${tb
 if(k==='perkembangan')E('nama').placeholder='Pilih nama anak atau ketik';
 md.addEventListener('change',e=>{const t=e.target;
 if(t.name==='kelas'){isiNama();gambar();hitung()}
-else if(t.matches('.tr input[type=radio]')){T[t.closest('.tr').dataset.n]=t.value;hitung()}});
+else if(t.matches('.tr input[type=radio]')){T[t.closest('.tr').dataset.n]=t.value;hitung()}
+else if(t.id==='fin'){const fs=[...t.files];t.value='';
+(async()=>{for(const f of fs){if(Fo.lama.length+Fo.baru.length>=MAXF){toast('Maksimal '+MAXF+' foto',1);break}
+try{Fo.baru.push(await kecil(f,1000))}catch(er){toast(er.message==='bukan gambar'?'Berkas bukan gambar yang valid':er.message,1)}}
+gFoto()})()}});
 gambar();
 if(tb||k==='perkembangan')loadSiswa().then(()=>{isiNama();gambar();hitung()});
 md.onclick=async e=>{const t=e.target;if(t.closest('[data-x]'))return md.remove();if(stepClick(e))return;
+const fl=t.closest('[data-fl]'),fb=t.closest('[data-fb]');
+if(fl){Fo.lama.splice(+fl.dataset.fl,1);gFoto();return}
+if(fb){Fo.baru.splice(+fb.dataset.fb,1);gFoto();return}
+if(t.closest('[data-fp]')){md.querySelector('#fin').click();return}
+const im=t.closest('img.ft');if(im&&im.dataset.loaded)return lihatFoto(im.src);
 if(t.closest('[data-all]')){daftar().forEach(n=>T[n]='hadir');warna();hitung();return}
 if(t.closest('[data-clr]')){Object.keys(T).forEach(n=>T[n]='');warna();hitung();return}
 const rk=t.closest('[data-rk]');
@@ -486,8 +549,9 @@ if(aktif){const nm=Object.keys(T).filter(n=>T[n]);if(!nm.length)return toast('Pi
 if(k==='perkembangan')list=nm.map(n=>({...d,nama:n,tingkat:T[n]}));else tb.hide.forEach(n=>d[n]=E(n).value)}
 if(row)d.ID=row.ID;
 const b=t.closest('[data-s]');b.disabled=true;b.textContent='Menyimpan...';
-try{if(list)await simpanBanyak(k,list);else await api('simpan',{jenis:k,data:d});md.remove();toast(list?`${list.length} catatan tersimpan`:'Jurnal tersimpan');viewJurnal(k)}
-catch(er){toast(er.message,1);b.disabled=false;b.textContent='Simpan'}}}}
+try{if(FOTO[k]){await kirimFoto(Fo,b);d.foto=Fo.lama.join(' ');if(list)list.forEach(x=>x.foto=d.foto)}
+if(list)await simpanBanyak(k,list);else await api('simpan',{jenis:k,data:d});md.remove();toast(list?`${list.length} catatan tersimpan`:'Jurnal tersimpan');viewJurnal(k)}
+catch(er){toast(er.message,1);gFoto();b.disabled=false;b.textContent='Simpan'}}}}
 
 /* ---------- data siswa dan presensi ----------
    Presensi per anak hanya muncul pada tanggal yang Jurnal Kehadirannya sudah diisi.
@@ -522,7 +586,7 @@ const inp=()=>{const j=nilai('lj');$('#lt').style.display=j==='harian'||j==='min
 try{await muatSemua();if(S.view!=='laporan')return;
 const r=async()=>{inp();const rg=rentang(nilai('lj'),$('#lt').value||hari(),$('#lb').value||hari().slice(0,7));$('#lap').innerHTML=muat();
 let p;try{p=await api('presensi',{dari:rg.dari,sampai:rg.sampai,kelas:klf()})}catch(e){p={err:e.message}}
-if(S.view==='laporan')$('#lap').innerHTML=laporan(rg,p)};
+if(S.view==='laporan'){$('#lap').innerHTML=laporan(rg,p);isiFoto($('#lap'))}};
 ['#lj','#lt','#lb'].forEach(x=>$(x).onchange=r);r()}
 catch(e){$('#lap').innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
 /* ---------- cetak, simpan PDF, simpan gambar (A4 dan HVS, potret) ---------- */
@@ -535,13 +599,13 @@ const libs=()=>Promise.all([loadJs('https://cdnjs.cloudflare.com/ajax/libs/html2
 function setKertas(u){let s=$('#pgsty');if(!s){s=document.createElement('style');s.id='pgsty';document.head.appendChild(s)}s.textContent=`@page{size:${u.w}mm ${u.h}mm;margin:${MG}mm}`}
 // render laporan menjadi kanvas per halaman, dipotong di batas baris tabel agar teks tidak terpotong
 async function halaman(u){const src=$('#lap .paper');if(!src)throw new Error('Laporan belum siap dimuat.');
-await libs();
+await libs();await siapFoto();
 const W=Math.round(u.w*MM),H=Math.round(u.h*MM),mg=Math.round(MG*MM),use=H-2*mg;
 const box=document.createElement('div');box.id='capbox';box.className='cap';
 box.style.cssText=`position:absolute;left:-99999px;top:0;width:${W}px;padding:0 ${mg}px;background:#fff;box-sizing:border-box`;
 box.appendChild(src.cloneNode(true));document.body.appendChild(box);
 try{const top=box.getBoundingClientRect().top,pts=new Set();
-box.querySelectorAll('tr,p,.ttd,.kop').forEach(e=>{if(!e.closest('thead'))pts.add(Math.round(e.getBoundingClientRect().bottom-top))});
+box.querySelectorAll('tr,p,.ttd,.kop,figure').forEach(e=>{if(!e.closest('thead'))pts.add(Math.round(e.getBoundingClientRect().bottom-top))});
 box.querySelectorAll('h3,h4').forEach(e=>pts.add(Math.round(e.getBoundingClientRect().top-top)));
 const total=Math.ceil(box.getBoundingClientRect().height),sorted=[...pts].sort((a,b)=>a-b);
 const cv=await html2canvas(box,{scale:2,backgroundColor:'#ffffff',useCORS:true,windowWidth:W,onclone:d=>{const b=d.getElementById('capbox');if(b)b.style.left='0'}});
@@ -556,7 +620,7 @@ x.drawImage(cv,0,sy,cv.width,sh,0,Math.round(mg*k),cv.width,sh);return c})}
 finally{box.remove()}}
 const unduh=(href,nama)=>{const a=document.createElement('a');a.href=href;a.download=nama;document.body.appendChild(a);a.click();a.remove()};
 async function aksiLap(c,ak){const u=UK[c];if(!u)return;
-if(ak==='cetak'){if(!$('#lap .paper'))return toast('Laporan belum siap dimuat',1);setKertas(u);window.print();return}
+if(ak==='cetak'){if(!$('#lap .paper'))return toast('Laporan belum siap dimuat',1);setKertas(u);await siapFoto();window.print();return}
 const bt=document.querySelectorAll('.ukr button');bt.forEach(b=>b.disabled=true);toast('Menyiapkan '+(ak==='pdf'?'PDF':'gambar')+' '+u.n+'...');
 const nama='Laporan-Jurnal-'+String((S.guru&&S.guru.nama)||'guru').replace(/[^\w]+/g,'_')+'-'+u.n;
 try{const cs=await halaman(u);
@@ -567,6 +631,16 @@ else{for(let i=0;i<cs.length;i++){unduh(cs[i].toDataURL('image/png'),nama+(cs.le
 toast('Gambar '+u.n+' tersimpan ('+cs.length+' halaman)')}}
 catch(e){toast(e.message||'Gagal membuat file',1)}
 bt.forEach(b=>b.disabled=false)}
+/* ---------- lampiran foto di laporan ---------- */
+function lampiranHtml(F){const m=new Map();
+Object.keys(FOTO).forEach(k=>F(k).forEach(r=>String(r.foto||'').split(/\s+/).filter(Boolean).forEach(id=>{
+const key=k+'|'+id;let o=m.get(key);if(!o){o={id,k,t:r.tanggal,rs:[]};m.set(key,o)}o.rs.push(r)})));
+const L=[...m.values()].sort((a,b)=>String(a.t).localeCompare(String(b.t))),MX=60,sh=L.slice(0,MX);
+const cap=o=>{const j=J[o.k];let s=`<b>${esc(j.n.replace('Jurnal ',''))}</b><br>${tgl(o.t)}`;
+const nm=[...new Set(o.rs.map(r=>r.nama).filter(Boolean))];
+if(nm.length)s+=`<br>${esc(nm.slice(0,4).join(', '))}${nm.length>4?' dan '+(nm.length-4)+' anak lain':''}`;
+else s+=`<br>${esc(j.t(o.rs[0]))}`;return s};
+return`<h3>E. Lampiran dokumentasi foto</h3>${sh.length?`<div class="gal">${sh.map(o=>`<figure><img data-fid="${esc(o.id)}" src="${BLANK}" alt="Foto"><figcaption>${cap(o)}</figcaption></figure>`).join('')}</div>${L.length>MX?`<p style="font-size:12px">Menampilkan ${MX} dari ${L.length} foto pada periode ini. Persempit periode laporan untuk melihat sisanya.</p>`:''}`:'<p style="font-size:12px">Tidak ada foto pada periode ini.</p>'}`}
 const opsi=(k,f)=>J[k].f.find(x=>x.k===f).o;
 function dist(jd,rs,key,ops){const t=rs.length;
 return`<table class="rt sm"><thead><tr><th>${jd}</th><th>Jumlah</th><th>Persentase</th></tr></thead><tbody>${ops.map(o=>{const n=rs.filter(r=>r[key]===o).length;return`<tr><td>${esc(o)}</td><td class="c">${n}</td><td class="c">${pct(n,t)}</td></tr>`}).join('')}<tr class="tt"><td>Total</td><td class="c">${t}</td><td class="c">${t?'100%':'-'}</td></tr></tbody></table>`}
@@ -589,7 +663,7 @@ return`<div class="paper"><div class="kop"><h2>${esc((g.sekolah||'NAMA SEKOLAH')
 <h4>6. Hasil kegiatan kokurikuler</h4>${dist('Hasil kegiatan',F('kokurikuler'),'hasil',opsi('kokurikuler','hasil'))}
 <h3>C. Rincian isian jurnal</h3>${KEYS.map((k,i)=>`<h4>${i+1}. ${J[k].n}</h4><div class="ov">${tabel(k,F(k))}</div>`).join('')}
 <h3>D. Data siswa dan presensi per anak</h3><p style="margin:0 0 4px;font-size:12px">Sumber: Rekap Absen${klf()?', '+klf():''}, hanya pada tanggal yang Jurnal Kehadirannya sudah diisi.</p>${presTabel(pres)}
-<div class="ttd"><div><p>Mengetahui,<br>Kepala ${esc(g.sekolah||'sekolah')}</p><div class="sp"></div><b><u>${esc(g.kepsek||'..............................')}</u></b></div>
+${lampiranHtml(F)}<div class="ttd"><div><p>Mengetahui,<br>Kepala ${esc(g.sekolah||'sekolah')}</p><div class="sp"></div><b><u>${esc(g.kepsek||'..............................')}</u></b></div>
 <div><p>Surabaya, ${today}<br>Guru ${esc(g.kelas||'kelompok')}</p><div class="sp"></div><b><u>${esc(g.nama)}</u></b></div></div></div>`}
 
 
