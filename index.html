@@ -148,8 +148,12 @@ input:focus,textarea:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 4
 .top{padding:8px 12px}.cu span{max-width:90px}.brand small{display:none}
 .menu{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;padding:10px 12px}.nv{white-space:nowrap}
 .page{padding:6px 12px 24px}.paper{padding:16px}.pgs{grid-template-columns:1fr 1fr}.pt{font-size:23px}}
-@page{size:A4 landscape;margin:14mm}
-@media print{body{background:#fff}.top,.menu,.foot,.noprint,#toast,.md,.pt{display:none!important}.page{padding:0;max-width:none}.paper{box-shadow:none;padding:0;max-width:none}thead{display:table-header-group}tr{break-inside:avoid}}
+@page{size:A4 portrait;margin:10mm}
+@media print{body{background:#fff}.top,.menu,.foot,.noprint,#toast,.md,.pt{display:none!important}.page{padding:0;max-width:none}.paper{box-shadow:none;padding:0;max-width:none;border-radius:0}.paper .ov{overflow:visible}.rt{font-size:9.5px}thead{display:table-header-group}tr{break-inside:avoid}}
+.ukr{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px;margin-top:14px}
+.ukb{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#f3f9ff;border-radius:16px;padding:10px 12px}
+.ukb b{flex:1 1 100%;font:600 14px Fredoka;color:var(--navy)}.ukb b small{color:var(--mut);font:700 12px Nunito}
+.cap .paper{box-shadow:none;padding:0;max-width:none;border-radius:0;margin:0}.cap .ov{overflow:visible}.cap .rt{font-size:9px}.cap .rt.ap{font-size:10px}
 </style>
 </head>
 <body>
@@ -416,7 +420,7 @@ if(!tg.length)return toast('Belum ada catatan pada bulan ini',1);
 const n=d=>rs.filter(r=>r.tanggal===d).length,md=document.createElement('div');md.className='md';
 md.innerHTML=`<div class="sheet"><h2>Hapus catatan 1 hari</h2><p class="sub" style="margin-bottom:12px">Pilih tanggal. Semua catatan pada tanggal itu dihapus sekaligus, tidak perlu per anak.</p><div class="fd"><label>Tanggal</label>${radioGrup('hd',tg.map(d=>[d,tgl(d)+' ('+n(d)+' catatan)']),tg[0],'hd')}</div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn rd" data-h>Hapus Semua</button></div></div>`;
 document.body.appendChild(md);
-md.onclick=async e=>{const t=e.target;if(t===md||t.closest('[data-x]'))return md.remove();
+md.onclick=async e=>{const t=e.target;if(t.closest('[data-x]'))return md.remove();
 const bh=t.closest('[data-h]');if(!bh)return;
 const d=nilai('hd');if(!d)return;const c=n(d);
 if(!confirm(`Hapus ${c} catatan tanggal ${tgl(d)}? Tindakan ini tidak bisa dibatalkan.`))return;
@@ -462,7 +466,7 @@ if(t.name==='kelas'){isiNama();gambar();hitung()}
 else if(t.matches('.tr input[type=radio]')){T[t.closest('.tr').dataset.n]=t.value;hitung()}});
 gambar();
 if(tb||k==='perkembangan')loadSiswa().then(()=>{isiNama();gambar();hitung()});
-md.onclick=async e=>{const t=e.target;if(t===md||t.closest('[data-x]'))return md.remove();if(stepClick(e))return;
+md.onclick=async e=>{const t=e.target;if(t.closest('[data-x]'))return md.remove();if(stepClick(e))return;
 if(t.closest('[data-all]')){daftar().forEach(n=>T[n]='hadir');warna();hitung();return}
 if(t.closest('[data-clr]')){Object.keys(T).forEach(n=>T[n]='');warna();hitung();return}
 const rk=t.closest('[data-rk]');
@@ -512,8 +516,8 @@ if(j==='bulanan'){const[y,m]=bl.split('-');return{dari:bl+'-01',sampai:bl+'-'+St
 return{dari:'',sampai:'',label:'Seluruh periode',judul:''}}
 
 async function viewLaporan(){const m=$('#main');
-m.innerHTML=`<div class="card noprint"><div class="fd"><label>Jenis laporan</label>${radioGrup('lj',[['harian','Per hari'],['mingguan','Per minggu'],['bulanan','Per bulan'],['semua','Seluruh periode']],'bulanan','lj')}</div><div class="filt" style="margin-top:14px"><div class="fd"><label for="lt">Periode</label><input type="date" id="lt" value="${hari()}" style="width:210px"><input type="month" id="lb" value="${hari().slice(0,7)}" style="width:210px"></div><small class="sub" id="lh"></small><button class="btn y" id="cp" style="margin-left:auto">Cetak / simpan PDF</button></div></div><div id="lap">${muat()}</div>`;
-$('#cp').onclick=()=>window.print();
+m.innerHTML=`<div class="card noprint"><div class="fd"><label>Jenis laporan</label>${radioGrup('lj',[['harian','Per hari'],['mingguan','Per minggu'],['bulanan','Per bulan'],['semua','Seluruh periode']],'bulanan','lj')}</div><div class="filt" style="margin-top:14px"><div class="fd"><label for="lt">Periode</label><input type="date" id="lt" value="${hari()}" style="width:210px"><input type="month" id="lb" value="${hari().slice(0,7)}" style="width:210px"></div><small class="sub" id="lh"></small></div>${ukrHtml()}</div><div id="lap">${muat()}</div>`;
+$('.ukr').onclick=e=>{const b=e.target.closest('[data-ak]');if(b)aksiLap(b.dataset.uk,b.dataset.ak)};
 const inp=()=>{const j=nilai('lj');$('#lt').style.display=j==='harian'||j==='mingguan'?'':'none';$('#lb').style.display=j==='bulanan'?'':'none';$('#lh').textContent=j==='mingguan'?'Pilih tanggal mana saja di minggu itu (Senin sampai Minggu)':''};
 try{await muatSemua();if(S.view!=='laporan')return;
 const r=async()=>{inp();const rg=rentang(nilai('lj'),$('#lt').value||hari(),$('#lb').value||hari().slice(0,7));$('#lap').innerHTML=muat();
@@ -521,6 +525,48 @@ let p;try{p=await api('presensi',{dari:rg.dari,sampai:rg.sampai,kelas:klf()})}ca
 if(S.view==='laporan')$('#lap').innerHTML=laporan(rg,p)};
 ['#lj','#lt','#lb'].forEach(x=>$(x).onchange=r);r()}
 catch(e){$('#lap').innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
+/* ---------- cetak, simpan PDF, simpan gambar (A4 dan HVS, potret) ---------- */
+const UK={a4:{n:'A4',w:210,h:297},hvs:{n:'HVS',w:215,h:330}},MM=96/25.4,MG=10; // ukuran mm, margin 10 mm
+const cm=v=>String(v/10).replace('.',',');
+function ukrHtml(){return`<div class="ukr">${Object.entries(UK).map(([c,u])=>`<div class="ukb"><b>${u.n} <small>(${cm(u.w)} x ${cm(u.h)} cm, potret)</small></b><button class="btn o s" data-uk="${c}" data-ak="cetak">🖨️ Cetak</button><button class="btn s" data-uk="${c}" data-ak="pdf">📄 Simpan PDF</button><button class="btn y s" data-uk="${c}" data-ak="img">🖼️ Simpan Gambar</button></div>`).join('')}</div>`}
+const _js={};
+const loadJs=u=>_js[u]||(_js[u]=new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;s.onload=ok;s.onerror=()=>{delete _js[u];no(new Error('Gagal memuat pustaka PDF/gambar. Periksa koneksi internet.'))};document.head.appendChild(s)}));
+const libs=()=>Promise.all([loadJs('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),loadJs('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')]);
+function setKertas(u){let s=$('#pgsty');if(!s){s=document.createElement('style');s.id='pgsty';document.head.appendChild(s)}s.textContent=`@page{size:${u.w}mm ${u.h}mm;margin:${MG}mm}`}
+// render laporan menjadi kanvas per halaman, dipotong di batas baris tabel agar teks tidak terpotong
+async function halaman(u){const src=$('#lap .paper');if(!src)throw new Error('Laporan belum siap dimuat.');
+await libs();
+const W=Math.round(u.w*MM),H=Math.round(u.h*MM),mg=Math.round(MG*MM),use=H-2*mg;
+const box=document.createElement('div');box.id='capbox';box.className='cap';
+box.style.cssText=`position:absolute;left:-99999px;top:0;width:${W}px;padding:0 ${mg}px;background:#fff;box-sizing:border-box`;
+box.appendChild(src.cloneNode(true));document.body.appendChild(box);
+try{const top=box.getBoundingClientRect().top,pts=new Set();
+box.querySelectorAll('tr,p,.ttd,.kop').forEach(e=>{if(!e.closest('thead'))pts.add(Math.round(e.getBoundingClientRect().bottom-top))});
+box.querySelectorAll('h3,h4').forEach(e=>pts.add(Math.round(e.getBoundingClientRect().top-top)));
+const total=Math.ceil(box.getBoundingClientRect().height),sorted=[...pts].sort((a,b)=>a-b);
+const cv=await html2canvas(box,{scale:2,backgroundColor:'#ffffff',useCORS:true,windowWidth:W,onclone:d=>{const b=d.getElementById('capbox');if(b)b.style.left='0'}});
+const k=cv.width/W,pages=[];let y=0;
+while(y<total-1){let cut=Math.min(y+use,total);
+if(total-y>use){const c=sorted.filter(p=>p>y+use*.35&&p<=y+use);if(c.length)cut=c[c.length-1]}
+pages.push([y,cut]);y=cut}
+return pages.map(([a,b])=>{const c=document.createElement('canvas');c.width=Math.round(W*k);c.height=Math.round(H*k);
+const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);
+const sy=Math.round(a*k),sh=Math.min(Math.round((b-a)*k),cv.height-sy);
+x.drawImage(cv,0,sy,cv.width,sh,0,Math.round(mg*k),cv.width,sh);return c})}
+finally{box.remove()}}
+const unduh=(href,nama)=>{const a=document.createElement('a');a.href=href;a.download=nama;document.body.appendChild(a);a.click();a.remove()};
+async function aksiLap(c,ak){const u=UK[c];if(!u)return;
+if(ak==='cetak'){if(!$('#lap .paper'))return toast('Laporan belum siap dimuat',1);setKertas(u);window.print();return}
+const bt=document.querySelectorAll('.ukr button');bt.forEach(b=>b.disabled=true);toast('Menyiapkan '+(ak==='pdf'?'PDF':'gambar')+' '+u.n+'...');
+const nama='Laporan-Jurnal-'+String((S.guru&&S.guru.nama)||'guru').replace(/[^\w]+/g,'_')+'-'+u.n;
+try{const cs=await halaman(u);
+if(ak==='pdf'){const{jsPDF}=window.jspdf,doc=new jsPDF({orientation:'portrait',unit:'mm',format:[u.w,u.h]});
+cs.forEach((cv,i)=>{if(i)doc.addPage([u.w,u.h],'portrait');doc.addImage(cv.toDataURL('image/jpeg',.92),'JPEG',0,0,u.w,u.h)});
+doc.save(nama+'.pdf');toast('PDF '+u.n+' tersimpan ('+cs.length+' halaman)')}
+else{for(let i=0;i<cs.length;i++){unduh(cs[i].toDataURL('image/png'),nama+(cs.length>1?'-hal'+(i+1):'')+'.png');if(i<cs.length-1)await new Promise(r=>setTimeout(r,500))}
+toast('Gambar '+u.n+' tersimpan ('+cs.length+' halaman)')}}
+catch(e){toast(e.message||'Gagal membuat file',1)}
+bt.forEach(b=>b.disabled=false)}
 const opsi=(k,f)=>J[k].f.find(x=>x.k===f).o;
 function dist(jd,rs,key,ops){const t=rs.length;
 return`<table class="rt sm"><thead><tr><th>${jd}</th><th>Jumlah</th><th>Persentase</th></tr></thead><tbody>${ops.map(o=>{const n=rs.filter(r=>r[key]===o).length;return`<tr><td>${esc(o)}</td><td class="c">${n}</td><td class="c">${pct(n,t)}</td></tr>`}).join('')}<tr class="tt"><td>Total</td><td class="c">${t}</td><td class="c">${t?'100%':'-'}</td></tr></tbody></table>`}
