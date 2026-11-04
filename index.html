@@ -183,6 +183,7 @@ select{width:100%;font:inherit;height:48px;padding:0 12px;border:2px solid var(-
 .tabs button{flex:1;border:0;background:none;border-radius:14px;padding:10px 12px;font:600 15px Fredoka,sans-serif;color:var(--mut)}
 .tabs button.on{background:var(--blue);color:#fff;box-shadow:0 3px 0 var(--blued)}
 .rt.sis tbody tr{cursor:pointer}.rt.sis tbody tr:hover td{background:#0000000a}
+input:disabled,textarea:disabled{background:#f1f5fb;color:var(--mut);opacity:1}
 .sdh{font-size:15px;color:var(--navy);margin:14px 0 8px}.dl a{color:var(--blued);font-weight:800}
 .dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px 18px}
 .dl>div{border-bottom:1px dashed var(--ln);padding-bottom:6px;min-width:0}.dl small{display:block;color:var(--mut);font-weight:800;font-size:12px}.dl b{display:block;overflow-wrap:anywhere;font-weight:700}
@@ -732,8 +733,25 @@ function sdCols(){const used=new Set();return SDF.map(([l,res,ex])=>{let i=-1;fo
 function sdDetail(i){const r=SD.rows[i],md=document.createElement('div');md.className='md';
 const g=[[],[],[],[]];SD.kolom.forEach((k,n)=>g[sdGrup(k)].push(n));
 const nilaiHtml=(k,v)=>{const t=sdv(k,v);return sdTel(k)&&t!=='-'&&/^[+\d][\d\s\-+]{6,}$/.test(t)?`<a href="tel:${esc(t.replace(/[\s-]/g,''))}">${esc(t)}</a>`:esc(t)};
-md.innerHTML=`<div class="sheet"><h2>🧑‍🎓 ${esc(r[SD.iNama])}</h2>${SDG.map(([jd],gi)=>g[gi].length?`<h3 class="sdh">${jd}</h3><div class="dl">${g[gi].map(n=>`<div><small>${esc(SD.kolom[n])}</small><b>${nilaiHtml(SD.kolom[n],r[n])}</b></div>`).join('')}</div>`:'').join('')}<div class="act"><button class="btn" data-x>Tutup</button></div></div>`;
-md.onclick=e=>{if(e.target===md||e.target.closest('[data-x]'))md.remove()};document.body.appendChild(md)}
+md.innerHTML=`<div class="sheet"><h2>🧑‍🎓 ${esc(r[SD.iNama])}</h2>${SDG.map(([jd],gi)=>g[gi].length?`<h3 class="sdh">${jd}</h3><div class="dl">${g[gi].map(n=>`<div><small>${esc(SD.kolom[n])}</small><b>${nilaiHtml(SD.kolom[n],r[n])}</b></div>`).join('')}</div>`:'').join('')}<div class="act"><button class="btn o" data-ub>✏️ Ubah</button><button class="btn" data-x>Tutup</button></div></div>`;
+md.onclick=e=>{if(e.target===md||e.target.closest('[data-x]'))return md.remove();if(e.target.closest('[data-ub]')){md.remove();sdEdit(i)}};document.body.appendChild(md)}
+function sdField(k,v,n){const ro=(SD.ro||[]).includes(n);let x=String(v||'');if(sdTel(k)&&/^8\d{7,12}$/.test(x))x='0'+x;
+const L=`<label>${esc(k)}</label>`;
+if(ro)return`<div class="fd">${L}<input value="${esc(x)}" disabled></div>`;
+if(/tanggal|tgl/i.test(k)&&!sdTel(k)&&(!x||/^\d{4}-\d{2}-\d{2}$/.test(x)))return`<div class="fd">${L}<input type="date" name="c${n}" value="${esc(x)}"></div>`;
+if(/^alamat/i.test(k))return`<div class="fd full">${L}<textarea name="c${n}" rows="2">${esc(x)}</textarea></div>`;
+return`<div class="fd">${L}<input ${sdTel(k)?'type="tel" inputmode="tel"':''} name="c${n}" value="${esc(x)}" autocomplete="off"></div>`}
+function sdEdit(i){const r=SD.rows[i],md=document.createElement('div');md.className='md';
+const g=[[],[],[],[]];SD.kolom.forEach((k,n)=>g[sdGrup(k)].push(n));
+md.innerHTML=`<div class="sheet"><h2>✏️ Ubah data: ${esc(r[SD.iNama])}</h2><p class="sub" style="font-size:13px;margin-bottom:6px">Nama, kelompok, dan status tidak bisa diubah dari sini. Perubahan langsung tersimpan di spreadsheet Data Siswa.</p>${SDG.map(([jd],gi)=>g[gi].length?`<h3 class="sdh">${jd}</h3><div class="fg">${g[gi].map(n=>sdField(SD.kolom[n],r[n],n)).join('')}</div>`:'').join('')}<div class="act"><button class="btn gh" data-x>Batal</button><button class="btn y" data-sv>Simpan</button></div></div>`;
+md.onclick=async e=>{if(e.target===md||e.target.closest('[data-x]'))return md.remove();
+const b=e.target.closest('[data-sv]');if(!b)return;
+const data={};md.querySelectorAll('[name^=c]').forEach(el=>{const n=+el.name.slice(1);let o=String(r[n]||'');if(sdTel(SD.kolom[n])&&/^8\d{7,12}$/.test(o))o='0'+o;if(el.value.trim()!==o)data[n]=el.value.trim()});
+if(!Object.keys(data).length){md.remove();return toast('Tidak ada perubahan')}
+b.disabled=true;b.textContent='Menyimpan...';
+try{await api('simpanSiswa',{baris:SD.baris[i],nama:r[SD.iNama],data});Object.keys(data).forEach(n=>{SD.rows[i][n]=data[n]});md.remove();renderDataSiswa();toast('Data siswa tersimpan')}
+catch(er){toast(/tidak dikenal/i.test(er.message)?'Backend belum diperbarui. Pasang Code.gs terbaru.':er.message,1);b.disabled=false;b.textContent='Simpan'}};
+document.body.appendChild(md)}
 function renderDataSiswa(){const q=(($('#sq')||{}).value||'').trim().toLowerCase();
 if(!SD||SD.iNama<0)return $('#sr').innerHTML='<div class="empty">Kolom nama tidak ditemukan di sheet Data Siswa.</div>';
 if(!SD.rows.length)return $('#sr').innerHTML='<div class="empty">Belum ada data siswa untuk kelompok ini.</div>';
