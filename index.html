@@ -183,6 +183,7 @@ select{width:100%;font:inherit;height:48px;padding:0 12px;border:2px solid var(-
 .tabs button{flex:1;border:0;background:none;border-radius:14px;padding:10px 12px;font:600 15px Fredoka,sans-serif;color:var(--mut)}
 .tabs button.on{background:var(--blue);color:#fff;box-shadow:0 3px 0 var(--blued)}
 .rt.sis tbody tr{cursor:pointer}.rt.sis tbody tr:hover td{background:#0000000a}
+.sdh{font-size:15px;color:var(--navy);margin:14px 0 8px}.dl a{color:var(--blued);font-weight:800}
 .dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px 18px}
 .dl>div{border-bottom:1px dashed var(--ln);padding-bottom:6px;min-width:0}.dl small{display:block;color:var(--mut);font-weight:800;font-size:12px}.dl b{display:block;overflow-wrap:anywhere;font-weight:700}
 .tmg{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
@@ -563,9 +564,7 @@ ${sek('🏫','Data sekolah','Informasi sekolah tempat Anda mengajar.',['sekolah'
 ${sek('📍','Alamat dan kontak sekolah','Letak dan cara menghubungi sekolah.',['alamatsekolah','kelurahan','kecamatan','kota','provinsi','kodepos','telpsekolah','emailsekolah','website'])}
 ${sek('🧑‍💼','Kepala sekolah','Nama dan nomor pegawai kepala sekolah (tampil di tanda tangan laporan).',['kepsek','nipkepsek'])}
 ${sek('📋','Penugasan','Kelompok dan tahun ajaran yang sedang berjalan.',['kelas','tahun','semester'])}</div>
-<div class="act"><button class="btn y" id="sv">Simpan Identitas</button></div>
-<div class="card" style="margin-top:14px"><h3>🔒 Keamanan akun</h3><p class="sub" style="font-size:13px;margin:-6px 0 12px">PIN dipakai untuk masuk. Ganti secara berkala dan jangan dibagikan ke orang lain.</p><button class="btn o s" id="gp" type="button">Ganti PIN</button></div>`;
-$('#gp').onclick=()=>dialogPin(false);
+<div class="act"><button class="btn y" id="sv">Simpan Identitas</button></div>`;
 $('#sv').onclick=async()=>{const{d,kurang}=ambil($('#pf'),PROFIL);if(kurang)return toast('Lengkapi dulu: '+kurang,1);
 $('#sv').disabled=true;try{const j=await api('simpanProfil',{data:d});S.guru=j.guru;simpanSesi();isiAkun();toast('Identitas tersimpan')}catch(er){toast(er.message,1)}$('#sv').disabled=false};
 $('#fpb').onclick=()=>$('#fpi').click();
@@ -706,20 +705,26 @@ const rs=j.rows,T=['hadir','sakit','izin','alpha'].map(k=>sum(rs,k)),tot=T.reduc
 return`<p style="margin:0 0 6px">Hari jurnal kehadiran pada periode ini: <b>${j.hari}</b></p><div class="ov"><table class="rt ${cls}"><thead><tr><th>No</th><th>Nama anak</th><th>Kelompok</th><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Tanpa keterangan</th><th>% hadir</th></tr></thead><tbody>${rs.length?rs.map((r,i)=>{const t=r.hadir+r.sakit+r.izin+r.alpha;return`<tr><td class="c">${i+1}</td><td>${esc(r.nama)}</td><td>${esc(r.kelas)}</td><td class="c">${r.hadir}</td><td class="c">${r.sakit}</td><td class="c">${r.izin}</td><td class="c">${r.alpha}</td><td class="c">${pct(r.hadir,t)}</td></tr>`}).join('')+`<tr class="tt"><td colspan="3">Total</td>${T.map(x=>`<td class="c">${x}</td>`).join('')}<td class="c">${pct(T[0],tot)}</td></tr>`:'<tr><td class="c" colspan="8">Tidak ada data.</td></tr>'}</tbody></table></div>`}
 
 let SISTAB='data',SD=null;
-const SDF=[['Nama',[/^nama(\s+(lengkap|siswa|murid|anak))?$/i,/nama/i],/ayah|ibu|wali|orang/i],['Kelompok',[/kelas|kelompok/i]],['Tempat lahir',[/tempat/i]],
-['Tanggal lahir',[/tanggal.*lahir|tgl.*lahir|^lahir$|^ttl$/i,/lahir/i],/tempat/i],['L/P',[/jenis kelamin|^jk$|gender|^l\/p$/i]],['Alamat',[/alamat/i]],
-['Telepon',[/telp|telepon|\bhp\b|no\.? ?hp|\bwa\b|whatsapp|phone|kontak/i]],['Orang tua / wali',[/ayah|ibu|orang ?tua|wali/i],/telp|telepon|hp|wa\b|alamat|pekerjaan|kerja/i]];
-const sdTel=l=>/telp|telepon|\bhp\b|\bwa\b|whatsapp|phone|kontak/i.test(l);
+const RX_ORTU=/ayah|ibu|bapak|orang ?tua|wali/i,RX_ALM=/alamat|domisili|\brt\b|\brw\b|kelurahan|desa|kecamatan|kota|kabupaten|provinsi|kode ?pos/i,RX_KON=/telp|telepon|\bhp\b|\bwa\b|whatsapp|phone|kontak|email/i;
+const SDF=[['Nama',[/^nama(\s+(lengkap|siswa|murid|anak))?$/i,/nama/i],RX_ORTU],['Kelompok',[/kelas|kelompok/i]],['Tempat lahir',[/tempat/i]],
+['Tanggal lahir',[/tanggal.*lahir|tgl.*lahir|^lahir$|^ttl$/i,/lahir/i],/tempat/i],['L/P',[/jenis kelamin|^jk$|gender|^l\/p$/i]],['Alamat',[/^alamat/i,/alamat/i],/ayah|ibu|wali|kantor|kerja/i],
+['Ayah',[/^(nama )?ayah|^nama bapak|^bapak/i],/telp|telepon|hp|wa\b|alamat|pekerjaan|kerja|penghasilan/i],['Ibu',[/^(nama )?ibu|^nama mama/i],/telp|telepon|hp|wa\b|alamat|pekerjaan|kerja|penghasilan/i],
+['Wali',[/^(nama )?wali/i],/telp|telepon|hp|wa\b|alamat|pekerjaan|kerja|kode/i],['Telepon',[/telp|telepon|\bhp\b|no\.? ?hp|\bwa\b|whatsapp|phone|kontak/i]]];
+const sdTel=l=>RX_KON.test(l)&&!/email/i.test(l);
+const SDG=[['👧 Data anak',null],['📍 Alamat',RX_ALM],['👨‍👩‍👧 Orang tua / wali',RX_ORTU],['📞 Kontak',RX_KON]];
+const sdGrup=l=>RX_ORTU.test(l)?2:RX_ALM.test(l)?1:RX_KON.test(l)?3:0;
 function sdv(l,v){v=String(v||'').trim();if(!v)return'-';if(/^\d{4}-\d{2}-\d{2}$/.test(v))return tgl(v);if(sdTel(l)&&/^8\d{7,12}$/.test(v))return'0'+v;return v}
 function sdCols(){const used=new Set();return SDF.map(([l,res,ex])=>{let i=-1;for(const re of res){i=SD.kolom.findIndex((k,n)=>!used.has(n)&&re.test(k)&&!(ex&&ex.test(k)));if(i>=0)break}if(i>=0)used.add(i);return{l,i}}).filter(c=>c.i>=0)}
 function sdDetail(i){const r=SD.rows[i],md=document.createElement('div');md.className='md';
-md.innerHTML=`<div class="sheet"><h2>🧑‍🎓 ${esc(r[SD.iNama])}</h2><div class="dl">${SD.kolom.map((k,n)=>`<div><small>${esc(k)}</small><b>${esc(sdv(k,r[n]))}</b></div>`).join('')}</div><div class="act"><button class="btn" data-x>Tutup</button></div></div>`;
+const g=[[],[],[],[]];SD.kolom.forEach((k,n)=>g[sdGrup(k)].push(n));
+const nilaiHtml=(k,v)=>{const t=sdv(k,v);return sdTel(k)&&t!=='-'&&/^[+\d][\d\s\-+]{6,}$/.test(t)?`<a href="tel:${esc(t.replace(/[\s-]/g,''))}">${esc(t)}</a>`:esc(t)};
+md.innerHTML=`<div class="sheet"><h2>🧑‍🎓 ${esc(r[SD.iNama])}</h2>${SDG.map(([jd],gi)=>g[gi].length?`<h3 class="sdh">${jd}</h3><div class="dl">${g[gi].map(n=>`<div><small>${esc(SD.kolom[n])}</small><b>${nilaiHtml(SD.kolom[n],r[n])}</b></div>`).join('')}</div>`:'').join('')}<div class="act"><button class="btn" data-x>Tutup</button></div></div>`;
 md.onclick=e=>{if(e.target===md||e.target.closest('[data-x]'))md.remove()};document.body.appendChild(md)}
 function renderDataSiswa(){const q=(($('#sq')||{}).value||'').trim().toLowerCase();
 if(!SD||SD.iNama<0)return $('#sr').innerHTML='<div class="empty">Kolom nama tidak ditemukan di sheet Data Siswa.</div>';
 if(!SD.rows.length)return $('#sr').innerHTML='<div class="empty">Belum ada data siswa untuk kelompok ini.</div>';
 const cs=sdCols(),ix=SD.rows.map((r,i)=>i).filter(i=>!q||String(SD.rows[i][SD.iNama]).toLowerCase().includes(q));
-$('#sr').innerHTML=`<p style="margin:0 0 8px"><b>${ix.length}</b> anak. Ketuk nama untuk melihat data lengkap.</p><div class="ov"><table class="rt ap sis"><thead><tr><th>No</th>${cs.map(c=>`<th>${c.l}</th>`).join('')}</tr></thead><tbody>${ix.length?ix.map((i,n)=>`<tr data-i="${i}"><td class="c">${n+1}</td>${cs.map(c=>`<td>${esc(sdv(SD.kolom[c.i],SD.rows[i][c.i]))}</td>`).join('')}</tr>`).join(''):`<tr><td class="c" colspan="${cs.length+1}">Tidak ada nama yang cocok.</td></tr>`}</tbody></table></div>`}
+$('#sr').innerHTML=`<p style="margin:0 0 8px"><b>${ix.length}</b> anak. Ketuk baris untuk melihat data lengkap: alamat, orang tua/wali, dan kontak.</p><div class="ov"><table class="rt ap sis"><thead><tr><th>No</th>${cs.map(c=>`<th>${c.l}</th>`).join('')}</tr></thead><tbody>${ix.length?ix.map((i,n)=>`<tr data-i="${i}"><td class="c">${n+1}</td>${cs.map(c=>`<td>${esc(sdv(SD.kolom[c.i],SD.rows[i][c.i]))}</td>`).join('')}</tr>`).join(''):`<tr><td class="c" colspan="${cs.length+1}">Tidak ada nama yang cocok.</td></tr>`}</tbody></table></div>`}
 async function muatDataSiswa(){$('#sr').innerHTML=muat();
 try{const j=await api('dataSiswa',{kelas:klf()||nilai('sk')});if(S.view!=='siswa'||SISTAB!=='data')return;SD=j;renderDataSiswa()}
 catch(e){if(S.view==='siswa'&&SISTAB==='data')$('#sr').innerHTML=`<div class="empty">${esc(/tidak dikenal/i.test(e.message)?'Backend belum diperbarui. Pasang Code.gs versi terbaru lalu Deploy > Manage deployments > Edit > Version baru.':e.message)}</div>`}}
@@ -896,6 +901,7 @@ const TM3=[['ceria','Ceria Biru','Desain bawaan: biru, kuning, dan hijau yang ce
 ['belajar','Belajar Lembut','Putih bersih, kartu pastel, dan hijau toska yang tenang.',['#0f8b8d','#ffc857','#ee8b8b','#8e7cc3'],'linear-gradient(#f5f9fb,#e3f1f3)']];
 $('#main').innerHTML=`<div class="card"><h3>🎨 Ganti desain</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Pilih tampilan aplikasi. Pilihan tersimpan di perangkat ini.</p>
 <div class="tmg" id="tmg">${TM3.map(([v,n,k,c,bg])=>`<button type="button" class="tmc${SET.tema===v?' on':''}" data-tm="${v}"><div class="tmv" style="background:${bg}">${c.map((x,i)=>`<i style="background:${x};height:${[70,46,58,34][i]}%"></i>`).join('')}</div><b>${n}</b><small>${k}</small></button>`).join('')}</div></div>
+<div class="card"><h3>🔒 Keamanan akun</h3><p class="sub" style="font-size:13px;margin:-6px 0 12px">PIN dipakai untuk masuk. Ganti secara berkala dan jangan dibagikan ke orang lain.</p><button class="btn o s" id="gp" type="button">Ganti PIN</button></div>
 <div class="card"><h3>🔊 Suara</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Bunyi pendek saat menekan tombol dan saat data tersimpan atau gagal.</p>
 <div class="fg" style="grid-template-columns:repeat(2,1fr);max-width:360px" id="sps"><label class="op"><input type="radio" name="su" value="1"${SET.suara?' checked':''}><span>Hidup</span></label><label class="op"><input type="radio" name="su" value="0"${SET.suara?'':' checked'}><span>Mati</span></label></div>
 <p class="sub" style="font-size:13px;margin:14px 0 6px">Volume</p>
@@ -904,6 +910,7 @@ $('#main').innerHTML=`<div class="card"><h3>🎨 Ganti desain</h3><p class="sub"
 $('#tmg').onclick=e=>{const b=e.target.closest('[data-tm]');if(!b)return;SET.tema=b.dataset.tm;simpanSet();applyTema();bunyi('ok');viewPengaturan()};
 $('#sps').onchange=e=>{SET.suara=e.target.value==='1';simpanSet();bunyi('ok')};
 $('#spv').onchange=e=>{SET.vol=+e.target.value;simpanSet();bunyi('ok')};
+$('#gp').onclick=()=>dialogPin(false);
 const b=$('#ins');if(b)b.onclick=async()=>{DIP.prompt();try{await DIP.userChoice}catch(e){}DIP=null;viewPengaturan()}}
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 
