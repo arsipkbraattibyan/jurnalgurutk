@@ -739,17 +739,18 @@ function sdField(k,v,n){const ro=(SD.ro||[]).includes(n);let x=String(v||'');if(
 const L=`<label>${esc(k)}</label>`;
 if(ro)return`<div class="fd">${L}<input value="${esc(x)}" disabled></div>`;
 if(/tanggal|tgl/i.test(k)&&!sdTel(k)&&(!x||/^\d{4}-\d{2}-\d{2}$/.test(x)))return`<div class="fd">${L}<input type="date" name="c${n}" value="${esc(x)}"></div>`;
+if(/jenis kelamin/i.test(k))return`<div class="fd">${L}<select name="c${n}"><option value="">Pilih</option>${['Laki-laki','Perempuan'].map(o=>`<option${o===x?' selected':''}>${o}</option>`).join('')}</select></div>`;
 if(/^alamat/i.test(k))return`<div class="fd full">${L}<textarea name="c${n}" rows="2">${esc(x)}</textarea></div>`;
 return`<div class="fd">${L}<input ${sdTel(k)?'type="tel" inputmode="tel"':''} name="c${n}" value="${esc(x)}" autocomplete="off"></div>`}
 function sdEdit(i){const r=SD.rows[i],md=document.createElement('div');md.className='md';
 const g=[[],[],[],[]];SD.kolom.forEach((k,n)=>g[sdGrup(k)].push(n));
-md.innerHTML=`<div class="sheet"><h2>✏️ Ubah data: ${esc(r[SD.iNama])}</h2><p class="sub" style="font-size:13px;margin-bottom:6px">Nama, kelompok, dan status tidak bisa diubah dari sini. Perubahan langsung tersimpan di spreadsheet Data Siswa.</p>${SDG.map(([jd],gi)=>g[gi].length?`<h3 class="sdh">${jd}</h3><div class="fg">${g[gi].map(n=>sdField(SD.kolom[n],r[n],n)).join('')}</div>`:'').join('')}<div class="act"><button class="btn gh" data-x>Batal</button><button class="btn y" data-sv>Simpan</button></div></div>`;
+md.innerHTML=`<div class="sheet"><h2>✏️ Ubah data: ${esc(r[SD.iNama])}</h2><p class="sub" style="font-size:13px;margin-bottom:6px">Nama dan kelompok mengikuti spreadsheet absensi dan tidak diubah dari sini. Data lengkap ini disimpan di spreadsheet Jurnal Guru, presensi tetap dari Rekap Absen.</p>${SDG.map(([jd],gi)=>g[gi].length?`<h3 class="sdh">${jd}</h3><div class="fg">${g[gi].map(n=>sdField(SD.kolom[n],r[n],n)).join('')}</div>`:'').join('')}<div class="act"><button class="btn gh" data-x>Batal</button><button class="btn y" data-sv>Simpan</button></div></div>`;
 md.onclick=async e=>{if(e.target===md||e.target.closest('[data-x]'))return md.remove();
 const b=e.target.closest('[data-sv]');if(!b)return;
 const data={};md.querySelectorAll('[name^=c]').forEach(el=>{const n=+el.name.slice(1);let o=String(r[n]||'');if(sdTel(SD.kolom[n])&&/^8\d{7,12}$/.test(o))o='0'+o;if(el.value.trim()!==o)data[n]=el.value.trim()});
 if(!Object.keys(data).length){md.remove();return toast('Tidak ada perubahan')}
 b.disabled=true;b.textContent='Menyimpan...';
-try{await api('simpanSiswa',{baris:SD.baris[i],nama:r[SD.iNama],data});Object.keys(data).forEach(n=>{SD.rows[i][n]=data[n]});md.remove();renderDataSiswa();toast('Data siswa tersimpan')}
+try{await api('simpanSiswa',{nama:r[SD.iNama],kelas:r[SD.iKelas],data});Object.keys(data).forEach(n=>{SD.rows[i][n]=data[n]});md.remove();renderDataSiswa();toast('Data siswa tersimpan')}
 catch(er){toast(/tidak dikenal/i.test(er.message)?'Backend belum diperbarui. Pasang Code.gs terbaru.':er.message,1);b.disabled=false;b.textContent='Simpan'}};
 document.body.appendChild(md)}
 function renderDataSiswa(){const q=(($('#sq')||{}).value||'').trim().toLowerCase();
@@ -761,7 +762,7 @@ async function muatDataSiswa(){$('#sr').innerHTML=muat();
 try{const j=await api('dataSiswa',{kelas:klf()||nilai('sk')});if(S.view!=='siswa'||SISTAB!=='data')return;SD=j;renderDataSiswa()}
 catch(e){if(S.view==='siswa'&&SISTAB==='data')$('#sr').innerHTML=`<div class="empty">${esc(/tidak dikenal/i.test(e.message)?'Backend belum diperbarui. Pasang Code.gs versi terbaru lalu Deploy > Manage deployments > Edit > Version baru.':e.message)}</div>`}}
 function tabSiswa(){document.querySelectorAll('#stb button').forEach(b=>b.classList.toggle('on',b.dataset.t===SISTAB));const sr=$('#sr');sr.onclick=null;
-if(SISTAB==='data'){$('#sfil').innerHTML=`<div class="filt"><div class="fd"><label for="sq">Cari nama</label><input id="sq" placeholder="Ketik nama anak" style="width:260px" autocomplete="off"></div><small class="sub">Sumber: sheet Data Siswa (anak aktif)</small></div>`;
+if(SISTAB==='data'){$('#sfil').innerHTML=`<div class="filt"><div class="fd"><label for="sq">Cari nama</label><input id="sq" placeholder="Ketik nama anak" style="width:260px" autocomplete="off"></div><small class="sub">Daftar anak dari spreadsheet absensi, data lengkap diisi di sini (tombol Ubah)</small></div>`;
 $('#sq').oninput=renderDataSiswa;sr.onclick=e=>{const t=e.target.closest('tr[data-i]');if(t)sdDetail(+t.dataset.i)};muatDataSiswa()}
 else{$('#sfil').innerHTML=`<div class="filt"><div class="fd"><label for="sb">Bulan</label><input type="month" id="sb" value="${hari().slice(0,7)}" style="width:210px"></div><small class="sub">Sumber: Rekap Absen, hanya pada tanggal yang Jurnal Kehadirannya sudah diisi</small></div>`;
 const r=async()=>{sr.innerHTML=muat();try{const j=await api('presensi',{bulan:$('#sb').value,kelas:klf()||nilai('sk')});if(S.view==='siswa'&&SISTAB==='pres')sr.innerHTML=presTabel(j,'ap')}catch(e){if(S.view==='siswa'&&SISTAB==='pres')sr.innerHTML=`<div class="empty">${esc(e.message)}</div>`}};
