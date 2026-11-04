@@ -178,6 +178,7 @@ select{width:100%;font:inherit;height:48px;padding:0 12px;border:2px solid var(-
 .gal img{display:block;width:100%;height:auto;background:#eee}
 .gal figcaption{font-size:10px;text-align:center;line-height:1.3;padding-top:3px}
 .hero .c1,.hero .c2{background:none}
+.rt.dst{table-layout:fixed}.rt.dst th:nth-child(1){width:50%}.rt.dst th:nth-child(2),.rt.dst th:nth-child(3){width:25%}
 .tabs{display:flex;gap:6px;background:#0000000d;border-radius:18px;padding:5px;margin-bottom:14px}
 .tabs button{flex:1;border:0;background:none;border-radius:14px;padding:10px 12px;font:600 15px Fredoka,sans-serif;color:var(--mut)}
 .tabs button.on{background:var(--blue);color:#fff;box-shadow:0 3px 0 var(--blued)}
@@ -371,7 +372,13 @@ const PROFIL=[
 {k:'alamat',l:'Alamat lengkap',t:'alm',opt:1},{k:'telepon',l:'Nomor telepon / WhatsApp',t:'tel',opt:1},{k:'email',l:'Email',t:'eml',opt:1},
 {k:'pendidikan',l:'Pendidikan terakhir',t:'sel',o:['SMA / SMK / MA','D3','S1','S2'],opt:1},
 {k:'jabatan',l:'Jabatan',t:'sel',o:['Guru kelas','Guru pendamping','Kepala sekolah','Guru ekstrakurikuler'],opt:1},
-{k:'mulaitugas',l:'Mulai bertugas sejak',t:'tgl',opt:1},{k:'sekolah',l:'Nama Sekolah',t:'txt'},{k:'npsn',l:'NPSN',t:'txt',opt:1},
+{k:'mulaitugas',l:'Mulai bertugas sejak',t:'tgl',opt:1},
+{k:'statussekolah',l:'Status sekolah',t:'sel',o:['Swasta','Negeri'],opt:1},{k:'yayasan',l:'Nama yayasan',t:'txt',opt:1},
+{k:'akreditasi',l:'Akreditasi',t:'sel',o:['A','B','C','Belum terakreditasi'],opt:1},{k:'tahunberdiri',l:'Tahun berdiri',t:'txt',opt:1},
+{k:'alamatsekolah',l:'Alamat sekolah',t:'alm',opt:1},{k:'kelurahan',l:'Kelurahan / desa',t:'txt',opt:1},{k:'kecamatan',l:'Kecamatan',t:'txt',opt:1},
+{k:'kota',l:'Kabupaten / kota',t:'txt',opt:1},{k:'provinsi',l:'Provinsi',t:'txt',opt:1},{k:'kodepos',l:'Kode pos',t:'txt',opt:1},
+{k:'telpsekolah',l:'Telepon sekolah',t:'tel',opt:1},{k:'emailsekolah',l:'Email sekolah',t:'eml',opt:1},{k:'website',l:'Website / media sosial',t:'txt',opt:1},
+{k:'nipkepsek',l:'NIP / NUPTK kepala sekolah',t:'txt',opt:1},{k:'sekolah',l:'Nama Sekolah',t:'txt'},{k:'npsn',l:'NPSN',t:'txt',opt:1},
 {k:'jenjang',l:'Jenjang',t:'sel',o:['TK','RA','KB']},{k:'kelas',l:'Kelompok yang diampu',t:'sel',o:KELAS.concat(['KB','Guru pendamping','Semua kelompok'])},
 {k:'tahun',l:'Tahun ajaran',t:'sel',o:['2025/2026','2026/2027','2027/2028']},{k:'semester',l:'Semester',t:'sel',o:['Ganjil','Genap']},
 {k:'status',l:'Status kepegawaian',t:'sel',o:['PNS','PPPK','Guru tetap yayasan','Guru honorer']},{k:'kepsek',l:'Nama Kepala Sekolah',t:'txt',opt:1}];
@@ -552,7 +559,9 @@ const sek=(ic,jd,ket,ks)=>`<div class="card"><h3>${ic} ${jd}</h3><p class="sub" 
 $('#main').innerHTML=`<div class="card"><h3>📷 Foto profil</h3><div class="fup"><div class="avb" id="avp">${av(g.foto,g.nama)}</div><div><button class="btn o s" id="fpb" type="button">Unggah / Ganti Foto</button><input type="file" id="fpi" accept="image/*" style="display:none"><p class="sub" style="font-size:12px;margin-top:6px">Foto dipotong persegi dan dikecilkan otomatis. Tampil di pojok kanan atas.</p></div></div></div><div id="pf">${sek('👩‍🏫','Data pribadi','Nama, nomor pegawai, dan data kelahiran Anda.',['nama','nip','tempatlahir','tgllahir','jk','agama'])}
 ${sek('📞','Kontak dan alamat','Alamat tempat tinggal dan kontak yang bisa dihubungi.',['alamat','telepon','email'])}
 ${sek('🎓','Pendidikan dan kepegawaian','Pendidikan terakhir, jabatan, dan status Anda.',['pendidikan','jabatan','status','mulaitugas'])}
-${sek('🏫','Data sekolah','Informasi sekolah tempat Anda mengajar.',['sekolah','npsn','jenjang','kepsek'])}
+${sek('🏫','Data sekolah','Informasi sekolah tempat Anda mengajar.',['sekolah','npsn','jenjang','statussekolah','akreditasi','yayasan','tahunberdiri'])}
+${sek('📍','Alamat dan kontak sekolah','Letak dan cara menghubungi sekolah.',['alamatsekolah','kelurahan','kecamatan','kota','provinsi','kodepos','telpsekolah','emailsekolah','website'])}
+${sek('🧑‍💼','Kepala sekolah','Nama dan nomor pegawai kepala sekolah (tampil di tanda tangan laporan).',['kepsek','nipkepsek'])}
 ${sek('📋','Penugasan','Kelompok dan tahun ajaran yang sedang berjalan.',['kelas','tahun','semester'])}</div>
 <div class="act"><button class="btn y" id="sv">Simpan Identitas</button></div>
 <div class="card" style="margin-top:14px"><h3>🔒 Keamanan akun</h3><p class="sub" style="font-size:13px;margin:-6px 0 12px">PIN dipakai untuk masuk. Ganti secara berkala dan jangan dibagikan ke orang lain.</p><button class="btn o s" id="gp" type="button">Ganti PIN</button></div>`;
@@ -648,36 +657,9 @@ else if(t.id==='fin'){const fs=[...t.files];t.value='';
 (async()=>{for(const f of fs){if(Fo.lama.length+Fo.baru.length>=MAXF){toast('Maksimal '+MAXF+' foto',1);break}
 try{Fo.baru.push(await kecil(f,1000))}catch(er){toast(er.message==='bukan gambar'?'Berkas bukan gambar yang valid':er.message,1)}}
 gFoto()})()}});
-/* --- draf otomatis: isian disimpan di perangkat tiap 2 detik, foto tidak ikut --- */
-const dk='jgdraf_'+((S.guru&&S.guru.id)||'')+'_'+k+'_'+(row?row.ID:'baru');
-let lastJs='',pendT=null,menunggu=false,user=false;
-const bacaDraf=()=>{try{const d=JSON.parse(localStorage.getItem(dk)||'null');if(d&&Date.now()-d.t<6048e5)return d;localStorage.removeItem(dk)}catch(e){}return null};
-const snap=()=>{const v={},ex={};md.querySelectorAll('.fg [name]').forEach(e=>{if(e.type==='radio'||e.type==='file')return;v[e.name]=e.value;const fd=e.closest('.fd[data-m]');if(fd){const x=fd.querySelector('.ex');if(x)ex[e.name]=x.value}});return{v,ex,T:{...T}}};
-const simpanDraf=()=>{if(menunggu||!user||!md.isConnected)return;const js=JSON.stringify(snap());if(js===lastJs)return;lastJs=js;try{localStorage.setItem(dk,JSON.stringify({...JSON.parse(js),t:Date.now()}))}catch(e){}};
-const hapusDraf=()=>{menunggu=true;try{localStorage.removeItem(dk)}catch(e){}};
-const terapkanT=t=>{if(!aktif||!t)return;const nm=daftar();Object.keys(t).forEach(n=>{if(t[n]&&nm.includes(n))T[n]=t[n]});warna();hitung()};
-const pulihkan=d=>{Object.keys(d.v).sort((a,b)=>(a==='kelas'?-1:0)-(b==='kelas'?-1:0)).forEach(n=>{if(n==='kelas'&&klf())return;const e=E(n);if(!e)return;const val=String(d.v[n]),fd=e.closest('.fd[data-m]');
-if(!fd){e.value=val;return}
-const m=fd.dataset.m,x=fd.querySelector('.ex');
-fd.querySelectorAll('input[type=radio]').forEach(r=>r.checked=m==='area'?(val===r.value||val.startsWith(r.value+'. ')):r.value===val);
-if(x)x.value=(d.ex&&d.ex[n])||'';
-if(m==='combo'&&x&&x.value)fd.querySelectorAll('input[type=radio]').forEach(r=>r.checked=false);
-syncOpt(fd)});
-if(tb){if(SISWA!==null){gambar();terapkanT(d.T)}else pendT=d.T}user=true};
-const dr=bacaDraf();
-if(dr){menunggu=true;const jam=new Date(dr.t).toLocaleString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}),bn=document.createElement('div');
-bn.className='fd full';bn.id='drf';bn.style.cssText='background:#fff4cf;border-radius:16px;padding:12px 14px';
-bn.innerHTML=`<b>📝 Ada draf yang belum disimpan</b> <small class="sub">(${esc(jam)})</small><p class="sub" style="font-size:12px;margin:4px 0 8px">Foto perlu dipilih ulang.</p><button type="button" class="btn y s" data-dr="ya">Lanjutkan draf</button> <button type="button" class="btn gh s" data-dr="tdk">Buang draf</button>`;
-md.querySelector('.fg').prepend(bn)}
-md.addEventListener('input',e=>{if(e.isTrusted)user=true},true);
-md.addEventListener('change',e=>{if(e.isTrusted)user=true},true);
-md.addEventListener('click',e=>{if(e.target.closest('[data-st],[data-all],[data-clr],[data-pkb],[data-pl],[data-pb],[data-fl],[data-fb],[data-rk]'))user=true},true);
-const iv=setInterval(()=>{if(!md.isConnected)return clearInterval(iv);simpanDraf()},2000);
 gambar();
-if(tb||k==='perkembangan')loadSiswa().then(()=>{isiNama();gambar();hitung();if(pendT){terapkanT(pendT);pendT=null}});
-md.onclick=async e=>{const t=e.target;if(t.closest('[data-x]')){simpanDraf();let ada=false;try{ada=!!localStorage.getItem(dk)}catch(x){}if(ada&&!menunggu)toast('Draf tersimpan, bisa dilanjutkan nanti');return md.remove()}
-const dre=t.closest('[data-dr]');
-if(dre){const bn=md.querySelector('#drf');if(dre.dataset.dr==='ya'&&dr)pulihkan(dr);else{try{localStorage.removeItem(dk)}catch(x){}}if(bn)bn.remove();menunggu=false;lastJs='';return}
+if(tb||k==='perkembangan')loadSiswa().then(()=>{isiNama();gambar();hitung()});
+md.onclick=async e=>{const t=e.target;if(t.closest('[data-x]'))return md.remove();
 if(stepClick(e))return;
 const fl=t.closest('[data-fl]'),fb=t.closest('[data-fb]');
 if(fl){Fo.lama.splice(+fl.dataset.fl,1);gFoto();return}
@@ -708,12 +690,13 @@ if(row)d.ID=row.ID;
 const b=t.closest('[data-s]');b.disabled=true;b.textContent='Menyimpan...';
 try{if(FOTO[k]){if(list&&k==='perkembangan'){for(const x of list){const a=FA[x.nama];x.foto='';if(a){await kirimFoto(a,b);x.foto=a.lama.join(' ')}}}
 else{await kirimFoto(Fo,b);d.foto=Fo.lama.join(' ');if(list)list.forEach(x=>x.foto=d.foto)}}
-if(list)await simpanBanyak(k,list);else await api('simpan',{jenis:k,data:d});hapusDraf();md.remove();toast(list?`${list.length} catatan tersimpan`:'Jurnal tersimpan');viewJurnal(k)}
+if(list)await simpanBanyak(k,list);else await api('simpan',{jenis:k,data:d});md.remove();toast(list?`${list.length} catatan tersimpan`:'Jurnal tersimpan');viewJurnal(k)}
 catch(er){toast(er.message,1);gFoto();b.disabled=false;b.textContent='Simpan'}}}}
 
 /* ---------- data siswa dan presensi ----------
    Presensi per anak hanya muncul pada tanggal yang Jurnal Kehadirannya sudah diisi.
    Jika jurnal kosong pada periode itu, tabel tidak ditampilkan (j.hari = 0). */
+const alamatSek=g=>[g.alamatsekolah,g.kelurahan&&'Kel. '+g.kelurahan,g.kecamatan&&'Kec. '+g.kecamatan,g.kota,g.provinsi,g.kodepos].filter(Boolean).join(', ');
 const kelNorm=v=>{const m=String(v||'').trim().match(/^(?:TK|KELOMPOK)?[\s\-_]*([AB])$/i);return m?'Kelompok '+m[1].toUpperCase():String(v||'').trim()};
 const klf=()=>{const k=kelNorm(S.guru&&S.guru.kelas);return k&&!/^(semua|guru )/i.test(k)?k:''};
 const PRES_KOSONG='Belum ada Jurnal Kehadiran pada periode ini, sehingga presensi per anak belum ditampilkan. Isi dulu di menu 3. Kehadiran Anak.';
@@ -825,22 +808,22 @@ else s+=`<br>${esc(j.t(o.rs[0]))}`;return s};
 return`<h3>E. Lampiran dokumentasi foto</h3>${sh.length?`<div class="gal">${sh.map(o=>`<figure><img data-fid="${esc(o.id)}" src="${BLANK}" alt="Foto"><figcaption>${cap(o)}</figcaption></figure>`).join('')}</div>${L.length>MX?`<p style="font-size:12px">Menampilkan ${MX} dari ${L.length} foto pada periode ini. Persempit periode laporan untuk melihat sisanya.</p>`:''}`:'<p style="font-size:12px">Tidak ada foto pada periode ini.</p>'}`}
 const opsi=(k,f)=>J[k].f.find(x=>x.k===f).o;
 function dist(jd,rs,key,ops){const t=rs.length;
-return`<table class="rt sm"><thead><tr><th>${jd}</th><th>Jumlah</th><th>Persentase</th></tr></thead><tbody>${ops.map(o=>{const n=rs.filter(r=>r[key]===o).length;return`<tr><td>${esc(o)}</td><td class="c">${n}</td><td class="c">${pct(n,t)}</td></tr>`}).join('')}<tr class="tt"><td>Total</td><td class="c">${t}</td><td class="c">${t?'100%':'-'}</td></tr></tbody></table>`}
+return`<table class="rt sm dst"><thead><tr><th>${jd}</th><th>Jumlah</th><th>Persentase</th></tr></thead><tbody>${ops.map(o=>{const n=rs.filter(r=>r[key]===o).length;return`<tr><td>${esc(o)}</td><td class="c">${n}</td><td class="c">${pct(n,t)}</td></tr>`}).join('')}<tr class="tt"><td>Total</td><td class="c">${t}</td><td class="c">${t?'100%':'-'}</td></tr></tbody></table>`}
 function tabel(k,rs){const j=J[k];
 return`<table class="rt"><thead><tr><th>No</th>${j.f.map(f=>`<th>${f.l}</th>`).join('')}</tr></thead><tbody>${rs.length?rs.map((r,i)=>`<tr><td class="c">${i+1}</td>${j.f.map(f=>`<td>${f.k==='tanggal'?tgl(r.tanggal):esc(r[f.k])}</td>`).join('')}</tr>`).join(''):`<tr><td class="c" colspan="${j.f.length+1}">Tidak ada catatan pada periode ini.</td></tr>`}</tbody></table>`}
 function laporan(rg,pres){const g=S.guru,per=rg.label;
 const F=k=>(ROWS[k]||[]).filter(r=>!rg.dari||(r.tanggal>=rg.dari&&r.tanggal<=rg.sampai)).slice().sort((a,b)=>String(a.tanggal).localeCompare(String(b.tanggal)));
 const kh=F('kehadiran'),pn=F('penilaian'),jh=sum(kh,'jumlah'),tn=sum(pn,'bb')+sum(pn,'mb')+sum(pn,'bsh')+sum(pn,'bsb');
-const idn=[['Nama guru',g.nama],['NIP / NUPTK',g.nip],['Status kepegawaian',g.status],['Nama sekolah',g.sekolah],['NPSN',g.npsn],['Jenjang',g.jenjang],['Kelompok yang diampu',g.kelas],['Tahun ajaran',g.tahun],['Semester',g.semester],['Kepala sekolah',g.kepsek]];
+const idn=[['Nama guru',g.nama],['NIP / NUPTK',g.nip],['Status kepegawaian',g.status],['Nama sekolah',g.sekolah],['NPSN',g.npsn],['Jenjang',g.jenjang],['Kelompok yang diampu',g.kelas],['Tahun ajaran',g.tahun],['Semester',g.semester],['Status sekolah',g.statussekolah],['Akreditasi',g.akreditasi],['Yayasan',g.yayasan],['Alamat sekolah',alamatSek(g)],['Telepon / email sekolah',[g.telpsekolah,g.emailsekolah].filter(Boolean).join(' / ')],['Kepala sekolah',g.kepsek],['NIP / NUPTK kepala sekolah',g.nipkepsek]];
 const today=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
-return`<div class="paper"><div class="kop"><img class="kl" src="${LOGO}" alt=""><div class="kt"><h2>${esc((g.sekolah||'NAMA SEKOLAH').toUpperCase())}</h2><p>${esc(g.jenjang||'')}${g.npsn?' - NPSN '+esc(g.npsn):''}</p></div></div>
+return`<div class="paper"><div class="kop"><img class="kl" src="${LOGO}" alt=""><div class="kt"><h2>${esc((g.sekolah||'NAMA SEKOLAH').toUpperCase())}</h2><p>${esc(g.jenjang||'')}${g.npsn?' - NPSN '+esc(g.npsn):''}</p>${alamatSek(g)?`<p>${esc(alamatSek(g))}${g.telpsekolah?' | Telp. '+esc(g.telpsekolah):''}</p>`:''}</div></div>
 <h1 class="jd">LAPORAN JURNAL GURU${rg.judul?' '+rg.judul:''}</h1><p class="sj">Tahun ajaran ${esc(g.tahun||'-')}, semester ${esc(g.semester||'-')}<br>Periode: ${esc(per)}</p>
 <h3>A. Identitas guru dan sekolah</h3><table class="rt id">${idn.map(x=>`<tr><td>${x[0]}</td><td>${esc(x[1]||'-')}</td></tr>`).join('')}</table>
 <h3>B. Ringkasan hasil</h3>
 <h4>1. Jumlah catatan per jurnal</h4><table class="rt sm"><thead><tr><th>No</th><th>Jenis jurnal</th><th>Periode pengisian</th><th>Jumlah catatan</th></tr></thead><tbody>${KEYS.map((k,i)=>`<tr><td class="c">${i+1}</td><td>${J[k].n}</td><td>${J[k].per}</td><td class="c">${F(k).length}</td></tr>`).join('')}<tr class="tt"><td colspan="3">Total</td><td class="c">${KEYS.reduce((a,k)=>a+F(k).length,0)}</td></tr></tbody></table>
 <h4>2. Rekapitulasi kehadiran anak</h4><table class="rt sm"><thead><tr><th>Hari tercatat</th><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Tanpa keterangan</th><th>Persentase hadir</th></tr></thead><tbody><tr><td class="c">${kh.length}</td><td class="c">${sum(kh,'hadir')}</td><td class="c">${sum(kh,'sakit')}</td><td class="c">${sum(kh,'izin')}</td><td class="c">${sum(kh,'alpha')}</td><td class="c">${pct(sum(kh,'hadir'),jh)}</td></tr></tbody></table>
 <h4>3. Capaian perkembangan anak</h4>${dist('Tingkat capaian',F('perkembangan'),'tingkat',TKT)}
-<h4>4. Hasil penilaian pembelajaran</h4><table class="rt sm"><thead><tr><th>Tingkat capaian</th><th>Jumlah anak</th><th>Persentase</th></tr></thead><tbody>${[['bb',TKT[0]],['mb',TKT[1]],['bsh',TKT[2]],['bsb',TKT[3]]].map(x=>`<tr><td>${x[1]}</td><td class="c">${sum(pn,x[0])}</td><td class="c">${pct(sum(pn,x[0]),tn)}</td></tr>`).join('')}<tr class="tt"><td>Total</td><td class="c">${tn}</td><td class="c">${tn?'100%':'-'}</td></tr></tbody></table>
+<h4>4. Hasil penilaian pembelajaran</h4><table class="rt sm dst"><thead><tr><th>Tingkat capaian</th><th>Jumlah anak</th><th>Persentase</th></tr></thead><tbody>${[['bb',TKT[0]],['mb',TKT[1]],['bsh',TKT[2]],['bsb',TKT[3]]].map(x=>`<tr><td>${x[1]}</td><td class="c">${sum(pn,x[0])}</td><td class="c">${pct(sum(pn,x[0]),tn)}</td></tr>`).join('')}<tr class="tt"><td>Total</td><td class="c">${tn}</td><td class="c">${tn?'100%':'-'}</td></tr></tbody></table>
 <h4>5. Ketercapaian kegiatan harian</h4>${dist('Ketercapaian',F('harian'),'capaian',opsi('harian','capaian'))}
 <h4>6. Hasil kegiatan kokurikuler</h4>${dist('Hasil kegiatan',F('kokurikuler'),'hasil',opsi('kokurikuler','hasil'))}
 <h3>C. Rincian isian jurnal</h3>${KEYS.map((k,i)=>`<h4>${i+1}. ${J[k].n}</h4><div class="ov">${tabel(k,F(k))}</div>`).join('')}
@@ -887,7 +870,7 @@ const MX=30,sh=fo.slice(0,MX),kls=o.kelas||(rs.length?kelNorm(rs[rs.length-1].ke
 const plabel=!dari&&!sampai?'Seluruh periode':(dari?tgl(dari):'awal')+' s.d. '+(sampai?tgl(sampai):'sekarang');
 const idn=[['Nama anak',o.nama],['Kelompok',kls],['Guru kelas',g.nama],['Sekolah',g.sekolah],['Jumlah catatan perkembangan',rs.length],['Jumlah foto dokumentasi',fo.length]];
 const nr=narasi(o.nama,per);
-return`<div class="paper"><div class="kop"><img class="kl" src="${LOGO}" alt=""><div class="kt"><h2>${esc((g.sekolah||'NAMA SEKOLAH').toUpperCase())}</h2><p>${esc(g.jenjang||'')}${g.npsn?' - NPSN '+esc(g.npsn):''}</p></div></div>
+return`<div class="paper"><div class="kop"><img class="kl" src="${LOGO}" alt=""><div class="kt"><h2>${esc((g.sekolah||'NAMA SEKOLAH').toUpperCase())}</h2><p>${esc(g.jenjang||'')}${g.npsn?' - NPSN '+esc(g.npsn):''}</p>${alamatSek(g)?`<p>${esc(alamatSek(g))}${g.telpsekolah?' | Telp. '+esc(g.telpsekolah):''}</p>`:''}</div></div>
 <h1 class="jd">PORTOFOLIO PERKEMBANGAN ANAK</h1><p class="sj">Tahun ajaran ${esc(g.tahun||'-')}, semester ${esc(g.semester||'-')}<br>Periode: ${esc(plabel)}</p>
 <h3>A. Identitas anak</h3><table class="rt id">${idn.map(x=>`<tr><td>${x[0]}</td><td>${esc(x[1]===0?'0':x[1]||'-')}</td></tr>`).join('')}</table>
 <h3>B. Ringkasan capaian per aspek</h3>${per.length?`<div class="ov"><table class="rt"><thead><tr><th>Aspek perkembangan</th><th>Jumlah catatan</th><th>Riwayat capaian</th><th>Grafik</th><th>Terbaru</th><th>Tren</th></tr></thead><tbody>${per.map(p=>`<tr><td>${esc(p.aspek)}</td><td class="c">${p.n}</td><td class="c">${p.seq.map(lvChip).join(' ')}</td><td class="c">${spark(p.seq)}</td><td class="c">${lvChip(p.last)}</td><td class="c">${tren(p)}</td></tr>`).join('')}</tbody></table></div><p style="font-size:11px;margin:4px 0 0">BB = Belum Berkembang, MB = Mulai Berkembang, BSH = Berkembang Sesuai Harapan, BSB = Berkembang Sangat Baik. Riwayat diurutkan dari catatan paling awal.</p>`:'<p style="font-size:12px">Belum ada catatan perkembangan pada periode ini.</p>'}
@@ -925,6 +908,7 @@ const b=$('#ins');if(b)b.onclick=async()=>{DIP.prompt();try{await DIP.userChoice
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 
 /* ---------- mulai ---------- */
+try{Object.keys(localStorage).filter(k=>k.indexOf('jgdraf_')===0).forEach(k=>localStorage.removeItem(k))}catch(e){}
 S.token&&S.guru?shell():viewLogin();
 </script>
 </body>
