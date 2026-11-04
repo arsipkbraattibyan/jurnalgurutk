@@ -12,6 +12,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="icon" type="image/png" href="./favicon-64.png">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
 :root{--blue:#1e88e5;--blued:#1565c0;--navy:#243b7b;--yel:#fdb913;--pink:#ee4f9a;--grn:#7cc243;--ink:#2b3a67;--mut:#6c7aa5;--ln:#cfe6fa;--sh:0 8px 24px #1e88e51f}
@@ -386,11 +389,27 @@ const r=await fetch(API_URL,{method:'POST',body:JSON.stringify({action,token:S.t
 const j=await r.json();
 if(!j.ok){if(j.auth)keluar();throw new Error(j.error||'Terjadi kesalahan')}
 return j}
+/* ---------- cache lokal: tampil cepat dari data terakhir, lalu disegarkan di latar ---------- */
+const CK=()=>'jgc_'+((S.guru&&S.guru.id)||'')+'_';
+function cGet(k){try{const x=JSON.parse(localStorage.getItem(CK()+k)||'null');return x?x.d:null}catch(e){return null}}
+function cSet(k,d){try{localStorage.setItem(CK()+k,JSON.stringify({d:d,t:Date.now()}))}catch(e){try{Object.keys(localStorage).filter(x=>x.indexOf('jgc_')===0).forEach(x=>localStorage.removeItem(x))}catch(e2){}}}
+function cHapusSemua(){try{Object.keys(localStorage).filter(x=>x.indexOf('jgc_')===0).forEach(x=>localStorage.removeItem(x))}catch(e){}}
+function cRows(k){const c=cGet('semua')||{};c[k]=ROWS[k]||[];cSet('semua',c)}
+function stale(k){delete ROWS[k];const c=cGet('semua');if(c){delete c[k];cSet('semua',c)}}
+
+/* ---------- dialog konfirmasi di dalam aplikasi (pengganti popup bawaan browser) ---------- */
+function tanya(judul,pesan,ya,bahaya){return new Promise(ok=>{const md=document.createElement('div');md.className='md';md.style.zIndex=40;
+md.innerHTML=`<div class="sheet" style="max-width:420px"><h2>${esc(judul)}</h2><p class="sub" style="margin-bottom:6px;color:var(--ink)">${esc(pesan)}</p><div class="act"><button class="btn gh" data-n>Batal</button><button class="btn ${bahaya===false?'y':'rd'}" data-y>${esc(ya||'Ya')}</button></div></div>`;
+const t=x=>{md.remove();ok(x)};md.onclick=e=>{if(e.target===md)return t(false);if(e.target.closest('[data-n]'))return t(false);if(e.target.closest('[data-y]'))t(true)};
+document.body.appendChild(md);const b=md.querySelector('[data-n]');if(b)b.focus()})}
 const urut=a=>a.sort((x,y)=>String(y.tanggal).localeCompare(String(x.tanggal)));
+function cacheSemua(){const c=cGet('semua');if(!c||KEYS.some(k=>!Array.isArray(c[k])))return false;KEYS.forEach(k=>ROWS[k]=urut(c[k].slice()));return true}
 async function muatSemua(){
-try{const j=await api('semua');KEYS.forEach(k=>ROWS[k]=urut(j.data[k]||[]))}
+let d;
+try{const j=await api('semua');d=j.data}
 catch(e){if(!/tidak dikenal/i.test(e.message))throw e;
-const r=await Promise.all(KEYS.map(k=>api('list',{jenis:k})));KEYS.forEach((k,i)=>ROWS[k]=urut(r[i].rows))}}
+const r=await Promise.all(KEYS.map(k=>api('list',{jenis:k})));d={};KEYS.forEach((k,i)=>d[k]=r[i].rows)}
+cSet('semua',d);KEYS.forEach(k=>ROWS[k]=urut((d[k]||[]).slice()))}
 
 /* ---------- foto (diisi admin lewat kolom foto di sheet Guru, boleh kosong) ---------- */
 function fu(u){if(!u)return'';const m=String(u).match(/(?:\/d\/|[?&]id=)([-\w]{20,})/);return m&&!/thumbnail/.test(u)?'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w300':u}
@@ -571,7 +590,7 @@ async function masuk(){busy=true;
 try{const j=await api('login',{id:GID,pin:PIN,dev:devAmbil(GID)}),lama=PIN;if(j.dev)devSimpan(GID,j.dev);S.token=j.token;S.guru=j.guru;simpanSesi();bunyi('ok');shell();if(j.lemah)dialogPin(true,lama)}
 catch(e){toast(e.message,1);PIN='';const d=$('#dots');d.classList.add('shake');setTimeout(()=>{d.classList.remove('shake');d.querySelectorAll('i').forEach(i=>i.classList.remove('on'))},400)}
 busy=false}
-function keluar(){document.querySelectorAll('.md').forEach(x=>x.remove());S.token=null;S.guru=null;ROWS={};SISWA=null;Object.keys(FP).forEach(k=>delete FP[k]);try{localStorage.removeItem('jg')}catch(e){}viewLogin()}
+function keluar(){document.querySelectorAll('.md').forEach(x=>x.remove());cHapusSemua();S.token=null;S.guru=null;ROWS={};SISWA=null;Object.keys(FP).forEach(k=>delete FP[k]);try{localStorage.removeItem('jg')}catch(e){}viewLogin()}
 
 /* ---------- ganti PIN (wajib jika PIN lemah / bawaan) ---------- */
 function dialogPin(wajib,lamaOtomatis){const md=document.createElement('div');md.className='md';
@@ -618,8 +637,7 @@ catch(er){toast(er.message,1);b.disabled=false}}}
 /* ---------- dashboard ---------- */
 const WARNA=[SET.tema==='main'?'#1fb571':'#1e88e5','#fdb913','#ee4f9a','#7cc243','#f89a2c','#8e6bd8','#26b5c9'];
 const PEND=['Harian','Hadir','Kembang','Nilai','Projek','Refleksi','Tambahan'];
-async function viewBeranda(){const m=$('#main');m.innerHTML=muat();
-try{await muatSemua();if(S.view!=='beranda')return;
+function gambarBeranda(){const m=$('#main');try{
 const bln=hari().slice(0,7),inM=k=>ROWS[k].filter(r=>String(r.tanggal).slice(0,7)===bln);
 const tot=KEYS.reduce((a,k)=>a+inM(k).length,0),kh=inM('kehadiran'),pk=inM('perkembangan');
 const baik=pk.filter(r=>/\((BSH|BSB)\)/.test(r.tingkat||'')).length;
@@ -644,6 +662,10 @@ m.innerHTML=`<section class="hero"><div><h1>${sapa}, <span class="c1">${nm}</spa
 </div>`;
 m.onclick=e=>{const b=e.target.closest('[data-v]');if(b)go(b.dataset.v)}}
 catch(e){m.innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
+async function viewBeranda(){const m=$('#main'),ada=cacheSemua();
+if(ada)gambarBeranda();else m.innerHTML=muat();
+try{await muatSemua();if(S.view!=='beranda')return;gambarBeranda();loadSiswa()}
+catch(e){if(!ada&&S.view==='beranda')m.innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
 
 /* ---------- identitas (tanpa foto) ---------- */
 function viewIdentitas(){$('#main').innerHTML=muat();
@@ -671,14 +693,15 @@ async function viewJurnal(k){const j=J[k],m=$('#main');
 m.innerHTML=`<div class="jh c${j.no%4}"><span class="em">${j.ic}</span><div><h2>${j.n}</h2><small>${j.no}. ${j.per}${klf()?' - '+klf():''}</small></div><div class="jbt"><button class="btn rd" id="hh">Hapus 1 Hari</button><button class="btn y" id="ad">+ Tambah Catatan</button></div></div>
 <div class="card filt"><div class="fd"><label for="bln">Bulan</label><input type="month" id="bln" value="${hari().slice(0,7)}" style="width:210px"></div><small class="sub">Kosongkan untuk melihat semua</small></div><div id="ls">${muat()}</div>`;
 $('#ad').onclick=()=>bukaForm(k);$('#hh').onclick=()=>hapusHariDialog(k);$('#bln').onchange=()=>tampil(k);
-try{const r=await api('list',{jenis:k});ROWS[k]=urut(r.rows);if(S.view===k)tampil(k)}
-catch(e){$('#ls').innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
+const cc=cGet('semua');if(!ROWS[k]&&cc&&Array.isArray(cc[k]))ROWS[k]=urut(cc[k].slice());if(ROWS[k])tampil(k);
+try{const r=await api('list',{jenis:k});ROWS[k]=urut(r.rows);cRows(k);if(S.view===k)tampil(k)}
+catch(e){if(!ROWS[k])$('#ls').innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
 function tampil(k){const j=J[k],b=$('#bln').value,rs=(ROWS[k]||[]).filter(r=>!b||String(r.tanggal).slice(0,7)===b);
 $('#ls').innerHTML=rs.length?rs.map(r=>`<div class="card row"><small>${fmt(r.tanggal)}</small><h3>${esc(j.t(r))}</h3><div class="kv">${j.f.filter(f=>f.k!=='tanggal'&&r[f.k]!==''&&r[f.k]!==undefined).map(f=>`<div><small>${f.l}</small>${esc(r[f.k])}</div>`).join('')}</div>${fotoHtml(r)}<button class="btn gh s" data-e="${r.ID}">Ubah</button> <button class="btn rd s" data-d="${r.ID}">Hapus</button></div>`).join(''):`<div class="card empty">Belum ada catatan. Ketuk <b>+ Tambah Catatan</b> untuk mengisi jurnal.</div>`;
 isiFoto($('#ls'));
 $('#ls').onclick=async e=>{const bf=e.target.closest('img.ft');if(bf&&bf.dataset.loaded)return lihatFoto(bf.src);const be=e.target.closest('[data-e]'),bd=e.target.closest('[data-d]');
 if(be)bukaForm(k,ROWS[k].find(r=>r.ID===be.dataset.e));
-if(bd&&confirm('Hapus catatan ini?')){try{await api('hapus',{jenis:k,id:bd.dataset.d});ROWS[k]=ROWS[k].filter(r=>r.ID!==bd.dataset.d);tampil(k);toast('Catatan dihapus')}catch(er){toast(er.message,1)}}}}
+if(bd&&await tanya('Hapus catatan?','Catatan ini akan dihapus dan tidak bisa dikembalikan.','Hapus')){try{await api('hapus',{jenis:k,id:bd.dataset.d});ROWS[k]=ROWS[k].filter(r=>r.ID!==bd.dataset.d);cRows(k);tampil(k);toast('Catatan dihapus')}catch(er){toast(er.message,1)}}}}
 
 /* ---------- hapus semua catatan dalam 1 hari ---------- */
 async function hapusSehari(k,d){try{await api('hapusHari',{jenis:k,tanggal:d})}catch(e){if(!/tidak dikenal/i.test(e.message))throw e;for(const r of ROWS[k].filter(x=>x.tanggal===d))await api('hapus',{jenis:k,id:r.ID})}}
@@ -691,9 +714,9 @@ document.body.appendChild(md);
 md.onclick=async e=>{const t=e.target;if(t.closest('[data-x]'))return md.remove();
 const bh=t.closest('[data-h]');if(!bh)return;
 const d=nilai('hd');if(!d)return;const c=n(d);
-if(!confirm(`Hapus ${c} catatan tanggal ${tgl(d)}? Tindakan ini tidak bisa dibatalkan.`))return;
+if(!await tanya('Hapus semua catatan hari ini?',`${c} catatan tanggal ${tgl(d)} akan dihapus. Tindakan ini tidak bisa dibatalkan.`,'Hapus Semua'))return;
 bh.disabled=true;bh.textContent='Menghapus...';
-try{await hapusSehari(k,d);ROWS[k]=ROWS[k].filter(r=>r.tanggal!==d);md.remove();tampil(k);toast(c+' catatan dihapus')}
+try{await hapusSehari(k,d);ROWS[k]=ROWS[k].filter(r=>r.tanggal!==d);cRows(k);md.remove();tampil(k);toast(c+' catatan dihapus')}
 catch(er){toast(er.message,1);bh.disabled=false;bh.textContent='Hapus Semua'}}}
 
 /* ---------- form tambah/ubah dengan tabel anak ---------- */
@@ -708,7 +731,9 @@ async function KHmuat(){try{const r=await api('list',{jenis:'kehadiran'});ROWS.k
 function absenDari(r){const o={};
 if(r.absen){String(r.absen).split('|').forEach(p=>{const i=p.lastIndexOf(':'),s=p.slice(i+1).trim();if(i>0&&ABL[s])o[p.slice(0,i).trim().toLowerCase()]=s});return o}
 String(r.catatan||'').split(/\.\s+(?=(?:Izin|Sakit|Tanpa keterangan): )/).forEach(x=>{const m=x.match(/^(Izin|Sakit|Tanpa keterangan): (.+?)\.?$/);if(m)m[2].split(', ').forEach(n=>{if(n.trim())o[n.trim().toLowerCase()]={Izin:'izin',Sakit:'sakit','Tanpa keterangan':'alpha'}[m[1]]})});return o}
-async function loadSiswa(){if(SISWA)return SISWA;try{const j=await api('siswa');SISWA=j.siswa}catch(e){SISWA=[]}return SISWA}
+let _ls=null;
+function segarSiswa(){return _ls||(_ls=api('siswa').then(j=>{SISWA=j.siswa;cSet('siswa',j.siswa)}).catch(()=>{if(!SISWA)SISWA=[]}).finally(()=>{_ls=null}))}
+async function loadSiswa(){if(SISWA){return SISWA}const c=cGet('siswa');if(c){SISWA=c;segarSiswa();return SISWA}await segarSiswa();return SISWA}
 async function simpanBanyak(k,list){try{await api('simpanBanyak',{jenis:k,data:list})}catch(e){if(!/tidak dikenal/i.test(e.message))throw e;for(const d of list)await api('simpan',{jenis:k,data:d})}}
 function bukaForm(k,row){const j=J[k],tb=(!row&&TB[k])||null,md=document.createElement('div');md.className='md';
 const rkBtn=k==='kehadiran'?`<div class="fd full" id="rkw"><button type="button" class="btn y s" data-rk>Isi otomatis dari Rekap Absen</button> <small class="sub">${klf()?'Pilih tanggal dulu.':'Pilih tanggal dan kelompok dulu.'}</small></div>`:'';
@@ -802,7 +827,7 @@ const b=t.closest('[data-s]');b.disabled=true;b.textContent='Menyimpan...';
 if(k==='kehadiran'){await KHmuat();const dx=cekDup();if(dx){toast('Tidak bisa disimpan: Jurnal Kehadiran '+E('kelas').value+' tanggal '+tgl(E('tanggal').value)+' sudah ada.',1);b.disabled=false;b.textContent='Simpan';return}}
 try{if(FOTO[k]){if(list&&k==='perkembangan'){for(const x of list){const a=FA[x.nama];x.foto='';if(a){await kirimFoto(a,b);x.foto=a.lama.join(' ')}}}
 else{await kirimFoto(Fo,b);d.foto=Fo.lama.join(' ');if(list)list.forEach(x=>x.foto=d.foto)}}
-if(list)await simpanBanyak(k,list);else await api('simpan',{jenis:k,data:d});md.remove();toast(list?`${list.length} catatan tersimpan`:'Jurnal tersimpan');viewJurnal(k)}
+if(list)await simpanBanyak(k,list);else await api('simpan',{jenis:k,data:d});md.remove();toast(list?`${list.length} catatan tersimpan`:'Jurnal tersimpan');stale(k);viewJurnal(k)}
 catch(er){toast(er.message,1);gFoto();b.disabled=false;b.textContent='Simpan'}}}}
 
 /* ---------- data siswa dan presensi ----------
@@ -848,7 +873,7 @@ const b=e.target.closest('[data-sv]');if(!b)return;
 const data={};md.querySelectorAll('[name^=c]').forEach(el=>{const n=+el.name.slice(1);let o=String(r[n]||'');if(sdTel(SD.kolom[n])&&/^8\d{7,12}$/.test(o))o='0'+o;if(el.value.trim()!==o)data[n]=el.value.trim()});
 if(!Object.keys(data).length){md.remove();return toast('Tidak ada perubahan')}
 b.disabled=true;b.textContent='Menyimpan...';
-try{await api('simpanSiswa',{nama:r[SD.iNama],kelas:r[SD.iKelas],data});Object.keys(data).forEach(n=>{SD.rows[i][n]=data[n]});md.remove();renderDataSiswa();toast('Data siswa tersimpan')}
+try{await api('simpanSiswa',{nama:r[SD.iNama],kelas:r[SD.iKelas],data});Object.keys(data).forEach(n=>{SD.rows[i][n]=data[n]});md.remove();cSet('ds_'+(klf()||nilai('sk')||''),SD);renderDataSiswa();toast('Data siswa tersimpan')}
 catch(er){toast(/tidak dikenal/i.test(er.message)?'Backend belum diperbarui. Pasang Code.gs terbaru.':er.message,1);b.disabled=false;b.textContent='Simpan'}};
 document.body.appendChild(md)}
 function renderDataSiswa(){const q=(($('#sq')||{}).value||'').trim().toLowerCase();
@@ -856,14 +881,14 @@ if(!SD||SD.iNama<0)return $('#sr').innerHTML='<div class="empty">Kolom nama tida
 if(!SD.rows.length)return $('#sr').innerHTML='<div class="empty">Belum ada data siswa untuk kelompok ini.</div>';
 const cs=sdCols(),ix=SD.rows.map((r,i)=>i).filter(i=>!q||String(SD.rows[i][SD.iNama]).toLowerCase().includes(q));
 $('#sr').innerHTML=`<p style="margin:0 0 8px"><b>${ix.length}</b> anak. Ketuk baris untuk melihat data lengkap: alamat, orang tua/wali, dan kontak.</p><div class="ov"><table class="rt ap sis"><thead><tr><th>No</th>${cs.map(c=>`<th>${c.l}</th>`).join('')}</tr></thead><tbody>${ix.length?ix.map((i,n)=>`<tr data-i="${i}"><td class="c">${n+1}</td>${cs.map(c=>`<td>${esc(sdv(SD.kolom[c.i],SD.rows[i][c.i]))}</td>`).join('')}</tr>`).join(''):`<tr><td class="c" colspan="${cs.length+1}">Tidak ada nama yang cocok.</td></tr>`}</tbody></table></div>`}
-async function muatDataSiswa(){$('#sr').innerHTML=muat();
-try{const j=await api('dataSiswa',{kelas:klf()||nilai('sk')});if(S.view!=='siswa'||SISTAB!=='data')return;SD=j;renderDataSiswa()}
-catch(e){if(S.view==='siswa'&&SISTAB==='data')$('#sr').innerHTML=`<div class="empty">${esc(/tidak dikenal/i.test(e.message)?'Backend belum diperbarui. Pasang Code.gs versi terbaru lalu Deploy > Manage deployments > Edit > Version baru.':e.message)}</div>`}}
+async function muatDataSiswa(){const kc='ds_'+(klf()||nilai('sk')||''),cd=cGet(kc);if(cd){SD=cd;renderDataSiswa()}else $('#sr').innerHTML=muat();
+try{const j=await api('dataSiswa',{kelas:klf()||nilai('sk')});cSet(kc,j);if(S.view!=='siswa'||SISTAB!=='data')return;SD=j;renderDataSiswa()}
+catch(e){if(!cd&&S.view==='siswa'&&SISTAB==='data')$('#sr').innerHTML=`<div class="empty">${esc(/tidak dikenal/i.test(e.message)?'Backend belum diperbarui. Pasang Code.gs versi terbaru lalu Deploy > Manage deployments > Edit > Version baru.':e.message)}</div>`}}
 function tabSiswa(){document.querySelectorAll('#stb button').forEach(b=>b.classList.toggle('on',b.dataset.t===SISTAB));const sr=$('#sr');sr.onclick=null;
 if(SISTAB==='data'){$('#sfil').innerHTML=`<div class="filt"><div class="fd"><label for="sq">Cari nama</label><input id="sq" placeholder="Ketik nama anak" style="width:260px" autocomplete="off"></div><small class="sub">Daftar anak dari spreadsheet absensi, data lengkap diisi di sini (tombol Ubah)</small></div>`;
 $('#sq').oninput=renderDataSiswa;sr.onclick=e=>{const t=e.target.closest('tr[data-i]');if(t)sdDetail(+t.dataset.i)};muatDataSiswa()}
 else{$('#sfil').innerHTML=`<div class="filt"><div class="fd"><label for="sb">Bulan</label><input type="month" id="sb" value="${hari().slice(0,7)}" style="width:210px"></div><small class="sub">Sumber: Rekap Absen, hanya pada tanggal yang Jurnal Kehadirannya sudah diisi</small></div>`;
-const r=async()=>{sr.innerHTML=muat();try{const j=await api('presensi',{bulan:$('#sb').value,kelas:klf()||nilai('sk')});if(S.view==='siswa'&&SISTAB==='pres')sr.innerHTML=presTabel(j,'ap')}catch(e){if(S.view==='siswa'&&SISTAB==='pres')sr.innerHTML=`<div class="empty">${esc(e.message)}</div>`}};
+const r=async()=>{const kc='pr_'+$('#sb').value+'_'+(klf()||nilai('sk')||''),cd=cGet(kc);if(cd)sr.innerHTML=presTabel(cd,'ap');else sr.innerHTML=muat();try{const j=await api('presensi',{bulan:$('#sb').value,kelas:klf()||nilai('sk')});cSet(kc,j);if(S.view==='siswa'&&SISTAB==='pres')sr.innerHTML=presTabel(j,'ap')}catch(e){if(!cd&&S.view==='siswa'&&SISTAB==='pres')sr.innerHTML=`<div class="empty">${esc(e.message)}</div>`}};
 $('#sb').onchange=r;r()}}
 function viewSiswa(){const m=$('#main'),kf=klf();
 m.innerHTML=`<div class="card"><div class="tabs" id="stb"><button data-t="data">🧑‍🎓 Data Siswa</button><button data-t="pres">📅 Presensi</button></div>${kf?`<p><b>Kelompok</b><span class="bdg">${kf}</span></p>`:`<div class="fd"><label>Kelompok</label>${radioGrup('sk',[['','Semua'],...KELAS.map(x=>[x,x])],'','sk')}</div>`}<div id="sfil" style="margin-top:14px"></div></div><div class="card" id="sr"></div>`;
@@ -884,11 +909,13 @@ async function viewLaporan(){const m=$('#main');
 m.innerHTML=`<div class="card noprint"><div class="fd"><label>Jenis laporan</label>${radioGrup('lj',[['harian','Per hari'],['mingguan','Per minggu'],['bulanan','Per bulan'],['semua','Seluruh periode']],'bulanan','lj')}</div><div class="filt" style="margin-top:14px"><div class="fd"><label for="lt">Periode</label><input type="date" id="lt" value="${hari()}" style="width:210px"><input type="month" id="lb" value="${hari().slice(0,7)}" style="width:210px"></div><small class="sub" id="lh"></small></div>${ukrHtml()}</div><div id="lap">${muat()}</div>`;
 $('.ukr').onclick=e=>{const b=e.target.closest('[data-ak]');if(b)aksiLap(b.dataset.uk,b.dataset.ak)};
 const inp=()=>{const j=nilai('lj');$('#lt').style.display=j==='harian'||j==='mingguan'?'':'none';$('#lb').style.display=j==='bulanan'?'':'none';$('#lh').textContent=j==='mingguan'?'Pilih tanggal mana saja di minggu itu (Senin sampai Minggu)':''};
-try{await muatSemua();if(S.view!=='laporan')return;
+const dariCache=cacheSemua();
+try{if(!dariCache)await muatSemua();if(S.view!=='laporan')return;
 const r=async()=>{inp();const rg=rentang(nilai('lj'),$('#lt').value||hari(),$('#lb').value||hari().slice(0,7));$('#lap').innerHTML=muat();
 let p;try{p=await api('presensi',{dari:rg.dari,sampai:rg.sampai,kelas:klf()})}catch(e){p={err:e.message}}
 if(S.view==='laporan'){$('#lap').innerHTML=laporan(rg,p);isiFoto($('#lap'))}};
-['#lj','#lt','#lb'].forEach(x=>$(x).onchange=r);r()}
+['#lj','#lt','#lb'].forEach(x=>$(x).onchange=r);r();
+if(dariCache)muatSemua().then(()=>{if(S.view==='laporan')r()}).catch(()=>{})}
 catch(e){$('#lap').innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
 /* ---------- cetak, simpan PDF, simpan gambar (A4 dan HVS, potret) ---------- */
 const UK={a4:{n:'A4',w:210,h:297},hvs:{n:'HVS',w:215,h:330}},MM=96/25.4,MG=10; // ukuran mm, margin 10 mm
@@ -983,7 +1010,8 @@ const kal=per.map(p=>`Pada aspek ${p.aspek.toLowerCase()}, ${nama} saat ini ${LV
 const baik=per.filter(p=>p.last>=2).map(p=>p.aspek.toLowerCase()),perlu=per.filter(p=>p.last<2).map(p=>p.aspek.toLowerCase());
 return kal+(baik.length?` ${nama} sudah berkembang baik pada aspek ${gabung(baik)}.`:'')+(perlu.length?` Aspek yang masih memerlukan stimulasi dan pendampingan: ${gabung(perlu)}.`:'')}
 async function viewPortofolio(){const m=$('#main');m.innerHTML=muat();
-try{await loadSiswa();const r=await api('list',{jenis:'perkembangan'});ROWS.perkembangan=urut(r.rows);if(S.view!=='portofolio')return;
+try{await loadSiswa();if(!ROWS.perkembangan){const cc=cGet('semua');if(cc&&Array.isArray(cc.perkembangan))ROWS.perkembangan=urut(cc.perkembangan.slice())}
+const r=await api('list',{jenis:'perkembangan'});ROWS.perkembangan=urut(r.rows);cRows('perkembangan');if(S.view!=='portofolio')return;
 const kf=klf(),tp=new Map();
 (SISWA||[]).filter(s=>!kf||s.kelas===kf).forEach(s=>tp.set(kunci(s.nama),{nama:s.nama,kelas:s.kelas}));
 ROWS.perkembangan.forEach(x=>{const k=kunci(x.nama);if(k&&!tp.has(k))tp.set(k,{nama:String(x.nama).trim(),kelas:kelNorm(x.kelas)})});
