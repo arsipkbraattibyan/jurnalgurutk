@@ -552,9 +552,9 @@ h.value=m==='sel'?(r?r.value:''):m==='combo'?(x||(r?r.value:'')):[r&&r.value,x].
 if(h.value!==old)h.dispatchEvent(new Event('change',{bubbles:true}))}
 function pilih(root,n,v){const h=root.querySelector(`input[type=hidden][name=${n}]`);if(!h)return;const fd=h.closest('.fd');fd.querySelectorAll('input[type=radio]').forEach(r=>r.checked=r.value===v);syncOpt(fd)}
 function stepClick(e){const st=e.target.closest('[data-st]');if(!st)return false;const i=st.parentNode.querySelector('input'),mn=+i.min,mx=+i.max;i.value=Math.min(mx,Math.max(mn,(+i.value||0)+ +st.dataset.st));return true}
-function ambil(root,fields){const d={};let kurang=null;
-fields.forEach(f=>{const e=root.querySelector(`[name=${f.k}]`);const v=e.value.trim();d[f.k]=v;if(!v&&f.t!=='area'&&!f.opt&&!kurang)kurang=f.l});
-return{d,kurang}}
+function ambil(root,fields){const d={};let kurang=null,kk=null;
+fields.forEach(f=>{const e=root.querySelector(`[name=${f.k}]`);const v=e.value.trim();d[f.k]=v;if(!v&&(f.t!=='area'||f.k==='tindak')&&!f.opt&&!kurang){kurang=f.l;kk=f.k}});
+return{d,kurang,kk}}
 const radioGrup=(name,list,sel,id)=>`<div class="opts" id="${id}">${list.map(([v,l])=>`<label class="op"><input type="radio" name="${name}" value="${esc(v)}"${v===sel?' checked':''}><span>${esc(l)}</span></label>`).join('')}</div>`;
 const nilai=n=>(document.querySelector(`input[name=${n}]:checked`)||{value:''}).value;
 
@@ -776,7 +776,10 @@ async function simpanBanyak(k,list){try{await api('simpanBanyak',{jenis:k,data:l
 function akordeon(md){
 const fds=[...md.querySelectorAll('.fd[data-m]')],val=f=>f.querySelector('input[type=hidden]').value,ok=f=>f.style.display!=='none';
 const segar=f=>{const b=f.querySelector('.ah'),v=val(f);b.querySelector('i').textContent=v||'Belum dipilih';b.classList.toggle('kosong',!v)};
-const buka=f=>fds.forEach(x=>x.classList.toggle('open',x===f));
+const buka=f=>{fds.forEach(x=>x.classList.toggle('open',x===f));
+if(f)setTimeout(()=>{const sh=md.querySelector('.sheet'),h=f.getBoundingClientRect().height,vh=sh?sh.clientHeight-90:innerHeight-150;
+f.scrollIntoView({behavior:'smooth',block:h>vh?'start':'nearest'})},60)};
+md._bk=buka;
 fds.forEach(f=>{f.classList.add('acc');const b=document.createElement('button');b.type='button';b.className='ah';b.innerHTML='<span>'+f.querySelector('label').innerHTML+'</span><i></i><em>›</em>';f.prepend(b);segar(f)});
 md._ak=()=>buka(null);
 md.addEventListener('change',e=>{const f=e.target.closest&&e.target.closest('.fd.acc');if(!f)return;segar(f);
