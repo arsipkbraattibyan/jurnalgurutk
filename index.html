@@ -88,6 +88,7 @@ input:focus,textarea:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 4
 .op{display:block;position:relative;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .op input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
 .op span{display:flex;align-items:center;justify-content:center;text-align:center;min-height:48px;height:100%;padding:8px 12px;border:2px solid var(--ln);border-radius:14px;background:#fff;color:var(--navy);font-weight:800;font-size:14px;line-height:1.25;box-shadow:0 3px 0 var(--ln);transition:.1s}
+.op.dis{cursor:not-allowed}.op.dis span{opacity:.38!important;background:#eef2f7!important;color:#8a97ab!important;border-color:var(--ln)!important;box-shadow:none!important;transform:none!important}
 .op:active span{transform:translateY(2px);box-shadow:0 1px 0 var(--ln)}
 .op input:checked+span{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 3px 0 var(--blued)}
 .op input:focus-visible+span{outline:3px solid #1e88e555;outline-offset:2px}
@@ -420,6 +421,19 @@ return foto?`<img class="av" src="${esc(fu(foto))}" alt="" referrerpolicy="no-re
 /* ---------- definisi jurnal (versi TK) ---------- */
 const KELAS=['Kelompok A','Kelompok B'];
 const TEMA=['Diriku','Lingkunganku','Kebutuhanku','Binatang','Tanaman','Alam semesta','Pekerjaan','Rekreasi','Transportasi','Komunikasi','Kebangsaanku'];
+const SUBTEMA={
+'Diriku':['Anggota tubuh','Panca indraku','Kebersihan','Kesukaanku','Perasaanku'],
+'Lingkunganku':['Keluargaku','Rumahku','Sekolahku','Tetanggaku','Tempat ibadah'],
+'Kebutuhanku':['Makanan sehat','Minuman sehat','Pakaianku','Kesehatanku'],
+'Binatang':['Hewan peliharaan','Hewan darat','Hewan air','Hewan udara'],
+'Tanaman':['Kebun sekolah','Buah-buahan','Sayuran','Bunga','Pohon'],
+'Alam semesta':['Matahari dan bulan','Siang dan malam','Cuaca','Air dan udara','Bumi'],
+'Pekerjaan':['Profesi di sekitarku','Pekerjaan di sekolah','Pekerjaan di pasar','Pekerjaan di rumah sakit'],
+'Rekreasi':['Taman bermain','Kebun binatang','Pantai','Berkemah'],
+'Transportasi':['Kendaraan darat','Kendaraan air','Kendaraan udara','Rambu lalu lintas'],
+'Komunikasi':['Telepon dan gawai','Surat dan pos','Televisi dan radio','Koran dan buku'],
+'Kebangsaanku':['Bendera merah putih','Lagu kebangsaan','Pakaian adat','Rumah adat','Hari kemerdekaan']};
+const SUBTEMA_SEMUA=[...new Set(Object.values(SUBTEMA).flat())];
 const ASPEK=['Nilai agama dan budi pekerti','Jati diri','Literasi','Matematika dan sains','Teknologi dan rekayasa','Seni','Fisik motorik'];
 const TGL={k:'tanggal',l:'Tanggal',t:'date'};
 const K={k:'kelas',l:'Kelompok',t:'sel',o:KELAS};
@@ -429,7 +443,7 @@ const J={
 identitas:{n:'Identitas Guru dan Sekolah',no:1,ic:'🪪',per:'Tahunan'},
 harian:{n:'Jurnal Harian Mengajar',no:2,ic:'📘',per:'Harian',daily:1,
 f:[TGL,K,TM,
-{k:'subtema',l:'Subtema',t:'combo',o:['Anggota tubuh','Keluargaku','Rumahku','Makanan sehat','Kebersihan','Hewan peliharaan','Kebun sekolah','Kendaraan darat','Profesi di sekitarku']},
+{k:'subtema',l:'Subtema',t:'combo',o:SUBTEMA_SEMUA},
 {k:'sentra',l:'Sentra / area bermain',t:'sel',o:['Sentra balok','Sentra persiapan','Sentra seni','Sentra imtaq','Sentra bahan alam','Sentra main peran','Bermain di luar kelas','Kegiatan klasikal']},
 {k:'kegiatan',l:'Kegiatan inti',t:'combo',o:['Menggambar bebas','Menyusun balok','Bermain peran','Mewarnai','Menggunting dan menempel','Bernyanyi dan bergerak','Mengenal huruf dan angka','Bermain pasir atau air','Bercerita']},
 {k:'metode',l:'Cara bermain / metode',t:'sel',o:['Bermain bebas','Bercerita','Demonstrasi','Bernyanyi','Percobaan sederhana','Karyawisata','Proyek']},
@@ -757,6 +771,20 @@ const gFoto=()=>{const c=md.querySelector('#fot');if(!c)return;
 c.innerHTML=Fo.lama.map((id,i)=>`<div class="fth"><img class="ft" data-fid="${esc(id)}" src="${BLANK}" alt="Foto"><button type="button" data-fl="${i}" aria-label="Hapus foto">×</button></div>`).join('')+Fo.baru.map((s,i)=>`<div class="fth"><img class="ft" data-loaded="1" src="${s}" alt="Foto"><button type="button" data-fb="${i}" aria-label="Hapus foto">×</button></div>`).join('');
 isiFoto(c);md.querySelector('#fotn').textContent=(Fo.lama.length+Fo.baru.length)+' dari '+MAXF+' foto'};
 gFoto();
+if(k==='harian'&&E('subtema')&&E('tema')){
+const fs=E('subtema').closest('.fd'),ops=fs.querySelector('.opts'),h=document.createElement('small');
+h.className='sub';h.style.cssText='display:block;margin:-2px 0 8px;font-size:12px';fs.querySelector('label').after(h);
+const urut=[...ops.children].map((l,i)=>({l,i,v:l.querySelector('input').value}));
+const terapkan=bersih=>{const tm=E('tema').value,bol=SUBTEMA[tm];let ubah=false;
+h.textContent=!tm?'Pilih tema dulu. Subtema yang sesuai akan aktif, yang lain tampil abu-abu.':bol?'Subtema yang sesuai tema "'+tm+'" ada di atas dan bisa dipilih. Yang lain tidak bisa dipilih.':'';
+urut.forEach(o=>{o.ok=!tm?false:!bol||bol.includes(o.v);const r=o.l.querySelector('input');
+o.l.classList.toggle('dis',!o.ok);r.disabled=!o.ok;if(!o.ok&&bersih&&r.checked){r.checked=false;ubah=true}});
+urut.slice().sort((a,b)=>(b.ok-a.ok)||(a.i-b.i)).forEach(o=>ops.appendChild(o.l));
+if(ubah)syncOpt(fs)};
+terapkan(false);
+md.addEventListener('change',e=>{if(e.target.name==='tema')terapkan(true)});
+md.addEventListener('click',e=>{const l=e.target.closest&&e.target.closest('.op.dis');if(!l)return;
+e.stopPropagation();e.preventDefault();toast(E('tema').value?'Subtema ini bukan bagian dari tema '+E('tema').value:'Pilih tema dulu',1)})}
 const setV=(n,v)=>{const e=E(n);if(!e)return;v=String(v);if(e.type==='hidden')pilih(md,n,v);else e.value=v};
 const setArea=(n,txt)=>{const fd=E(n).closest('.fd');fd.querySelector('.ex').value=txt;syncOpt(fd)};
 const cekDup=aw=>{if(k!=='kehadiran')return null;const tg=E('tanggal').value,kl=E('kelas').value,w=md.querySelector('#dupw'),x=(ROWS.kehadiran||[]).find(r=>String(r.tanggal).slice(0,10)===tg&&kelNorm(r.kelas)===kelNorm(kl)&&(!row||r.ID!==row.ID));
