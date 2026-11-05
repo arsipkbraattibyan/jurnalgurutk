@@ -342,6 +342,18 @@ html[data-tema=belajar] .lhd{background:linear-gradient(135deg,#0f8b8d,#2fb0b2)}
 html[data-tema=belajar] .tabs{background:#e6f4f5}html[data-tema=belajar] .tabs button.on{box-shadow:none}
 html[data-tema=belajar] .rt.ap th{background:#e6f4f5}html[data-tema=belajar] .rt.ap .tt td{background:#f2fafa}
 @media(max-width:820px){html[data-tema=belajar] .hero{padding:16px}html[data-tema=belajar] .hero h1{font-size:28px}}
+.sheet.frm .act{position:sticky;bottom:-22px;background:#fff;padding:12px 0 22px;margin:16px 0 -22px;border-top:1px solid var(--ln);z-index:3}
+.ah{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:8px 14px;border:2px solid var(--ln);border-radius:14px;background:#fff;color:var(--navy);font-weight:800;font-size:14px;text-align:left;list-style:none;cursor:pointer}
+.ah::-webkit-details-marker{display:none}
+.ah span{flex:1}
+.ah i{font-style:normal;color:var(--blued);max-width:55%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ah.kosong i{color:var(--mut);font-weight:600}
+.ah em{font-style:normal;transition:.15s}
+.fd.acc.open>.ah,details.fd[open]>.ah{border-color:var(--blue);margin-bottom:10px}
+.fd.acc.open>.ah em,details.fd[open]>.ah em{transform:rotate(90deg)}
+.fd.acc>label{display:none}
+.fd.acc:not(.open)>:not(.ah){display:none}
+.opts.lipat .op.dis{display:none}
 #lap.hid{display:none}@media print{#lap.hid{display:block!important}}
 </style>
 </head>
@@ -559,7 +571,7 @@ async function siapFoto(){const ims=[...document.querySelectorAll('#lap img[data
 await Promise.all(ims.map(im=>fotoSrc(im.dataset.fid).then(s=>{im.src=s;im.dataset.loaded=1;return im.decode?im.decode().catch(()=>{}):0}).catch(()=>{})))}
 const fotoHtml=r=>{const a=String(r.foto||'').split(/\s+/).filter(Boolean);
 return a.length?`<div class="fts">${a.map(id=>`<img class="ft" data-fid="${esc(id)}" src="${BLANK}" alt="Foto">`).join('')}</div>`:''};
-const fotoBlok=k=>`<div class="fd full"><label>Foto bukti (opsional, maks. ${MAXF})</label><p class="sub" style="font-size:12px;margin:-2px 0 8px">${FOTO[k]}</p><div class="fup"><button type="button" class="btn o s" data-fp>📷 Tambah foto</button><input type="file" id="fin" accept="image/*" multiple style="display:none"><small class="sub" id="fotn"></small></div><div class="fts" id="fot" style="margin-top:10px"></div></div>`;
+const fotoBlok=k=>`<details class="fd full"><summary class="ah"><span>📷 Foto bukti (opsional, maks. ${MAXF})</span><em>›</em></summary><p class="sub" style="font-size:12px;margin:-2px 0 8px">${FOTO[k]}</p><div class="fup"><button type="button" class="btn o s" data-fp>📷 Tambah foto</button><input type="file" id="fin" accept="image/*" multiple style="display:none"><small class="sub" id="fotn"></small></div><div class="fts" id="fot" style="margin-top:10px"></div></details>`;
 function lihatFoto(src){const md=document.createElement('div');md.className='md';
 md.innerHTML=`<div class="sheet" style="max-width:900px;text-align:center"><img src="${src}" alt="Foto" style="max-width:100%;max-height:75vh;border-radius:16px"><div class="act" style="justify-content:center"><button class="btn gh" data-x>Tutup</button></div></div>`;
 document.body.appendChild(md);md.onclick=e=>{if(e.target.closest('[data-x]'))md.remove()}}
@@ -761,9 +773,18 @@ let _ls=null;
 function segarSiswa(){return _ls||(_ls=api('siswa').then(j=>{SISWA=j.siswa;cSet('siswa',j.siswa)}).catch(()=>{if(!SISWA)SISWA=[]}).finally(()=>{_ls=null}))}
 async function loadSiswa(){if(SISWA){return SISWA}const c=cGet('siswa');if(c){SISWA=c;segarSiswa();return SISWA}await segarSiswa();return SISWA}
 async function simpanBanyak(k,list){try{await api('simpanBanyak',{jenis:k,data:list})}catch(e){if(!/tidak dikenal/i.test(e.message))throw e;for(const d of list)await api('simpan',{jenis:k,data:d})}}
+function akordeon(md){
+const fds=[...md.querySelectorAll('.fd[data-m]')],val=f=>f.querySelector('input[type=hidden]').value,ok=f=>f.style.display!=='none';
+const segar=f=>{const b=f.querySelector('.ah'),v=val(f);b.querySelector('i').textContent=v||'Belum dipilih';b.classList.toggle('kosong',!v)};
+const buka=f=>fds.forEach(x=>x.classList.toggle('open',x===f));
+fds.forEach(f=>{f.classList.add('acc');const b=document.createElement('button');b.type='button';b.className='ah';b.innerHTML='<span>'+f.querySelector('label').innerHTML+'</span><i></i><em>›</em>';f.prepend(b);segar(f)});
+md._ak=()=>buka(fds.find(f=>ok(f)&&!val(f)));md._ak();
+md.addEventListener('change',e=>{const f=e.target.closest&&e.target.closest('.fd.acc');if(!f)return;segar(f);
+if(e.target.type==='radio'&&!e.target.disabled)buka(fds.slice(fds.indexOf(f)+1).find(x=>ok(x)&&!val(x))||null)});
+md.addEventListener('click',e=>{const b=e.target.closest('.ah');if(!b||b.tagName!=='BUTTON')return;const f=b.parentNode;buka(f.classList.contains('open')?null:f)})}
 function bukaForm(k,row){const j=J[k],tb=(!row&&TB[k])||null,md=document.createElement('div');md.className='md';
 const rkBtn=k==='kehadiran'?`<div class="fd full" id="rkw"><button type="button" class="btn y s" data-rk>Isi otomatis dari Rekap Absen</button> <small class="sub">${klf()?'Pilih tanggal dulu.':'Pilih tanggal dan kelompok dulu.'}</small></div>`:'';
-md.innerHTML=`<div class="sheet"><h2>${row?'Ubah':'Tambah'} ${j.n}${klf()?`<span class="bdg">${klf()}</span>`:''}</h2><div class="fg"><div class="abn dup" id="dupw" style="display:none"></div>${rkBtn}${j.f.map(f=>f.k==='kelas'&&klf()?`<input type="hidden" name="kelas" value="${esc((row&&row.kelas)||klf())}">`:fld(f,row?row[f.k]:'')).join('')}${FOTO[k]?fotoBlok(k):''}</div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn" data-s>Simpan</button></div></div>`;
+md.innerHTML=`<div class="sheet frm"><h2>${row?'Ubah':'Tambah'} ${j.n}${klf()?`<span class="bdg">${klf()}</span>`:''}</h2><div class="fg"><div class="abn dup" id="dupw" style="display:none"></div>${k==='harian'&&!row?'<div class="fd full"><button type="button" class="btn y s" data-sl>📋 Salin dari kemarin</button> <small class="sub">Mengisi tema, subtema, sentra, dan metode dari jurnal terakhir.</small></div>':''}${rkBtn}${j.f.map(f=>f.k==='kelas'&&klf()?`<input type="hidden" name="kelas" value="${esc((row&&row.kelas)||klf())}">`:fld(f,row?row[f.k]:'')).join('')}${FOTO[k]?fotoBlok(k):''}</div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn" data-s>Simpan</button></div></div>`;
 document.body.appendChild(md);
 const E=n=>md.querySelector(`[name=${n}]`),T={},FA={};let FN='';let aktif=false,auto='';
 const Fo={lama:row&&row.foto?String(row.foto).split(/\s+/).filter(Boolean):[],baru:[]};
@@ -780,7 +801,10 @@ h.textContent=!tm?'Pilih tema dulu. Subtema yang sesuai akan aktif, yang lain ta
 urut.forEach(o=>{o.ok=!tm?false:!bol||bol.includes(o.v);const r=o.l.querySelector('input');
 o.l.classList.toggle('dis',!o.ok);r.disabled=!o.ok;if(!o.ok&&bersih&&r.checked){r.checked=false;ubah=true}});
 urut.slice().sort((a,b)=>(b.ok-a.ok)||(a.i-b.i)).forEach(o=>ops.appendChild(o.l));
-if(ubah)syncOpt(fs)};
+if(ubah)syncOpt(fs);
+ops.classList.toggle('lipat',!!tm&&!!bol&&!ops.dataset.all);sb.style.display=tm&&bol?'':'none'};
+const sb=document.createElement('button');sb.type='button';sb.className='btn gh s';sb.style.marginTop='8px';sb.textContent='Lihat subtema lain';ops.after(sb);
+sb.onclick=()=>{if(ops.dataset.all){delete ops.dataset.all;sb.textContent='Lihat subtema lain'}else{ops.dataset.all=1;sb.textContent='Sembunyikan subtema lain'}terapkan(false)};
 terapkan(false);
 md.addEventListener('change',e=>{if(e.target.name==='tema')terapkan(true)});
 md.addEventListener('click',e=>{const l=e.target.closest&&e.target.closest('.op.dis');if(!l)return;
@@ -833,8 +857,15 @@ gambar();
 if(tb||k==='perkembangan')loadSiswa().then(()=>{isiNama();gambar();hitung()});
 cekDup();
 if(['kehadiran','perkembangan','penilaian'].includes(k))KHmuat().then(()=>{if(k!=='kehadiran'){gambar();hitung()}cekDup()});
+if(!row&&k==='harian'){pilih(md,'kendala','Tidak ada kendala');pilih(md,'capaian','Sebagian besar antusias')}
+akordeon(md);
 md.onclick=async e=>{const t=e.target;if(t.closest('[data-x]'))return md.remove();
 if(stepClick(e))return;
+if(t.closest('[data-sl]')){const kl=kelNorm(E('kelas').value),x=(ROWS.harian||[]).find(r=>kelNorm(r.kelas)===kl);
+if(!x)return toast('Belum ada jurnal harian sebelumnya untuk disalin',1);
+['tema','subtema','sentra','metode'].forEach(n=>{if(x[n])pilih(md,n,x[n])});
+if(x.subtema&&!E('subtema').value){const fd=E('subtema').closest('.fd');fd.querySelector('.ex').value=x.subtema;syncOpt(fd)}
+md._ak();toast('Disalin dari '+tgl(x.tanggal));return}
 const ed=t.closest('[data-ed]');if(ed){const x=(ROWS.kehadiran||[]).find(r=>r.ID===ed.dataset.ed);if(x){md.remove();bukaForm(k,x)}return}
 const ov=t.closest('[data-ov]');if(ov){const r=ov.closest('.tr'),n=r.dataset.n,on=r.classList.toggle('ov');ov.textContent=on?'Batalkan':'Tetap nilai';if(!on){T[n]='';r.querySelectorAll('input[type=radio]').forEach(x=>x.checked=false);if(FA[n]){delete FA[n];gPk(n)}hitung()}return}
 const fl=t.closest('[data-fl]'),fb=t.closest('[data-fb]');
