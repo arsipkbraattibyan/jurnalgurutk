@@ -778,7 +778,7 @@ const fds=[...md.querySelectorAll('.fd[data-m]')],val=f=>f.querySelector('input[
 const segar=f=>{const b=f.querySelector('.ah'),v=val(f);b.querySelector('i').textContent=v||'Belum dipilih';b.classList.toggle('kosong',!v)};
 const buka=f=>fds.forEach(x=>x.classList.toggle('open',x===f));
 fds.forEach(f=>{f.classList.add('acc');const b=document.createElement('button');b.type='button';b.className='ah';b.innerHTML='<span>'+f.querySelector('label').innerHTML+'</span><i></i><em>›</em>';f.prepend(b);segar(f)});
-md._ak=()=>buka(fds.find(f=>ok(f)&&!val(f)));md._ak();
+md._ak=()=>buka(fds.find(f=>ok(f)&&!val(f)));
 md.addEventListener('change',e=>{const f=e.target.closest&&e.target.closest('.fd.acc');if(!f)return;segar(f);
 if(e.target.type==='radio'&&!e.target.disabled)buka(fds.slice(fds.indexOf(f)+1).find(x=>ok(x)&&!val(x))||null)});
 md.addEventListener('click',e=>{const b=e.target.closest('.ah');if(!b||b.tagName!=='BUTTON')return;const f=b.parentNode;buka(f.classList.contains('open')?null:f)})}
