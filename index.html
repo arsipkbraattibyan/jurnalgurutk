@@ -892,7 +892,8 @@ const ct=[['Izin',a.izinNama],['Sakit',a.sakitNama],['Tanpa keterangan',a.alphaN
 setArea('catatan',ct||'Semua hadir');toast('Data absen terisi')}}
 catch(er){toast(er.message,1)}
 rk.disabled=false;return}
-if(t.closest('[data-s]')){const skip=aktif?tb.hide:[];const{d,kurang}=ambil(md,j.f.filter(f=>!skip.includes(f.k)));if(kurang)return toast('Lengkapi dulu: '+kurang,1);
+if(t.closest('[data-s]')){const skip=aktif?tb.hide:[];const{d,kurang,kk}=ambil(md,j.f.filter(f=>!skip.includes(f.k)));
+if(kurang){const fd=E(kk)&&E(kk).closest('.fd');if(fd&&fd.classList.contains('acc')&&md._bk)md._bk(fd);return toast('Lengkapi dulu: '+kurang,1)}
 let list=null;
 if(aktif){const nm=Object.keys(T).filter(n=>T[n]);if(!nm.length)return toast('Pilih tingkat capaian untuk minimal satu anak',1);
 if(k==='perkembangan'){const tanpa=Object.keys(FA).filter(n=>!T[n]&&(FA[n].lama.length+FA[n].baru.length));if(tanpa.length)return toast('Pilih tingkat capaian untuk '+tanpa.join(', ')+' agar fotonya ikut tersimpan',1);list=nm.map(n=>({...d,nama:n,tingkat:T[n]}))}else{tb.hide.forEach(n=>d[n]=E(n).value);if(k==='kehadiran')d.absen=Object.keys(T).filter(n=>T[n]&&T[n]!=='hadir').map(n=>n.replace(/[|:]/g,' ')+':'+T[n]).join('|')}}
