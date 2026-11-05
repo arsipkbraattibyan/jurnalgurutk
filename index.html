@@ -353,6 +353,11 @@ html[data-tema=belajar] .rt.ap th{background:#e6f4f5}html[data-tema=belajar] .rt
 .fd.acc.open>.ah em,details.fd[open]>.ah em{transform:rotate(90deg)}
 .fd.acc>label{display:none}
 .fd.acc:not(.open)>:not(.ah){display:none}
+@keyframes kdp{
+0%,100%{box-shadow:0 0 0 0 #ee4f9a00;border-color:var(--ln);background:#fff}
+50%{box-shadow:0 0 0 5px #ee4f9a66,0 0 24px 8px #ee4f9a99;border-color:#ee4f9a;background:#fff0f6}}
+.kdp{animation:kdp .6s ease-in-out 2;border-radius:14px}
+@media(prefers-reduced-motion:reduce){.kdp{animation:none;box-shadow:0 0 0 4px #ee4f9a;border-color:#ee4f9a}}
 .opts.lipat .op.dis{display:none}
 #lap.hid{display:none}@media print{#lap.hid{display:block!important}}
 </style>
@@ -893,6 +898,13 @@ setArea('catatan',ct||'Semua hadir');toast('Data absen terisi')}}
 catch(er){toast(er.message,1)}
 rk.disabled=false;return}
 if(t.closest('[data-s]')){const skip=aktif?tb.hide:[];const{d,kurang,kk}=ambil(md,j.f.filter(f=>!skip.includes(f.k)));
+if(kurang){const e=E(kk),fd=e&&e.closest('.fd');
+if(fd){if(md._ak)md._ak();
+const tg=fd.querySelector(':scope>.ah')||fd;
+tg.scrollIntoView({behavior:'smooth',block:'center'});
+tg.classList.remove('kdp');void tg.offsetWidth;tg.classList.add('kdp');
+setTimeout(()=>tg.classList.remove('kdp'),1400)}
+return toast('Lengkapi dulu: '+kurang,1)}
 if(kurang){const fd=E(kk)&&E(kk).closest('.fd');if(fd&&fd.classList.contains('acc')&&md._bk)md._bk(fd);return toast('Lengkapi dulu: '+kurang,1)}
 let list=null;
 if(aktif){const nm=Object.keys(T).filter(n=>T[n]);if(!nm.length)return toast('Pilih tingkat capaian untuk minimal satu anak',1);
