@@ -383,9 +383,14 @@ const E = esc, KB = {};
 const nilaiKbc = r => [r.nilaiid].concat(String(r.nilailain || '').split(',')).map(x => String(x).trim()).filter(Boolean);
 const nJ = k => (J[k] ? J[k].n.replace('Jurnal ', '') : k);
 
-async function kbcAmbil(dari, sampai) {
+const KBF = {};
+function kbcAmbil(dari, sampai) {
   const key = (dari || '') + '|' + (sampai || ''), c = KB[key];
-  if (c && Date.now() - c.t < 30000) return c.rows;
+  if (c && Date.now() - c.t < 30000) return Promise.resolve(c.rows);
+  if (!KBF[key]) KBF[key] = kbcAmbil0(dari, sampai, key).then(r => { delete KBF[key]; return r; });
+  return KBF[key];
+}
+async function kbcAmbil0(dari, sampai, key) {
   try {
     const pn = KBCN ? null : api('kbcNilai').then(x => { KBCN = x.nilai.map(y => [y.ID, y.nama]); }).catch(() => {});
     const j = await api('kbcDaftar', { f: { dari: dari || '', sampai: sampai || '' } }); // dua permintaan berjalan bersamaan
@@ -452,6 +457,16 @@ function pasangDash(rows, bln) {
   const lama = $('#kbcdash'); if (lama) lama.remove();
   st.insertAdjacentHTML('afterend', htmlDash(rows, bln));
 }
+
+// Mulai ambil data KBC bersamaan dengan data jurnal, agar lima kartu KBC muncul bersama empat kartu di atasnya
+const berandaView = window.viewBeranda;
+window.viewBeranda = function () {
+  try {
+    const bln = hari().slice(0, 7);
+    kbcAmbil(bln + '-01', bln + '-31').then(rows => { if (rows) { KBD = rows; pasangDash(rows, bln); try { localStorage.setItem('kbcdash:' + bln, JSON.stringify(rows)); } catch (e) {} } });
+  } catch (e) {}
+  return berandaView.apply(this, arguments);
+};
 
 window.gambarBeranda = function () {
   const r = berandaAsli.apply(this, arguments);
