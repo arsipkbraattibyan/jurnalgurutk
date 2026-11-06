@@ -163,14 +163,22 @@ function sHadir(F) {
 function sPerk(F, kbc) {
   const P = dat('perkembangan', F);
   const cols = [['Tanggal', r => tgl(r.tanggal)], ['Anak', r => E(r.nama)], ['Kelompok', r => E(kelNorm(r.kelas))],
-    ['Tema / subtema', r => E([r.tema, r.subtema].filter(Boolean).join(' / '))], ['Elemen CP', r => E(r.aspek)],
+    ['Tema / subtema / kegiatan', r => E([r.tema, r.subtema].filter(Boolean).join(' / ')) + (r.kegiatan ? '<br>Kegiatan: ' + E(r.kegiatan) : '')], ['Elemen CP', r => E(r.aspek)],
     ['Indikator', r => E(String(r.indikator || '').split(' | ').join('; '))],
     ['Capaian', r => lvl(r) >= 0 ? lvChip(lvl(r)) : E(r.tingkat), 1]];
   if (kbc) cols.push(['Panca Cinta', r => E(nm(r.pancacinta))]);
-  cols.push(['Catatan pengamatan', r => E(r.catatan)], ['Tindak lanjut', r => E(r.tindak)]);
+  cols.push(['Cara mencatat', r => E(r.teknik)], ['Catatan pengamatan', r => E(r.catatan)], ['Tindak lanjut', r => E(r.tindak)]);
   return ['Perkembangan anak', '<h4>Tingkat capaian</h4>' + dist('Tingkat capaian', P, 'tingkat', TKT)
     + '<p style="font-size:11px;margin:4px 0 0">BB = Belum Berkembang, MB = Mulai Berkembang, BSH = Berkembang Sesuai Harapan, BSB = Berkembang Sangat Baik.</p>'
     + '<h4>Rincian pengamatan</h4>' + tb(cols, P)];
+}
+
+function sKoku(F) {
+  const K = dat('kokurikuler', F);
+  return ['Kegiatan kokurikuler', '<h4>Hasil kegiatan</h4>' + dist('Hasil kegiatan', K, 'hasil', opsi('kokurikuler', 'hasil'))
+    + '<h4>Rincian kegiatan kokurikuler</h4>' + tb([['Tanggal', r => tgl(r.tanggal)], ['Kelompok', r => E(kelNorm(r.kelas))], ['Tema', r => E(r.tema)],
+      ['Bentuk kegiatan', r => E(r.bentuk)], ['Aktivitas anak', r => E(r.aktivitas)], ['Anak ikut', r => E(r.peserta), 1],
+      ['Hasil kegiatan', r => E(r.hasil)], ['Uraian hasil', r => E(r.uraianhasil)], ['Catatan', r => E(r.catatan)]], K)];
 }
 
 function sAses(F) {
@@ -241,12 +249,12 @@ function sPengamatan(F) {
     + '<p style="font-size:11px;margin:4px 0 0">Pengamatan autentik tanpa nilai angka, bersumber dari Jurnal Perkembangan dan Jurnal Penilaian.</p>'];
 }
 
-function sDok(F, gabung) {
+function sDok(F, gabung, tanpaKbc) {
   const m = new Map(), MX = 60;
   const ids = r => String(r.foto || '').split(/\s+/).filter(Boolean);
   const add = (id, o) => { if (!m.has(id)) m.set(id, o); };
-  F.kk.forEach(r => ids(r).forEach(id => add(id, { t: r.tanggal, c: '<b>' + E(nJ(r.jenis)) + '</b><br>' + tgl(r.tanggal) + '<br>' + E(nm(nilaiKbc(r).join(','))) + (r.anaknama ? '<br>' + E(r.anaknama) : '') })));
-  if (gabung) Object.keys(FOTO).forEach(k => dat(k, F).forEach(r => ids(r).forEach(id => add(id, { t: r.tanggal, c: '<b>' + E(nJ(k)) + '</b><br>' + tgl(r.tanggal) + '<br>' + E(J[k].t(r)) }))));
+  if (!tanpaKbc) F.kk.forEach(r => ids(r).forEach(id => add(id, { t: r.tanggal, c: '<b>' + E(nJ(r.jenis)) + '</b><br>' + tgl(r.tanggal) + '<br>' + E(nm(nilaiKbc(r).join(','))) + (r.anaknama ? '<br>' + E(r.anaknama) : '') })));
+  if (gabung) Object.keys(FOTO).filter(k => !(tanpaKbc && k === 'tambahan')).forEach(k => dat(k, F).forEach(r => ids(r).forEach(id => add(id, { t: r.tanggal, c: '<b>' + E(nJ(k)) + '</b><br>' + tgl(r.tanggal) + '<br>' + E(J[k].t(r)) }))));
   const L = [...m.entries()].sort((a, b) => String(a[1].t).localeCompare(String(b[1].t))), sh = L.slice(0, MX);
   return ['Dokumentasi', sh.length
     ? '<div class="gal">' + sh.map(([id, o]) => '<figure><img data-fid="' + E(id) + '" src="' + BLANK + '" alt="Foto"><figcaption>' + o.c + '</figcaption></figure>').join('') + '</div>'
@@ -277,12 +285,12 @@ function bangun(F) {
   F.kk = kbSaring(F);
   if (F.jenis === 'kbc') return kertas(F, 'LAPORAN KURIKULUM BERBASIS CINTA', [sIdent(F), sNilai(F), sTujuan(F), sAktPemb(F), sImpl(F), sPengamatan(F), sDok(F, false), sRefl(F, 'kbc')]);
   if (F.jenis === 'terpadu') return kertas(F, 'LAPORAN TERPADU<br>KURIKULUM MERDEKA DAN KURIKULUM BERBASIS CINTA',
-    [sIdent(F), sRingkas(F), sCP(F), sTema(F), sHarian(F, true), sHadir(F), sPerk(F, true), sAses(F), sNilai(F), sTujuan(F), sImpl(F), sPengamatan(F), sRefl(F, 'gab'), sDok(F, true)]);
+    [sIdent(F), sRingkas(F), sCP(F), sTema(F), sHarian(F, true), sHadir(F), sPerk(F, true), sKoku(F), sAses(F), sNilai(F), sTujuan(F), sImpl(F), sPengamatan(F), sRefl(F, 'gab'), sDok(F, true)]);
   if (F.jenis === 'lama') {
     const rg = { dari: F.rg.dari, sampai: F.rg.sampai, label: F.rg.label, judul: '' };
     return laporan(rg, { loading: 1 });
   }
-  return kertas(F, 'LAPORAN KURIKULUM MERDEKA', [sIdent(F), sCP(F), sTema(F), sHarian(F, false), sHadir(F), sPerk(F, false), sAses(F), sRefl(F, 'km')]);
+  return kertas(F, 'LAPORAN KURIKULUM MERDEKA', [sIdent(F), sCP(F), sTema(F), sHarian(F, false), sHadir(F), sPerk(F, false), sKoku(F), sAses(F), sRefl(F, 'km'), sDok(F, true, true)]);
 }
 
 /* ---------- ambil data KBC dari database yang sama (tanpa menulis) ---------- */
