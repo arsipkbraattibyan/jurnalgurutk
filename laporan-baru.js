@@ -106,9 +106,6 @@ function sCP(F) {
     ['Indikator yang diamati', x => list(uniq([].concat.apply([], x.r.map(r => String(r.indikator || '').split(' | ')))).slice(0, 12))],
     ['Jumlah pengamatan', x => x.r.length, 1]], rows);
   h += '<p style="font-size:11px;margin:4px 0 0">TP dan indikator diambil dari isian Jurnal Perkembangan Anak pada periode ini.</p>';
-  const K = dat('kokurikuler', F);
-  if (K.length) h += '<h4>Tujuan kegiatan kokurikuler</h4>' + tb([['Tanggal', r => tgl(r.tanggal)], ['Tema', r => E(r.tema)], ['Tujuan kegiatan', r => E(r.tujuan)],
-    ['Dimensi Profil Pelajar Pancasila', r => E(r.dimensi || '-')]], K);
   return ['Capaian Pembelajaran (CP) dan Tujuan Pembelajaran (TP)', h];
 }
 
@@ -175,10 +172,13 @@ function sPerk(F, kbc) {
 
 function sKoku(F) {
   const K = dat('kokurikuler', F);
-  return ['Kegiatan kokurikuler', '<h4>Hasil kegiatan</h4>' + dist('Hasil kegiatan', K, 'hasil', opsi('kokurikuler', 'hasil'))
+  return ['Kegiatan kokurikuler',
+    '<h4>Tujuan kegiatan kokurikuler</h4>' + tb([['Tanggal', r => tgl(r.tanggal)], ['Tema', r => E(r.tema)], ['Tujuan kegiatan', r => E(r.tujuan)],
+      ['Dimensi Profil Pelajar Pancasila', r => E(r.dimensi || '-')]], K)
     + '<h4>Rincian kegiatan kokurikuler</h4>' + tb([['Tanggal', r => tgl(r.tanggal)], ['Kelompok', r => E(kelNorm(r.kelas))], ['Tema', r => E(r.tema)],
       ['Bentuk kegiatan', r => E(r.bentuk)], ['Aktivitas anak', r => E(r.aktivitas)], ['Anak ikut', r => E(r.peserta), 1],
-      ['Hasil kegiatan', r => E(r.hasil)], ['Uraian hasil', r => E(r.uraianhasil)], ['Catatan', r => E(r.catatan)]], K)];
+      ['Hasil kegiatan', r => E(r.hasil)], ['Uraian hasil', r => E(r.uraianhasil)], ['Catatan', r => E(r.catatan)]], K)
+    + '<h4>Hasil kegiatan</h4>' + dist('Hasil kegiatan', K, 'hasil', opsi('kokurikuler', 'hasil'))];
 }
 
 function sAses(F) {
