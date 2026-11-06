@@ -107,7 +107,8 @@ function sCP(F) {
     ['Jumlah pengamatan', x => x.r.length, 1]], rows);
   h += '<p style="font-size:11px;margin:4px 0 0">TP dan indikator diambil dari isian Jurnal Perkembangan Anak pada periode ini.</p>';
   const K = dat('kokurikuler', F);
-  if (K.length) h += '<h4>Tujuan kegiatan kokurikuler</h4>' + tb([['Tanggal', r => tgl(r.tanggal)], ['Tema', r => E(r.tema)], ['Tujuan kegiatan', r => E(r.tujuan)]], K);
+  if (K.length) h += '<h4>Tujuan kegiatan kokurikuler</h4>' + tb([['Tanggal', r => tgl(r.tanggal)], ['Tema', r => E(r.tema)], ['Tujuan kegiatan', r => E(r.tujuan)],
+    ['Dimensi Profil Pelajar Pancasila', r => E(r.dimensi || '-')]], K);
   return ['Capaian Pembelajaran (CP) dan Tujuan Pembelajaran (TP)', h];
 }
 
@@ -220,16 +221,17 @@ function sAktPemb(F) {
     ['Kegiatan inti', r => E(r.kegiatan)], ['Sentra', r => E(r.sentra)], ['Metode', r => E(r.metode)],
     ['Nilai Panca Cinta', r => { const k = F.kk.find(x => x.jenis === 'harian' && String(x.jurnalid) === String(r.ID) && !x.anakid); return k ? E(nm(nilaiKbc(k).join(','))) : '-'; }]], H);
   if (K.length) h += '<h4>Kegiatan kokurikuler</h4>' + tb([['Tanggal', r => tgl(r.tanggal)], ['Tema', r => E(r.tema)], ['Bentuk kegiatan', r => E(r.bentuk)], ['Aktivitas anak', r => E(r.aktivitas)],
-    ['Nilai Panca Cinta', r => E(nm(r.pancacinta))]], K);
+    ['Nilai Panca Cinta', r => E(nm(r.pancacinta))], ['Hasil kegiatan', r => E([r.hasil, r.uraianhasil].filter(Boolean).join('. ') || '-')]], K);
   return ['Aktivitas pembelajaran', h];
 }
 
 function sImpl(F) {
-  const kk = F.kk, kelas = kk.filter(r => !r.anakid);
+  const kk = F.kk, kelas = kk.filter(r => !r.anakid && r.jenis !== 'kokurikuler' && r.jenis !== 'refleksi');
   const sum1 = SUMBER.map(j => ({ n: nJ(j), a: kk.filter(r => r.jenis === j).length, b: kk.filter(r => r.jenis === j && r.anakid).length }));
   return ['Implementasi KBC', '<h4>Jumlah catatan KBC per jurnal</h4>' + tb([['Sumber jurnal', r => E(r.n)], ['Jumlah catatan KBC', r => r.a, 1], ['Di antaranya pengamatan per anak', r => r.b, 1]], sum1)
     + '<h4>Penerapan KBC di kelas</h4>' + tb([['Tanggal', r => tgl(r.tanggal)], ['Sumber', r => E(nJ(r.jenis))], ['Nilai Panca Cinta', r => E(nm(nilaiKbc(r).join(',')))],
-      ['Aktivitas implementasi', r => E(r.aktivitas)], ['Catatan penerapan', r => E(r.hasil)]], kelas)];
+      ['Aktivitas implementasi', r => E(r.aktivitas)], ['Catatan penerapan', r => E(r.hasil)]], kelas)
+    + '<p style="font-size:11px;margin:4px 0 0">Catatan dari jurnal kokurikuler ditampilkan pada bagian Aktivitas pembelajaran, dan dari jurnal refleksi pada bagian Refleksi KBC.</p>'];
 }
 
 function sPengamatan(F) {
