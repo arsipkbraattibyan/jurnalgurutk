@@ -496,23 +496,23 @@ t:r=>`${r.nama||''} (${r.kelas||''})`},
 penilaian:{n:'Jurnal Penilaian Pembelajaran',no:5,ic:'📝',per:'Harian/Berkala',
 f:[TGL,K,TM,{k:'aspek',l:'Aspek yang dinilai',t:'sel',o:ASPEK},
 {k:'jenis',l:'Jenis penilaian',t:'sel',o:['Harian','Mingguan','Bulanan','Semester']},
-{k:'teknik',l:'Teknik',t:'sel',o:['Catatan anekdot','Hasil karya','Ceklis','Foto berseri','Observasi','Percakapan']},
+{k:'teknik',l:'Teknik',t:'sel',o:['Observasi','Catatan anekdot','Hasil karya','Dokumentasi','Percakapan','Ceklis perkembangan']},
 {k:'peserta',l:'Jumlah anak dinilai',t:'sel',o:N(1,30)},
 {k:'bb',l:'Jumlah anak BB',t:'sel',o:N(0,30)},{k:'mb',l:'Jumlah anak MB',t:'sel',o:N(0,30)},{k:'bsh',l:'Jumlah anak BSH',t:'sel',o:N(0,30)},{k:'bsb',l:'Jumlah anak BSB',t:'sel',o:N(0,30)},
 {k:'tindak',l:'Tindak lanjut',t:'area',o:['Stimulasi tambahan','Pengayaan kegiatan','Pendampingan individu','Koordinasi dengan orang tua','Masuk laporan perkembangan']}],
 t:r=>`${r.jenis||''} - ${r.aspek||''} (${r.kelas||''})`},
 kokurikuler:{n:'Jurnal Kegiatan Kokurikuler',no:6,ic:'🎨',per:'Sesuai kegiatan',
-f:[TGL,K,{k:'tema',l:'Tema projek',t:'sel',o:['Aku sayang bumi','Aku cinta Indonesia','Kita semua bersaudara','Imajinasiku','Bermain dan bekerja sama','Gaya hidup berkelanjutan','Kearifan lokal']},
-{k:'dimensi',l:'Dimensi Profil Pelajar Pancasila',t:'sel',o:['Beriman, bertakwa, dan berakhlak mulia','Berkebinekaan global','Bergotong royong','Mandiri','Bernalar kritis','Kreatif']},
+f:[TGL,K,{k:'tema',l:'Tema kegiatan',t:'combo',o:['Aku sayang bumi','Aku cinta Indonesia','Kita semua bersaudara','Imajinasiku','Bermain dan bekerja sama','Gaya hidup berkelanjutan','Kearifan lokal']},
+{k:'tujuan',l:'Tujuan kegiatan',t:'txa',ph:'Contoh: Anak belajar merawat tanaman dan peduli pada lingkungan'},{k:'pancacinta',l:'Nilai Panca Cinta',t:'pc',ph:'Pilih nilai Panca Cinta yang ingin ditumbuhkan melalui kegiatan ini (boleh lebih dari satu).'},{k:'dimensi',l:'Dimensi Profil Pelajar Pancasila',t:'sel',o:['Beriman, bertakwa, dan berakhlak mulia','Berkebinekaan global','Bergotong royong','Mandiri','Bernalar kritis','Kreatif']},
 {k:'bentuk',l:'Bentuk kegiatan',t:'sel',o:['Projek kelompok','Karyawisata','Pentas seni','Berkebun bersama','Pameran karya','Kerja bakti kecil','Pembiasaan ibadah']},
-{k:'peserta',l:'Jumlah anak ikut',t:'sel',o:N(1,30)},{k:'hasil',l:'Hasil kegiatan',t:'sel',o:['Sangat baik','Baik','Cukup','Perlu pendampingan']},
+{k:'aktivitas',l:'Aktivitas anak',t:'txa',ph:'Apa yang dilakukan anak selama kegiatan (menanam, bernyanyi, bergotong royong, dst.)'},{k:'peserta',l:'Jumlah anak ikut',t:'sel',o:N(1,30)},{k:'hasil',l:'Hasil kegiatan',t:'sel',o:['Sangat baik','Baik','Cukup','Perlu pendampingan']},{k:'uraianhasil',l:'Uraian hasil kegiatan',t:'txa',opt:1,ph:'Hasil karya, perubahan sikap, atau capaian yang tampak pada anak'},
 {k:'catatan',l:'Catatan',t:'area',o:['Anak antusias','Anak mau bekerja sama','Perlu waktu tambahan','Hasil karya dipamerkan','Dokumentasi sudah lengkap']}],
 t:r=>r.tema||''},
 refleksi:{n:'Jurnal Refleksi Guru',no:7,ic:'💭',per:'Harian',daily:1,
 f:[TGL,{k:'suasana',l:'Perasaan hari ini',t:'sel',o:['Sangat senang','Senang','Biasa saja','Lelah','Perlu dukungan']},
 {k:'berjalan',l:'Yang berjalan baik',t:'area',o:['Anak antusias bermain','Tujuan kegiatan tercapai','Alat main menarik','Waktu terkelola baik','Kelas nyaman']},
-{k:'tantangan',l:'Tantangan',t:'area',o:['Anak sulit fokus','Anak menangis atau rewel','Waktu terbatas','Kemampuan anak beragam','Alat main kurang']},
-{k:'rencana',l:'Rencana perbaikan',t:'area',o:['Variasi cara bermain','Pakai benda konkret','Pendampingan individu','Atur ulang jadwal','Konsultasi rekan guru atau orang tua']}],
+{k:'pcterap',l:'Apakah nilai Panca Cinta sudah diterapkan?',t:'sel',o:['Sudah','Sebagian','Belum']},{k:'pancacinta',l:'Nilai Panca Cinta yang diterapkan',t:'pc',opt:1,ph:'Pilih nilai Panca Cinta yang diterapkan hari ini. Wajib diisi jika jawabannya Sudah atau Sebagian.'},{k:'respons',l:'Bagaimana respons anak?',t:'combo',o:['Antusias dan aktif','Cukup antusias','Pasif atau ragu-ragu','Perlu dorongan guru','Sangat senang']},{k:'peduli',l:'Apakah anak menunjukkan kepedulian?',t:'sel',o:['Ya, hampir semua anak','Sebagian anak','Belum tampak']},{k:'sesuaitujuan',l:'Apakah kegiatan berjalan sesuai tujuan?',t:'sel',o:['Sesuai','Sebagian sesuai','Belum sesuai']},{k:'tantangan',l:'Kendala yang ditemukan',t:'area',o:['Anak sulit fokus','Anak menangis atau rewel','Waktu terbatas','Kemampuan anak beragam','Alat main kurang']},
+{k:'rencana',l:'Tindak lanjut pembelajaran',t:'area',o:['Variasi cara bermain','Pakai benda konkret','Pendampingan individu','Atur ulang jadwal','Konsultasi rekan guru atau orang tua']}],
 t:r=>'Perasaan: '+(r.suasana||'')},
 tambahan:{n:'Jurnal Kegiatan Tambahan',no:8,ic:'📌',per:'Sesuai kegiatan',
 f:[TGL,{k:'jenis',l:'Jenis kegiatan',t:'sel',o:['Rapat guru','Pelatihan / workshop','Piket harian','Apel pagi / upacara','Ekstrakurikuler','Parenting / pertemuan orang tua','Lomba / pentas','Administrasi sekolah','Kunjungan rumah','Penyambutan dan pelepasan anak']},
@@ -549,9 +549,9 @@ const KEYS=ORDER.slice(1);
 /* ---------- komponen isian: semua pilihan berupa radio button ---------- */
 const opts=(name,o,sel)=>`<div class="opts">${o.map(x=>`<label class="op"><input type="radio" name="r_${name}" value="${esc(x)}"${String(x)===String(sel)?' checked':''}><span>${esc(x)}</span></label>`).join('')}</div>`;
 function fld(f,v){v=String(v??'');const L=`<label>${f.l}</label>`;
-if(f.t==='tuj')return`<div class="fd full">${L}<textarea name="${f.k}" rows="2" maxlength="500" placeholder="Contoh: Anak mampu mengenal kebutuhan tubuh dan merawatnya">${esc(v)}</textarea></div>`;
+if(f.t==='txa')return`<div class="fd full">${L}<textarea name="${f.k}" rows="3" maxlength="1000" placeholder="${esc(f.ph||'')}">${esc(v)}</textarea></div>`;if(f.t==='tuj')return`<div class="fd full">${L}<textarea name="${f.k}" rows="2" maxlength="500" placeholder="Contoh: Anak mampu mengenal kebutuhan tubuh dan merawatnya">${esc(v)}</textarea></div>`;
 if(f.t==='ind')return`<details class="fd full" id="indb"><summary class="ah kosong"><span>🎯 ${f.l}</span><i>Belum dipilih</i><em>›</em></summary><input type="hidden" name="${f.k}" value="${esc(v)}"><p class="sub" id="indh" style="font-size:12px;margin:-2px 0 8px"></p><div class="opts" id="indl"></div><div class="fup" style="margin-top:10px"><input id="indx" maxlength="200" placeholder="Tulis indikator sendiri sesuai tujuan pembelajaran" style="flex:1 1 220px;width:auto" autocomplete="off"><button type="button" class="btn o s" data-ia>+ Tambah</button></div></details>`;
-if(f.t==='pc')return`<details class="fd full" id="pcb"><summary class="ah kosong"><span>💗 ${f.l}</span><i>Belum dipilih</i><em>›</em></summary><input type="hidden" name="${f.k}" value="${esc(v)}"><p class="sub" style="font-size:12px;margin:-2px 0 8px">Panca Cinta melengkapi, bukan pengganti, elemen CP. Pilih nilai yang tampak atau relevan pada pengamatan ini (boleh lebih dari satu).</p><div class="opts" id="pcl">${KBCN0.map(([id,n])=>`<label class="op"><input type="checkbox" name="pcc" value="${id}"><span>${esc(n)}</span></label>`).join('')}</div></details>`;
+if(f.t==='pc')return`<details class="fd full" id="pcb"><summary class="ah kosong"><span>💗 ${f.l}</span><i>Belum dipilih</i><em>›</em></summary><input type="hidden" name="${f.k}" value="${esc(v)}"><p class="sub" style="font-size:12px;margin:-2px 0 8px">${esc(f.ph||'Panca Cinta melengkapi, bukan pengganti, elemen CP. Pilih nilai yang tampak atau relevan pada pengamatan ini (boleh lebih dari satu).')}</p><div class="opts" id="pcl">${KBCN0.map(([id,n])=>`<label class="op"><input type="checkbox" name="pcc" value="${id}"><span>${esc(n)}</span></label>`).join('')}</div></details>`;
 if(f.t==='date')return`<div class="fd">${L}<input type="date" name="${f.k}" value="${esc(v||hari())}"></div>`;
 if(f.t==='txt')return`<div class="fd">${L}<input name="${f.k}" value="${esc(v)}" autocomplete="off"></div>`;
 if(f.t==='tgl')return`<div class="fd">${L}<input type="date" name="${f.k}" value="${esc(v)}"></div>`;
@@ -852,6 +852,55 @@ const kl=(md.querySelector('[name=kelas]')||{}).value,ok=SISWA.some(s=>(!kl||s.k
 h.textContent=ok?'✅ Terhubung dengan data siswa':'⚠️ Nama belum ada di daftar siswa, pilih dari daftar';h.style.color=ok?'#2e7d32':'#c0392b'};
 n.addEventListener('input',up);n.addEventListener('change',up);md.addEventListener('change',up)}
 const kbcBlok=()=>`<details class="fd full" id="kbcb"><summary class="ah kosong"><span>💗 Penguatan KBC (Panca Cinta)</span><i>Belum dipilih</i><em>›</em></summary><p class="sub" style="font-size:12px;margin:-2px 0 8px">Pilih satu atau lebih nilai Panca Cinta yang diperkuat pada kegiatan hari ini. Boleh dikosongkan jika tidak dipakai.</p><p class="sub" id="kbcw" style="display:none;font-size:12px;color:#c0392b;margin:0 0 8px">Data KBC yang tersimpan belum bisa dimuat. Bagian KBC tidak akan diubah saat Anda menyimpan.</p><div class="fd" style="margin-bottom:10px"><label>Nilai Panca Cinta (boleh lebih dari satu)</label><div class="opts" id="kbcn">${KBCN0.map(([id,n])=>`<label class="op"><input type="checkbox" name="kbcnilai" value="${id}"><span>${esc(n)}</span></label>`).join('')}</div></div><div class="fd" style="margin-bottom:10px"><label for="kbct">Tujuan penguatan KBC</label><textarea id="kbct" rows="2" maxlength="1000" placeholder="Apa yang ingin diperkuat pada anak hari ini?"></textarea></div><div class="fd" style="margin-bottom:10px"><label for="kbca">Aktivitas implementasi KBC</label><textarea id="kbca" rows="3" maxlength="1000" placeholder="Kegiatan yang dilakukan untuk menumbuhkan nilai tersebut"></textarea></div><div class="fd"><label for="kbcc">Catatan penerapan KBC</label><textarea id="kbcc" rows="2" maxlength="1000" placeholder="Respons anak, hal yang berhasil, atau yang perlu ditindaklanjuti"></textarea></div></details>`;
+/* ---------- Pengamatan Panca Cinta di Jurnal Penilaian (tanpa nilai angka) ---------- */
+// Indikator di bawah adalah contoh awal. Sesuaikan dengan teks resmi Panduan KBC sebelum dipakai di laporan.
+const PCI={
+PC1:['Berdoa dengan tertib sebelum dan sesudah kegiatan','Menirukan gerakan ibadah dengan sungguh-sungguh','Mengucap salam dan syukur secara spontan','Meniru kebiasaan baik yang diceritakan tentang Rasulullah (jujur, berbagi)'],
+PC2:['Bertanya tentang hal yang ingin diketahui','Antusias mencoba dan mengeksplorasi bahan','Bertahan menyelesaikan kegiatan sampai selesai','Menyimak cerita atau penjelasan guru dengan perhatian'],
+PC3:['Membuang sampah pada tempatnya','Merapikan alat main setelah dipakai','Merawat tanaman atau hewan (menyiram, memberi makan)','Menjaga kebersihan kelas dan menghemat air'],
+PC4:['Mau berbagi dan bergantian','Menolong teman yang kesulitan','Mengungkapkan perasaan dengan kata-kata','Menghargai perbedaan teman','Mengucapkan tolong, maaf, dan terima kasih'],
+PC5:['Ikut bernyanyi lagu kebangsaan atau daerah dengan semangat','Menyebutkan simbol negara (bendera, Garuda)','Bersikap hormat saat upacara atau pengibaran bendera','Tertarik pada pakaian, makanan, atau permainan tradisional']};
+const pcpBlok=()=>`<details class="fd full" id="pcpb"><summary class="ah kosong"><span>💗 Pengamatan Panca Cinta (opsional)</span><i>Belum ada</i><em>›</em></summary><p class="sub" style="font-size:12px;margin:-2px 0 8px">Catat perilaku autentik yang tampak pada anak, tanpa nilai angka. Teknik asesmen mengikuti isian Teknik di atas, foto bukti mengikuti blok foto, dan tautan ke Jurnal Harian dibuat otomatis (tanggal dan kelompok yang sama).</p><p class="sub" id="pcpw" style="display:none;font-size:12px;color:#c0392b;margin:0 0 8px">Pengamatan Panca Cinta yang tersimpan belum bisa dimuat. Bagian ini tidak akan diubah saat Anda menyimpan.</p><div class="fd" style="margin-bottom:10px"><label for="pcpa">Anak</label><select id="pcpa"><option value="">Pilih anak...</option></select></div><div class="fd" style="margin-bottom:10px"><label>Nilai Panca Cinta (boleh lebih dari satu)</label><div class="opts" id="pcpn">${KBCN0.map(([id,n])=>`<label class="op"><input type="checkbox" name="pcpn" value="${id}"><span>${esc(n)}</span></label>`).join('')}</div></div><div class="fd" style="margin-bottom:10px"><label>Perilaku yang diamati</label><div class="opts" id="pcpi" style="grid-template-columns:1fr"></div><div class="fup" style="margin-top:10px"><input id="pcpx" maxlength="200" placeholder="Tulis perilaku lain yang teramati" style="flex:1 1 220px;width:auto" autocomplete="off"><button type="button" class="btn o s" data-pa>+ Tambah</button></div></div><div class="fd" style="margin-bottom:10px"><label for="pcpc">Catatan hasil pengamatan</label><textarea id="pcpc" rows="3" maxlength="1000" placeholder="Apa yang dilakukan dan dikatakan anak, dalam situasi apa"></textarea></div><button type="button" class="btn y s" data-pcs>Simpan pengamatan anak ini</button><div id="pcpl"></div></details>`;
+function pcpInit(md,row,daftar){const b=md.querySelector('#pcpb');if(!b)return;
+const q=s=>b.querySelector(s),L=[];let cur=[],cust=[];
+md._pcpOk=!row; // jurnal baru langsung siap; jurnal lama siap setelah data lamanya terbaca
+const nilaiDipilih=()=>[...b.querySelectorAll('input[name=pcpn]:checked')].map(c=>c.value);
+const ring=()=>{const a=b.querySelector('.ah');a.querySelector('i').textContent=L.length?L.length+' anak':'Belum ada';a.classList.toggle('kosong',!L.length)};
+const isiAnak=()=>{const s=q('#pcpa'),v=s.value,n=daftar();s.innerHTML='<option value="">Pilih anak...</option>'+n.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');if(n.indexOf(v)>=0)s.value=v};
+const renderInd=()=>{const base=[].concat(...nilaiDipilih().map(n=>PCI[n]||[])),all=[...new Set(base.concat(cust,cur))];
+q('#pcpi').innerHTML=all.length?all.map(x=>`<label class="op"><input type="checkbox" name="pcpind" value="${esc(x)}"${cur.indexOf(x)>=0?' checked':''}><span>${esc(x)}</span></label>`).join(''):'<span class="sub">Pilih nilai Panca Cinta untuk menampilkan perilaku yang bisa diamati.</span>'};
+const draw=()=>{q('#pcpl').innerHTML=L.map((it,i)=>`<div class="ukb" style="margin-top:8px"><b>${esc(it.nama)} <small>${esc(pcNama(it.nilai.join(',')))}</small></b><span style="flex:1 1 100%;font-size:13px">${esc([it.indikator.join('; '),it.catatan].filter(Boolean).join(' | '))}</span><button type="button" class="btn gh s" data-pe="${i}">Ubah</button><button type="button" class="btn rd s" data-pd="${i}">Hapus</button></div>`).join('')};
+const bersih=()=>{cur=[];cust=[];q('#pcpa').value='';b.querySelectorAll('input[name=pcpn]').forEach(c=>c.checked=false);q('#pcpc').value='';q('#pcpx').value='';q('[data-pcs]').textContent='Simpan pengamatan anak ini';renderInd()};
+const tambahInd=()=>{const v=q('#pcpx').value.trim().replace(/\s*\|\s*/g,' ');if(!v)return toast('Tulis perilakunya dulu',1);
+if(cust.indexOf(v)<0)cust.push(v);if(cur.indexOf(v)<0)cur.push(v);q('#pcpx').value='';renderInd()};
+const simpanItem=()=>{const nama=q('#pcpa').value,nl=nilaiDipilih(),cat=q('#pcpc').value.trim();
+if(!nama)return toast('Pilih anak dulu',1);if(!nl.length)return toast('Pilih minimal satu nilai Panca Cinta',1);
+if(!cur.length&&!cat)return toast('Pilih perilaku yang diamati atau tulis catatan pengamatan',1);
+const it={nama,nilai:nl,indikator:cur.slice(),catatan:cat},i=L.findIndex(x=>kunci(x.nama)===kunci(nama));
+if(i>=0)L[i]=it;else L.push(it);ring();draw();bersih()};
+b.addEventListener('change',e=>{const n=e.target.name;
+if(n==='pcpn')renderInd();
+else if(n==='pcpind'){const v=e.target.value;cur=e.target.checked?cur.filter(x=>x!==v).concat(v):cur.filter(x=>x!==v)}});
+b.addEventListener('click',e=>{const t=e.target;
+if(t.closest('[data-pa]'))return tambahInd();
+if(t.closest('[data-pcs]'))return simpanItem();
+const pe=t.closest('[data-pe]'),pd=t.closest('[data-pd]');
+if(pe){const it=L[+pe.dataset.pe],s=q('#pcpa');
+if(![...s.options].some(o=>o.value===it.nama))s.insertAdjacentHTML('beforeend',`<option value="${esc(it.nama)}">${esc(it.nama)}</option>`);
+s.value=it.nama;b.querySelectorAll('input[name=pcpn]').forEach(c=>c.checked=it.nilai.indexOf(c.value)>=0);
+cur=it.indikator.slice();cust=it.indikator.slice();q('#pcpc').value=it.catatan;renderInd();q('[data-pcs]').textContent='Perbarui pengamatan anak ini';return}
+if(pd){L.splice(+pd.dataset.pd,1);ring();draw();bersih()}});
+q('#pcpx').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();tambahInd()}});
+md.addEventListener('change',e=>{if(e.target.name==='kelas')isiAnak()});
+(KBCN?Promise.resolve(KBCN):api('kbcNilai').then(j=>KBCN=j.nilai.map(x=>[x.ID,x.nama]))).then(l=>l.forEach(([id,t])=>b.querySelectorAll('input[name=pcpn]').forEach(c=>{if(c.value===id)c.nextElementSibling.textContent=t}))).catch(()=>{});
+loadSiswa().then(isiAnak);isiAnak();renderInd();
+if(row)api('kbcDaftar',{f:{jurnalid:row.ID,jenis:'penilaian'}}).then(j=>{
+(j.rows||[]).filter(k=>k.anakid).forEach(k=>L.push({nama:k.anaknama,nilai:[k.nilaiid].concat(String(k.nilailain||'').split(',')).filter(Boolean),indikator:String(k.indikator||'').split(' | ').filter(Boolean),catatan:k.hasil||''}));
+md._pcpOk=true;ring();draw()}).catch(()=>{const w=q('#pcpw');if(w)w.style.display=''});
+// ada isian yang belum dimasukkan ke daftar?
+md._pcpPending=()=>nilaiDipilih().length>0||cur.length>0||!!q('#pcpc').value.trim();
+// undefined = data lama gagal dimuat, jadi jangan dikirim (agar tidak menimpa pengamatan yang ada)
+md._pcpGet=()=>md._pcpOk?L.map(x=>({nama:x.nama,nilai:x.nilai,indikator:x.indikator,catatan:x.catatan})):undefined}
 function kbcInit(md,row){const b=md.querySelector('#kbcb');if(!b)return;
 const rg=()=>{const n=b.querySelectorAll('input[name=kbcnilai]:checked').length;b.querySelector('.ah i').textContent=n?n+' nilai dipilih':'Belum dipilih';b.querySelector('.ah').classList.toggle('kosong',!n)};
 b.addEventListener('change',rg);
@@ -870,7 +919,7 @@ function kbcCek(kb){if(!kb.nilai.length&&(kb.tujuan||kb.aktivitas||kb.catatan))r
 if(kb.nilai.length&&!kb.aktivitas)return'Lengkapi dulu: Aktivitas implementasi KBC';return''}
 function bukaForm(k,row){const j=J[k],tb=(!row&&TB[k])||null,md=document.createElement('div');md.className='md';
 const rkBtn=k==='kehadiran'?`<div class="fd full" id="rkw"><button type="button" class="btn y s" data-rk>Isi otomatis dari Rekap Absen</button> <small class="sub">${klf()?'Pilih tanggal dulu.':'Pilih tanggal dan kelompok dulu.'}</small></div>`:'';
-md.innerHTML=`<div class="sheet frm"><h2>${row?'Ubah':'Tambah'} ${j.n}${klf()?`<span class="bdg">${klf()}</span>`:''}</h2><div class="fg"><div class="abn dup" id="dupw" style="display:none"></div>${k==='harian'&&!row?'<div class="fd full"><button type="button" class="btn y s" data-sl>📋 Salin dari kemarin</button> <small class="sub">Mengisi tema, subtema, sentra, dan metode dari jurnal terakhir.</small></div>':''}${rkBtn}${k==='perkembangan'?'<div class="fd full"><button type="button" class="btn y s" data-hh>📘 Isi tema dan kegiatan dari Jurnal Harian</button> <small class="sub">Mengambil tema, subtema, dan kegiatan pada tanggal dan kelompok yang dipilih.</small></div>':''}${j.f.map(f=>f.k==='kelas'&&klf()?`<input type="hidden" name="kelas" value="${esc((row&&row.kelas)||klf())}">`:fld(f,row?row[f.k]:'')).join('')}${FOTO[k]?fotoBlok(k):''}${k==='harian'?kbcBlok():''}</div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn" data-s>Simpan</button></div></div>`;
+md.innerHTML=`<div class="sheet frm"><h2>${row?'Ubah':'Tambah'} ${j.n}${klf()?`<span class="bdg">${klf()}</span>`:''}</h2><div class="fg"><div class="abn dup" id="dupw" style="display:none"></div>${k==='harian'&&!row?'<div class="fd full"><button type="button" class="btn y s" data-sl>📋 Salin dari kemarin</button> <small class="sub">Mengisi tema, subtema, sentra, dan metode dari jurnal terakhir.</small></div>':''}${rkBtn}${k==='perkembangan'?'<div class="fd full"><button type="button" class="btn y s" data-hh>📘 Isi tema dan kegiatan dari Jurnal Harian</button> <small class="sub">Mengambil tema, subtema, dan kegiatan pada tanggal dan kelompok yang dipilih.</small></div>':''}${j.f.map(f=>f.k==='kelas'&&klf()?`<input type="hidden" name="kelas" value="${esc((row&&row.kelas)||klf())}">`:fld(f,row?row[f.k]:'')).join('')}${FOTO[k]?fotoBlok(k):''}${k==='harian'?kbcBlok():''}${k==='penilaian'?pcpBlok():''}</div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn" data-s>Simpan</button></div></div>`;
 document.body.appendChild(md);
 const E=n=>md.querySelector(`[name=${n}]`),T={},FA={};let FN='';let aktif=false,auto='';
 const Fo={lama:row&&row.foto?String(row.foto).split(/\s+/).filter(Boolean):[],baru:[]};
@@ -945,8 +994,8 @@ cekDup();
 if(['kehadiran','perkembangan','penilaian'].includes(k))KHmuat().then(()=>{if(k!=='kehadiran'){gambar();hitung()}cekDup()});
 if(!row&&k==='harian'){pilih(md,'kendala','Tidak ada kendala');pilih(md,'capaian','Sebagian besar antusias')}
 akordeon(md);
-if(k==='harian')kbcInit(md,row);
-if(k==='perkembangan'){indInit(md,row);pcInit(md,row);idHint(md)}
+if(k==='harian')kbcInit(md,row);if(k==='penilaian')pcpInit(md,row,daftar);
+if(k==='perkembangan'){indInit(md,row);pcInit(md,row);idHint(md)}if(k==='kokurikuler'||k==='refleksi')pcInit(md,row);
 md.onclick=async e=>{const t=e.target;if(t.closest('[data-x]'))return md.remove();
 if(stepClick(e))return;
 if(t.closest('[data-sl]')){const kl=kelNorm(E('kelas').value),x=(ROWS.harian||[]).find(r=>kelNorm(r.kelas)===kl);
@@ -987,7 +1036,7 @@ catch(er){toast(er.message,1)}
 rk.disabled=false;return}
 if(t.closest('[data-s]')){const skip=aktif?tb.hide:[];const{d,kurang,kk}=ambil(md,j.f.filter(f=>!skip.includes(f.k)));
 if(kurang){const e=E(kk),fd=e&&e.closest('.fd');
-if(fd){if(md._ak)md._ak();
+if(fd){if(md._ak)md._ak();if(fd.tagName==='DETAILS')fd.open=true;
 const tg=fd.querySelector(':scope>.ah')||fd;
 tg.scrollIntoView({behavior:'smooth',block:'center'});
 tg.classList.remove('kdp');void tg.offsetWidth;tg.classList.add('kdp');
@@ -997,11 +1046,12 @@ if(kurang){const fd=E(kk)&&E(kk).closest('.fd');if(fd&&fd.classList.contains('ac
 if(k==='perkembangan'){const w=[['tema','Tema'],['kegiatan','Kegiatan'],['indikator','Indikator yang diamati']].find(([n])=>!d[n]&&(!row||row[n]));
 if(w){if(w[0]==='indikator'){const ib=md.querySelector('#indb');if(ib){ib.open=true;ib.scrollIntoView({behavior:'smooth',block:'center'})}}else{const fd=E(w[0]).closest('.fd');if(md._bk&&fd)md._bk(fd)}return toast('Lengkapi dulu: '+w[1],1)}
 if(!aktif&&SISWA&&SISWA.length&&!(row&&kunci(row.nama)===kunci(d.nama))&&!SISWA.some(s=>s.kelas===d.kelas&&kunci(s.nama)===kunci(d.nama)))return toast('Pilih nama anak dari daftar siswa '+d.kelas+' agar pengamatan terhubung dengan identitas anak',1)}
-let list=null;
+if(k==='refleksi'&&/^(Sudah|Sebagian)/.test(d.pcterap)&&!d.pancacinta){const pb=md.querySelector('#pcb');if(pb){pb.open=true;pb.scrollIntoView({behavior:'smooth',block:'center'})}return toast('Pilih nilai Panca Cinta yang diterapkan',1)}let list=null;
 if(aktif){const nm=Object.keys(T).filter(n=>T[n]);if(!nm.length)return toast('Pilih tingkat capaian untuk minimal satu anak',1);
 if(k==='perkembangan'){const tanpa=Object.keys(FA).filter(n=>!T[n]&&(FA[n].lama.length+FA[n].baru.length));if(tanpa.length)return toast('Pilih tingkat capaian untuk '+tanpa.join(', ')+' agar fotonya ikut tersimpan',1);list=nm.map(n=>({...d,nama:n,tingkat:T[n]}))}else{tb.hide.forEach(n=>d[n]=E(n).value);if(k==='kehadiran')d.absen=Object.keys(T).filter(n=>T[n]&&T[n]!=='hadir').map(n=>n.replace(/[|:]/g,' ')+':'+T[n]).join('|')}}
 if(row)d.ID=row.ID;
 if(k==='harian'){const kb=kbcAmbil(md);if(kb){const er=kbcCek(kb);if(er){const b2=md.querySelector('#kbcb');b2.open=true;b2.scrollIntoView({behavior:'smooth',block:'center'});return toast(er,1)}d.kbc=kb}}
+if(k==='penilaian'){if(md._pcpPending&&md._pcpPending()){const pb=md.querySelector('#pcpb');pb.open=true;pb.scrollIntoView({behavior:'smooth',block:'center'});return toast('Pengamatan Panca Cinta belum dimasukkan. Ketuk "Simpan pengamatan anak ini" atau kosongkan isiannya',1)}const pc=md._pcpGet&&md._pcpGet();if(pc!==undefined)d.pcobs=pc}
 const b=t.closest('[data-s]');b.disabled=true;b.textContent='Menyimpan...';
 if(k==='kehadiran'){await KHmuat();const dx=cekDup();if(dx){toast('Tidak bisa disimpan: Jurnal Kehadiran '+E('kelas').value+' tanggal '+tgl(E('tanggal').value)+' sudah ada.',1);b.disabled=false;b.textContent='Simpan';return}}
 try{if(FOTO[k]){if(list&&k==='perkembangan'){for(const x of list){const a=FA[x.nama];x.foto='';if(a){await kirimFoto(a,b);x.foto=a.lama.join(' ')}}}
