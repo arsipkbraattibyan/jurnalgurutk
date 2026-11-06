@@ -387,8 +387,9 @@ async function kbcAmbil(dari, sampai) {
   const key = (dari || '') + '|' + (sampai || ''), c = KB[key];
   if (c && Date.now() - c.t < 30000) return c.rows;
   try {
-    if (!KBCN) { try { KBCN = (await api('kbcNilai')).nilai.map(x => [x.ID, x.nama]); } catch (e) {} }
-    const j = await api('kbcDaftar', { f: { dari: dari || '', sampai: sampai || '' } });
+    const pn = KBCN ? null : api('kbcNilai').then(x => { KBCN = x.nilai.map(y => [y.ID, y.nama]); }).catch(() => {});
+    const j = await api('kbcDaftar', { f: { dari: dari || '', sampai: sampai || '' } }); // dua permintaan berjalan bersamaan
+    if (pn) await pn;
     KB[key] = { t: Date.now(), rows: j.rows || [] };
     return KB[key].rows;
   } catch (e) { return null; } // null = KBC belum siap; bagian KBC dilewati
@@ -440,12 +441,9 @@ const IKON = { PC1: '🕌', PC2: '📚', PC3: '🌿', PC4: '🤝', PC5: '🇮�
 
 function htmlDash(rows, bln) {
   const ns = (KBCN || KBCN0);
-  const anak = new Set(rows.filter(r => r.anakid).map(r => r.anakid)).size;
-  const hariH = new Set(rows.filter(r => r.jenis === 'harian').map(r => r.tanggal)).size;
-  return '<div id="kbcdash"><h2 class="sec">Penguatan KBC (Panca Cinta) Bulan Ini</h2><div class="strip">'
+  return '<div id="kbcdash"><div class="strip">'
     + ns.map(([id, n], i) => '<div class="sti"><i style="background:' + WARNA_K[i % 5] + '">' + (IKON[id] || '💗') + '</i><div><b>' + rows.filter(r => nilaiKbc(r).indexOf(id) >= 0).length + '</b><small>' + E(n) + '</small></div></div>').join('')
-    + '</div><p class="sub" style="margin:-14px 0 10px;font-size:13px">' + blnNama(bln) + ': ' + rows.length + ' catatan KBC, ' + anak + ' anak teramati, ' + hariH + ' hari jurnal harian memuat KBC. '
-    + '<button type="button" class="btn o s" data-v="laporan" data-lk>Lihat laporan KBC</button></p></div>';
+    + '</div></div>';
 }
 
 function pasangDash(rows, bln) {
@@ -453,15 +451,16 @@ function pasangDash(rows, bln) {
   const st = m.querySelector('.strip'); if (!st) return;
   const lama = $('#kbcdash'); if (lama) lama.remove();
   st.insertAdjacentHTML('afterend', htmlDash(rows, bln));
-  const b = m.querySelector('#kbcdash [data-lk]'); if (b) b.addEventListener('click', () => { window.__lapJenis = 'kbc'; });
 }
 
 window.gambarBeranda = function () {
   const r = berandaAsli.apply(this, arguments);
   try {
     const bln = hari().slice(0, 7);
+    const ck = 'kbcdash:' + bln;
+    if (!KBD) { try { const t = JSON.parse(localStorage.getItem(ck) || 'null'); if (t) KBD = t; } catch (e) {} } // tampil langsung dari data terakhir
     if (KBD) pasangDash(KBD, bln);
-    kbcAmbil(bln + '-01', bln + '-31').then(rows => { if (rows) { KBD = rows; pasangDash(rows, bln); } });
+    kbcAmbil(bln + '-01', bln + '-31').then(rows => { if (rows) { KBD = rows; pasangDash(rows, bln); try { localStorage.setItem(ck, JSON.stringify(rows)); } catch (e) {} } });
   } catch (e) {}
   return r;
 };
