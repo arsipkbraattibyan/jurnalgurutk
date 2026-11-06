@@ -790,9 +790,29 @@ md._ak=()=>buka(null);
 md.addEventListener('change',e=>{const f=e.target.closest&&e.target.closest('.fd.acc');if(!f)return;segar(f);
 if(e.target.type==='radio'&&!e.target.disabled)buka(null)});
 md.addEventListener('click',e=>{const b=e.target.closest('.ah');if(!b||b.tagName!=='BUTTON')return;const f=b.parentNode;buka(f.classList.contains('open')?null:f)})}
+/* ---------- KBC (Panca Cinta) di Jurnal Harian Mengajar ---------- */
+const KBCN0=[['PC1','Cinta Allah dan Rasul-Nya'],['PC2','Cinta Ilmu'],['PC3','Cinta Lingkungan'],['PC4','Cinta Diri dan Sesama Manusia'],['PC5','Cinta Tanah Air']];
+let KBCN=null;
+const kbcBlok=()=>`<details class="fd full" id="kbcb"><summary class="ah kosong"><span>💗 Penguatan KBC (Panca Cinta)</span><i>Belum dipilih</i><em>›</em></summary><p class="sub" style="font-size:12px;margin:-2px 0 8px">Pilih satu atau lebih nilai Panca Cinta yang diperkuat pada kegiatan hari ini. Boleh dikosongkan jika tidak dipakai.</p><p class="sub" id="kbcw" style="display:none;font-size:12px;color:#c0392b;margin:0 0 8px">Data KBC yang tersimpan belum bisa dimuat. Bagian KBC tidak akan diubah saat Anda menyimpan.</p><div class="fd" style="margin-bottom:10px"><label>Nilai Panca Cinta (boleh lebih dari satu)</label><div class="opts" id="kbcn">${KBCN0.map(([id,n])=>`<label class="op"><input type="checkbox" name="kbcnilai" value="${id}"><span>${esc(n)}</span></label>`).join('')}</div></div><div class="fd" style="margin-bottom:10px"><label for="kbct">Tujuan penguatan KBC</label><textarea id="kbct" rows="2" maxlength="1000" placeholder="Apa yang ingin diperkuat pada anak hari ini?"></textarea></div><div class="fd" style="margin-bottom:10px"><label for="kbca">Aktivitas implementasi KBC</label><textarea id="kbca" rows="3" maxlength="1000" placeholder="Kegiatan yang dilakukan untuk menumbuhkan nilai tersebut"></textarea></div><div class="fd"><label for="kbcc">Catatan penerapan KBC</label><textarea id="kbcc" rows="2" maxlength="1000" placeholder="Respons anak, hal yang berhasil, atau yang perlu ditindaklanjuti"></textarea></div></details>`;
+function kbcInit(md,row){const b=md.querySelector('#kbcb');if(!b)return;
+const rg=()=>{const n=b.querySelectorAll('input[name=kbcnilai]:checked').length;b.querySelector('.ah i').textContent=n?n+' nilai dipilih':'Belum dipilih';b.querySelector('.ah').classList.toggle('kosong',!n)};
+b.addEventListener('change',rg);
+md._kbcOk=!row; // jurnal baru langsung siap; jurnal lama siap setelah data KBC-nya terbaca
+const nama=l=>l.forEach(([id,t])=>b.querySelectorAll('input[name=kbcnilai]').forEach(c=>{if(c.value===id)c.nextElementSibling.textContent=t}));
+(KBCN?Promise.resolve(KBCN):api('kbcNilai').then(j=>KBCN=j.nilai.map(x=>[x.ID,x.nama]))).then(nama).catch(()=>{});
+if(row)api('kbcDaftar',{f:{jurnalid:row.ID,jenis:'harian'}}).then(j=>{const k=(j.rows||[]).find(x=>!x.anakid);
+if(k){const p=[k.nilaiid].concat(String(k.nilailain||'').split(',')).filter(Boolean);
+b.querySelectorAll('input[name=kbcnilai]').forEach(c=>c.checked=p.indexOf(c.value)>=0);
+b.querySelector('#kbct').value=k.tujuan||'';b.querySelector('#kbca').value=k.aktivitas||'';b.querySelector('#kbcc').value=k.hasil||''}
+md._kbcOk=true;rg()}).catch(()=>{const w=b.querySelector('#kbcw');if(w)w.style.display=''})}
+// undefined = data KBC lama gagal dimuat, jadi jangan dikirim (agar tidak menimpa catatan yang ada)
+function kbcAmbil(md){const b=md.querySelector('#kbcb');if(!b||!md._kbcOk)return undefined;
+return{nilai:[...b.querySelectorAll('input[name=kbcnilai]:checked')].map(c=>c.value),tujuan:b.querySelector('#kbct').value.trim(),aktivitas:b.querySelector('#kbca').value.trim(),catatan:b.querySelector('#kbcc').value.trim()}}
+function kbcCek(kb){if(!kb.nilai.length&&(kb.tujuan||kb.aktivitas||kb.catatan))return'Pilih minimal satu nilai Panca Cinta (KBC)';
+if(kb.nilai.length&&!kb.aktivitas)return'Lengkapi dulu: Aktivitas implementasi KBC';return''}
 function bukaForm(k,row){const j=J[k],tb=(!row&&TB[k])||null,md=document.createElement('div');md.className='md';
 const rkBtn=k==='kehadiran'?`<div class="fd full" id="rkw"><button type="button" class="btn y s" data-rk>Isi otomatis dari Rekap Absen</button> <small class="sub">${klf()?'Pilih tanggal dulu.':'Pilih tanggal dan kelompok dulu.'}</small></div>`:'';
-md.innerHTML=`<div class="sheet frm"><h2>${row?'Ubah':'Tambah'} ${j.n}${klf()?`<span class="bdg">${klf()}</span>`:''}</h2><div class="fg"><div class="abn dup" id="dupw" style="display:none"></div>${k==='harian'&&!row?'<div class="fd full"><button type="button" class="btn y s" data-sl>📋 Salin dari kemarin</button> <small class="sub">Mengisi tema, subtema, sentra, dan metode dari jurnal terakhir.</small></div>':''}${rkBtn}${j.f.map(f=>f.k==='kelas'&&klf()?`<input type="hidden" name="kelas" value="${esc((row&&row.kelas)||klf())}">`:fld(f,row?row[f.k]:'')).join('')}${FOTO[k]?fotoBlok(k):''}</div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn" data-s>Simpan</button></div></div>`;
+md.innerHTML=`<div class="sheet frm"><h2>${row?'Ubah':'Tambah'} ${j.n}${klf()?`<span class="bdg">${klf()}</span>`:''}</h2><div class="fg"><div class="abn dup" id="dupw" style="display:none"></div>${k==='harian'&&!row?'<div class="fd full"><button type="button" class="btn y s" data-sl>📋 Salin dari kemarin</button> <small class="sub">Mengisi tema, subtema, sentra, dan metode dari jurnal terakhir.</small></div>':''}${rkBtn}${j.f.map(f=>f.k==='kelas'&&klf()?`<input type="hidden" name="kelas" value="${esc((row&&row.kelas)||klf())}">`:fld(f,row?row[f.k]:'')).join('')}${FOTO[k]?fotoBlok(k):''}${k==='harian'?kbcBlok():''}</div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn" data-s>Simpan</button></div></div>`;
 document.body.appendChild(md);
 const E=n=>md.querySelector(`[name=${n}]`),T={},FA={};let FN='';let aktif=false,auto='';
 const Fo={lama:row&&row.foto?String(row.foto).split(/\s+/).filter(Boolean):[],baru:[]};
@@ -867,6 +887,7 @@ cekDup();
 if(['kehadiran','perkembangan','penilaian'].includes(k))KHmuat().then(()=>{if(k!=='kehadiran'){gambar();hitung()}cekDup()});
 if(!row&&k==='harian'){pilih(md,'kendala','Tidak ada kendala');pilih(md,'capaian','Sebagian besar antusias')}
 akordeon(md);
+if(k==='harian')kbcInit(md,row);
 md.onclick=async e=>{const t=e.target;if(t.closest('[data-x]'))return md.remove();
 if(stepClick(e))return;
 if(t.closest('[data-sl]')){const kl=kelNorm(E('kelas').value),x=(ROWS.harian||[]).find(r=>kelNorm(r.kelas)===kl);
@@ -910,11 +931,12 @@ let list=null;
 if(aktif){const nm=Object.keys(T).filter(n=>T[n]);if(!nm.length)return toast('Pilih tingkat capaian untuk minimal satu anak',1);
 if(k==='perkembangan'){const tanpa=Object.keys(FA).filter(n=>!T[n]&&(FA[n].lama.length+FA[n].baru.length));if(tanpa.length)return toast('Pilih tingkat capaian untuk '+tanpa.join(', ')+' agar fotonya ikut tersimpan',1);list=nm.map(n=>({...d,nama:n,tingkat:T[n]}))}else{tb.hide.forEach(n=>d[n]=E(n).value);if(k==='kehadiran')d.absen=Object.keys(T).filter(n=>T[n]&&T[n]!=='hadir').map(n=>n.replace(/[|:]/g,' ')+':'+T[n]).join('|')}}
 if(row)d.ID=row.ID;
+if(k==='harian'){const kb=kbcAmbil(md);if(kb){const er=kbcCek(kb);if(er){const b2=md.querySelector('#kbcb');b2.open=true;b2.scrollIntoView({behavior:'smooth',block:'center'});return toast(er,1)}d.kbc=kb}}
 const b=t.closest('[data-s]');b.disabled=true;b.textContent='Menyimpan...';
 if(k==='kehadiran'){await KHmuat();const dx=cekDup();if(dx){toast('Tidak bisa disimpan: Jurnal Kehadiran '+E('kelas').value+' tanggal '+tgl(E('tanggal').value)+' sudah ada.',1);b.disabled=false;b.textContent='Simpan';return}}
 try{if(FOTO[k]){if(list&&k==='perkembangan'){for(const x of list){const a=FA[x.nama];x.foto='';if(a){await kirimFoto(a,b);x.foto=a.lama.join(' ')}}}
 else{await kirimFoto(Fo,b);d.foto=Fo.lama.join(' ');if(list)list.forEach(x=>x.foto=d.foto)}}
-if(list)await simpanBanyak(k,list);else await api('simpan',{jenis:k,data:d});md.remove();toast(list?`${list.length} catatan tersimpan`:'Jurnal tersimpan');stale(k);viewJurnal(k)}
+let kbE='';if(list)await simpanBanyak(k,list);else{const rs=await api('simpan',{jenis:k,data:d});kbE=rs.kbcError||''}md.remove();toast(kbE?'Jurnal tersimpan, tetapi KBC belum tersimpan: '+kbE:(list?`${list.length} catatan tersimpan`:'Jurnal tersimpan'),!!kbE);stale(k);viewJurnal(k)}
 catch(er){toast(er.message,1);gFoto();b.disabled=false;b.textContent='Simpan'}}}}
 
 /* ---------- data siswa dan presensi ----------
