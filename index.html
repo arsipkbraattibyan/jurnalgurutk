@@ -360,6 +360,20 @@ html[data-tema=belajar] .rt.ap th{background:#e6f4f5}html[data-tema=belajar] .rt
 @media(prefers-reduced-motion:reduce){.kdp{animation:none;box-shadow:0 0 0 4px #ee4f9a;border-color:#ee4f9a}}
 .opts.lipat .op.dis{display:none}
 #lap.hid{display:none}@media print{#lap.hid{display:block!important}}
+.kbf{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.kbf .btn{min-height:40px}
+.kbo{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.kbt{width:100%;border-collapse:collapse;font-size:12.5px;min-width:340px}
+.kbt th,.kbt td{padding:8px 3px;text-align:center;border-bottom:1px solid #e6eef7}
+.kbt th{color:var(--mut);font-weight:800;font-size:11.5px}
+.kbt td:first-child{white-space:nowrap;padding-right:8px}
+.kbt.g td:first-child{white-space:normal;max-width:96px;line-height:1.25}
+.kbt th:first-child,.kbt td:first-child{text-align:left;position:sticky;left:0;background:#fff}
+.kbt tr.tt td{font-weight:800;color:var(--navy);border-bottom:0}
+.kbt td.z{color:#b7c3d1}
+.kbl{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:6px;font-size:13px}
+.kbl li{display:flex;align-items:center;gap:8px}.kbl i{width:10px;height:10px;border-radius:50%;flex:none}.kbl b{margin-left:auto;color:var(--navy)}
+.kbn{font-size:12px;color:var(--mut);margin-top:8px;line-height:1.5}
 </style>
 </head>
 <body>
@@ -414,7 +428,7 @@ function cGet(k){try{const x=JSON.parse(localStorage.getItem(CK()+k)||'null');re
 function cSet(k,d){try{localStorage.setItem(CK()+k,JSON.stringify({d:d,t:Date.now()}))}catch(e){try{Object.keys(localStorage).filter(x=>x.indexOf('jgc_')===0).forEach(x=>localStorage.removeItem(x))}catch(e2){}}}
 function cHapusSemua(){try{Object.keys(localStorage).filter(x=>x.indexOf('jgc_')===0).forEach(x=>localStorage.removeItem(x))}catch(e){}}
 function cRows(k){const c=cGet('semua')||{};c[k]=ROWS[k]||[];cSet('semua',c)}
-function stale(k){delete ROWS[k];const c=cGet('semua');if(c){delete c[k];cSet('semua',c)}}
+function stale(k){KBDT=0;delete ROWS[k];const c=cGet('semua');if(c){delete c[k];cSet('semua',c)}}
 
 /* ---------- dialog konfirmasi di dalam aplikasi (pengganti popup bawaan browser) ---------- */
 function tanya(judul,pesan,ya,bahaya){return new Promise(ok=>{const md=document.createElement('div');md.className='md';md.style.zIndex=40;
@@ -639,7 +653,7 @@ async function masuk(){busy=true;
 try{const j=await api('login',{id:GID,pin:PIN,dev:devAmbil(GID)}),lama=PIN;if(j.dev)devSimpan(GID,j.dev);S.token=j.token;S.guru=j.guru;simpanSesi();bunyi('ok');shell();if(j.lemah)dialogPin(true,lama)}
 catch(e){toast(e.message,1);PIN='';const d=$('#dots');d.classList.add('shake');setTimeout(()=>{d.classList.remove('shake');d.querySelectorAll('i').forEach(i=>i.classList.remove('on'))},400)}
 busy=false}
-function keluar(){document.querySelectorAll('.md').forEach(x=>x.remove());cHapusSemua();S.token=null;S.guru=null;ROWS={};SISWA=null;Object.keys(FP).forEach(k=>delete FP[k]);try{localStorage.removeItem('jg')}catch(e){}viewLogin()}
+function keluar(){KBD=null;KBDT=0;document.querySelectorAll('.md').forEach(x=>x.remove());cHapusSemua();S.token=null;S.guru=null;ROWS={};SISWA=null;Object.keys(FP).forEach(k=>delete FP[k]);try{localStorage.removeItem('jg')}catch(e){}viewLogin()}
 
 /* ---------- ganti PIN (wajib jika PIN lemah / bawaan) ---------- */
 function dialogPin(wajib,lamaOtomatis){const md=document.createElement('div');md.className='md';
@@ -686,6 +700,53 @@ catch(er){toast(er.message,1);b.disabled=false}}}
 /* ---------- dashboard ---------- */
 const WARNA=[SET.tema==='main'?'#1fb571':'#1e88e5','#fdb913','#ee4f9a','#7cc243','#f89a2c','#8e6bd8','#26b5c9'];
 const PEND=['Harian','Hadir','Kembang','Nilai','Projek','Refleksi','Tambahan'];
+/* ===== Statistik KBC (Panca Cinta) di dashboard ===== */
+let KBD=null,KBDT=0,KBDF='semua',KBDX=false,KBDE='';
+const KBD_P={PC1:['Allah','Cinta Allah dan Rasul-Nya'],PC2:['Ilmu','Cinta Ilmu'],PC3:['Lingk.','Cinta Lingkungan'],PC4:['Sesama','Cinta Diri dan Sesama Manusia'],PC5:['Tanah Air','Cinta Tanah Air']};
+function kbdHitung(D,gid){
+  const ok=g=>!gid||g===gid,bln={},gr={},nil={};let keg=0,cat=0;
+  const B=b=>bln[b]||(bln[b]={k:0,c:0,n:{}}),G=g=>gr[g]||(gr[g]={k:0,c:0,n:{}});
+  (D.tot||[]).forEach(x=>{if(!ok(x[1]))return;B(x[0]).k+=x[2];B(x[0]).c+=x[3];G(x[1]).k+=x[2];G(x[1]).c+=x[3];keg+=x[2];cat+=x[3]});
+  (D.kub||[]).forEach(x=>{if(!ok(x[1]))return;B(x[0]).n[x[2]]=(B(x[0]).n[x[2]]||0)+x[3];G(x[1]).n[x[2]]=(G(x[1]).n[x[2]]||0)+x[3];nil[x[2]]=(nil[x[2]]||0)+x[3]});
+  return{keg,cat,bln,gr,nil};
+}
+function kbdGambar(){
+  const el=$('#kbd');if(!el)return;
+  if(!KBD){el.innerHTML=KBDE?`<div class="card"><div class="empty">${esc(KBDE)}<br><button class="btn s" data-kbr="1" style="margin-top:10px">Coba lagi</button></div></div>`:'<div class="card"><div class="empty">Memuat statistik KBC...</div></div>';return}
+  const D=KBD,me=S.guru&&S.guru.id,H=kbdHitung(D,KBDF==='saya'?me:''),A=kbdHitung(D,''),nl=D.nilai||[],bi=hari().slice(0,7);
+  const nm=n=>(KBD_P[n.ID]||[n.nama])[0];
+  const chip=(v,t)=>`<button class="btn s${KBDF===v?'':' gh'}" data-kbf="${v}">${t}</button>`;
+  const bulan=b=>{try{return new Date(b+'-01T00:00').toLocaleDateString('id-ID',{month:'short',year:'numeric'})}catch(e){return b}};
+  const sel=v=>v?v:'<span class="z">0</span>';
+  const head=`<div class="kbf">${chip('semua','Semua guru')}${chip('saya','Hanya saya')}</div>`;
+  const strip=`<div class="strip"><div class="sti"><i style="background:#e3f2fd">🌟</i><div><b>${H.keg}</b><small>Jumlah kegiatan KBC</small></div></div><div class="sti"><i style="background:#fff3d6">📅</i><div><b>${(H.bln[bi]||{k:0}).k}</b><small>Kegiatan bulan ini</small></div></div><div class="sti"><i style="background:#fde4ee">📝</i><div><b>${H.cat}</b><small>Jumlah catatan</small></div></div></div>`;
+  let isi;
+  if(!H.keg){isi=`<div class="card"><div class="empty">${KBDF==='saya'?'Anda belum punya catatan KBC.':'Belum ada catatan KBC.'} Isi bagian Penguatan KBC pada Jurnal Harian, Perkembangan, Penilaian, Kokurikuler, atau Refleksi.</div></div>`}
+  else{
+    const mx=Math.max(1,...nl.map(n=>H.nil[n.ID]||0));
+    const bars=nl.map((n,i)=>{const v=H.nil[n.ID]||0;return`<div title="${esc(n.nama)}"><span>${v}</span><i style="height:${Math.round(v/mx*100)}px;background:${WARNA[i%WARNA.length]}"></i>${esc(nm(n))}</div>`}).join('');
+    const leg=nl.map((n,i)=>{const v=H.nil[n.ID]||0;return`<li><i style="background:${WARNA[i%WARNA.length]}"></i>${esc(n.nama)}<b>${v} (${H.keg?Math.round(v/H.keg*100):0}%)</b></li>`}).join('');
+    const th=nl.map(n=>`<th title="${esc(n.nama)}">${esc(nm(n))}</th>`).join('');
+    const bl=Object.keys(H.bln).sort().reverse().slice(0,12).map(b=>`<tr><td>${esc(bulan(b))}</td><td><b>${H.bln[b].k}</b></td>${nl.map(n=>`<td>${sel(H.bln[b].n[n.ID]||0)}</td>`).join('')}</tr>`).join('');
+    const gs=(D.guru||[]).map(g=>({g,v:A.gr[g.id]||{k:0,c:0,n:{}}})).sort((a,b)=>b.v.k-a.v.k||String(a.g.nama).localeCompare(b.g.nama));
+    const gl=gs.map(x=>`<tr><td>${esc(x.g.nama)}${x.g.id===me?' (Anda)':''}</td><td><b>${x.v.k}</b></td>${nl.map(n=>`<td>${sel(x.v.n[n.ID]||0)}</td>`).join('')}</tr>`).join('');
+    isi=`<div class="two"><div class="card"><h3>Rekap per nilai Panca Cinta</h3><div class="bars">${bars}</div><ul class="kbl">${leg}</ul></div>
+<div class="card"><h3>Rekap per bulan</h3><div class="kbo"><table class="kbt"><thead><tr><th>Bulan</th><th>Kegiatan</th>${th}</tr></thead><tbody>${bl}<tr class="tt"><td>Total</td><td>${H.keg}</td>${nl.map(n=>`<td>${H.nil[n.ID]||0}</td>`).join('')}</tr></tbody></table></div></div></div>
+<div class="card"><h3>Rekap per guru</h3><div class="kbo"><table class="kbt g"><thead><tr><th>Guru</th><th>Kegiatan</th>${th}</tr></thead><tbody>${gl}</tbody></table></div><div class="kbn">Tabel ini selalu memuat semua guru (hanya angka, isi catatan tidak ditampilkan).</div></div>`;
+  }
+  el.innerHTML=head+strip+isi+`<div class="kbn">Kegiatan = satu jurnal yang memuat catatan KBC. Satu kegiatan boleh memuat beberapa nilai, sehingga jumlah per nilai bisa lebih besar dari jumlah kegiatan. Catatan = jumlah baris KBC (penilaian untuk 5 anak = 5 catatan).</div>`;
+}
+async function kbdIsi(){
+  if(!$('#kbd'))return;
+  if(!KBD){const c=cGet('kbcrekap');if(c)KBD=c}
+  kbdGambar();
+  if(KBDX||(KBD&&Date.now()-KBDT<15000))return;
+  KBDX=true;KBDE='';
+  try{const j=await api('kbcRekap');KBD=j;KBDT=Date.now();cSet('kbcrekap',j)}catch(e){if(!KBD)KBDE='Statistik KBC belum bisa dimuat: '+e.message}
+  finally{KBDX=false}
+  kbdGambar();
+}
+document.addEventListener('click',e=>{const b=e.target.closest('#kbd [data-kbf]');if(b){KBDF=b.dataset.kbf;kbdGambar();return}if(e.target.closest('#kbd [data-kbr]')){KBDT=0;KBDE='';kbdIsi()}});
 function gambarBeranda(){const m=$('#main');try{
 const bln=hari().slice(0,7),inM=k=>ROWS[k].filter(r=>String(r.tanggal).slice(0,7)===bln);
 const tot=KEYS.reduce((a,k)=>a+inM(k).length,0),kh=inM('kehadiran'),pk=inM('perkembangan');
@@ -707,9 +768,10 @@ m.innerHTML=`<section class="hero"><div><h1>${sapa}, <span class="c1">${nm}</spa
 <section class="band"><svg class="wv" viewBox="0 0 1440 50" preserveAspectRatio="none"><path d="M0,28 C240,64 480,0 720,28 C960,56 1200,8 1440,28 L1440,50 L0,50 Z" fill="#1e88e5"/></svg><div class="bi"><h2 class="sec w">Ringkasan Bulan Ini</h2><div class="two">
 <div class="card"><h3>Isian per jurnal</h3><div class="bars">${KEYS.map((k,i)=>{const n=inM(k).length;return`<div><span>${n}</span><i style="height:${n/mx*110}px;background:${WARNA[i]}"></i>${PEND[i]}</div>`}).join('')}</div></div>
 <div class="card"><h3>Capaian perkembangan anak</h3><div class="dw"><div class="dn" style="background:conic-gradient(${cg})"><span><div>${pk.length}<small>catatan</small></div></span></div><div class="lgd">${NM.map((n,i)=>`<div><i style="background:${DC[i]}"></i>${n}: ${cnt[i]}</div>`).join('')}</div></div></div></div></div></section>
+<div style="margin-top:26px"><h2 class="sec">Statistik KBC (Panca Cinta)</h2><div id="kbd"></div></div>
 <div style="margin-top:26px"><div class="wkx">${minggu}</div><div class="card rcl"><h3>Terakhir diisi</h3>${rec.length?rec.map(x=>`<button class="rc" data-v="${x.k}"><span class="ico">${J[x.k].ic}</span><span><b>${J[x.k].n}</b><small>${tgl(x.r.tanggal)} - ${esc(J[x.k].t(x.r))}</small></span><span class="ar">›</span></button>`).join(''):'<div class="empty">Belum ada catatan. Mulai dari Jurnal Harian Mengajar.</div>'}</div>
 </div>`;
-m.onclick=e=>{const b=e.target.closest('[data-v]');if(b)go(b.dataset.v)}}
+m.onclick=e=>{const b=e.target.closest('[data-v]');if(b)go(b.dataset.v)};kbdIsi()}
 catch(e){m.innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
 async function viewBeranda(){const m=$('#main'),ada=cacheSemua();
 if(ada)gambarBeranda();else m.innerHTML=muat();
