@@ -191,6 +191,20 @@ function sAses(F) {
     ['Tindak lanjut', r => E(r.tindak)]], pn)];
 }
 
+function sTindak(F) {
+  const baris = [];
+  const ambil = (k, ket, tindak) => dat(k, F).forEach(r => {
+    const v = String(tindak(r) || '').trim();
+    if (v) baris.push({ t: r.tanggal, j: nJ(k), k: ket(r), v: v });
+  });
+  ambil('harian', r => [r.tema, r.kegiatan].filter(Boolean).join(' - '), r => r.tindak);
+  ambil('perkembangan', r => r.nama, r => r.tindak);
+  ambil('penilaian', r => [r.tema, r.aspek].filter(Boolean).join(' - '), r => r.tindak);
+  ambil('refleksi', r => '', r => r.rencana);
+  baris.sort((a, b) => String(a.t).localeCompare(String(b.t)));
+  return ['Tindak lanjut', tb([['Tanggal', r => tgl(r.t)], ['Sumber jurnal', r => E(r.j)], ['Anak / kegiatan', r => E(r.k || '-')], ['Tindak lanjut', r => E(r.v)]], baris)];
+}
+
 function sRefl(F, mode) {
   const R = dat('refleksi', F);
   const kb = r => E([r.pcterap, r.pancacinta ? nm(r.pancacinta) : ''].filter(Boolean).join(': '));
@@ -290,7 +304,7 @@ function bangun(F) {
     const rg = { dari: F.rg.dari, sampai: F.rg.sampai, label: F.rg.label, judul: '' };
     return laporan(rg, { loading: 1 });
   }
-  return kertas(F, 'LAPORAN KURIKULUM MERDEKA', [sIdent(F), sCP(F), sTema(F), sHarian(F, false), sHadir(F), sPerk(F, false), sKoku(F), sAses(F), sRefl(F, 'km'), sDok(F, true, true)]);
+  return kertas(F, 'LAPORAN KURIKULUM MERDEKA', [sIdent(F), sCP(F), sTema(F), sHarian(F, false), sHadir(F), sPerk(F, false), sKoku(F), sAses(F), sRefl(F, 'km'), sTindak(F), sDok(F, true, true)]);
 }
 
 /* ---------- ambil data KBC dari database yang sama (tanpa menulis) ---------- */
