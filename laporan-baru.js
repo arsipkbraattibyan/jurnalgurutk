@@ -452,7 +452,7 @@ function htmlDash(rows, bln) {
 }
 
 function pasangDash(rows, bln) {
-  const m = $('#main'); if (!m || S.view !== 'beranda' || !rows) return;
+  const m = $('#main'); if (!m || S.view !== 'beranda') return;
   const st = m.querySelector('.strip'); if (!st) return;
   const lama = $('#kbcdash'); if (lama) lama.remove();
   st.insertAdjacentHTML('afterend', htmlDash(rows, bln));
@@ -474,7 +474,7 @@ window.gambarBeranda = function () {
     const bln = hari().slice(0, 7);
     const ck = 'kbcdash:' + bln;
     if (!KBD) { try { const t = JSON.parse(localStorage.getItem(ck) || 'null'); if (t) KBD = t; } catch (e) {} } // tampil langsung dari data terakhir
-    if (KBD) pasangDash(KBD, bln);
+    pasangDash(KBD, bln); // langsung tampil; angka '…' bila data belum ada, lalu terisi saat data datang
     kbcAmbil(bln + '-01', bln + '-31').then(rows => { if (rows) { KBD = rows; pasangDash(rows, bln); try { localStorage.setItem(ck, JSON.stringify(rows)); } catch (e) {} } });
   } catch (e) {}
   return r;
