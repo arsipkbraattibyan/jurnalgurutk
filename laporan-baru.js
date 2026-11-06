@@ -335,8 +335,9 @@ function aturInput() {
 async function viewLaporan() {
   const m = $('#main'), g = S.guru, kf = klf();
   const th = g.tahun || tahunList()[0], sm = g.semester === 'Genap' ? 'Genap' : 'Ganjil';
+  const JN = window.__lapJenis || 'km'; window.__lapJenis = ''; // dipakai tombol "Lihat laporan KBC" di Dashboard
   m.innerHTML = '<div class="card noprint" id="lrc"><h3>🔎 Filter laporan</h3>'
-    + '<div class="fd"><label>Jenis laporan</label>' + radioGrup('lrj', [['km', 'Kurikulum Merdeka'], ['kbc', 'Kurikulum Berbasis Cinta'], ['terpadu', 'Terpadu (KM + KBC)'], ['lama', 'Rekap jurnal (laporan lama)']], 'km', 'lrj') + '</div>'
+    + '<div class="fd"><label>Jenis laporan</label>' + radioGrup('lrj', [['km', 'Kurikulum Merdeka'], ['kbc', 'Kurikulum Berbasis Cinta'], ['terpadu', 'Terpadu (KM + KBC)'], ['lama', 'Rekap jurnal (laporan lama)']], JN, 'lrj') + '</div>'
     + '<div class="fg" style="margin-top:14px"><div class="fd"><label>Nama guru</label><input value="' + E(g.nama) + '" disabled></div>'
     + (kf ? '<div class="fd"><label>Kelompok</label><input value="' + E(kf) + '" disabled></div>'
       : '<div class="fd full"><label>Kelompok</label>' + radioGrup('lrk', [['', 'Semua'], ['Kelompok A', 'Kelompok A'], ['Kelompok B', 'Kelompok B'], ['KB', 'KB']], '', 'lrk') + '</div>')
@@ -367,4 +368,99 @@ async function viewLaporan() {
 
 window.viewLaporan = viewLaporan;
 window.__lapBangun = { bangun: bangun, ambilFilter: ambilFilter }; // untuk pengujian
+})();
+
+/* =====================================================================
+   TAMBAHAN KBC: Portofolio Anak dan Dashboard
+   Membungkus fungsi yang sudah ada (portofolio, viewPortofolio, gambarBeranda) tanpa mengubahnya.
+   Hanya MEMBACA KBC_Jurnal (aksi 'kbcDaftar'), tidak ada penyimpanan.
+   ===================================================================== */
+(function () {
+'use strict';
+const E = esc, KB = {};
+const nilaiKbc = r => [r.nilaiid].concat(String(r.nilailain || '').split(',')).map(x => String(x).trim()).filter(Boolean);
+const nJ = k => (J[k] ? J[k].n.replace('Jurnal ', '') : k);
+
+async function kbcAmbil(dari, sampai) {
+  const key = (dari || '') + '|' + (sampai || ''), c = KB[key];
+  if (c && Date.now() - c.t < 30000) return c.rows;
+  try {
+    if (!KBCN) { try { KBCN = (await api('kbcNilai')).nilai.map(x => [x.ID, x.nama]); } catch (e) {} }
+    const j = await api('kbcDaftar', { f: { dari: dari || '', sampai: sampai || '' } });
+    KB[key] = { t: Date.now(), rows: j.rows || [] };
+    return KB[key].rows;
+  } catch (e) { return null; } // null = KBC belum siap; bagian KBC dilewati
+}
+
+/* ---------- 1. Portofolio Anak: tambah bagian pengamatan Panca Cinta ---------- */
+let KBP = null;
+const viewPortoAsli = window.viewPortofolio, portoAsli = window.portofolio;
+
+window.viewPortofolio = async function () {
+  const m = $('#main'); if (m) m.innerHTML = muat();
+  KBP = await kbcAmbil('', '');
+  if (S.view !== 'portofolio') return;
+  return viewPortoAsli.apply(this, arguments);
+};
+
+function bagianPorto(rs, o) {
+  const ns = (KBCN || KBCN0);
+  const lihat = new Set();
+  (ROWS.perkembangan || []).filter(r => kunci(r.nama) === o.k).forEach(r => String(r.foto || '').split(/\s+/).forEach(id => id && lihat.add(id)));
+  let h = '<h3>F. Pengamatan Panca Cinta (KBC)</h3>';
+  if (!rs.length) return h + '<p style="font-size:12px">Belum ada pengamatan Panca Cinta pada periode ini.</p>';
+  h += '<h4>Rekap nilai Panca Cinta yang teramati</h4><table class="rt sm dst"><thead><tr><th>Nilai Panca Cinta</th><th>Jumlah pengamatan</th><th>Persentase</th></tr></thead><tbody>'
+    + ns.map(([id, n]) => { const c = rs.filter(r => nilaiKbc(r).indexOf(id) >= 0).length; return '<tr><td>' + E(n) + '</td><td class="c">' + c + '</td><td class="c">' + pct(c, rs.length) + '</td></tr>'; }).join('') + '</tbody></table>';
+  h += '<h4>Rincian pengamatan</h4><div class="ov"><table class="rt"><thead><tr><th>No</th><th>Tanggal</th><th>Sumber</th><th>Nilai Panca Cinta</th><th>Perilaku yang diamati</th><th>Teknik</th><th>Catatan hasil pengamatan</th></tr></thead><tbody>'
+    + rs.map((r, i) => '<tr><td class="c">' + (i + 1) + '</td><td>' + tgl(r.tanggal) + '</td><td>' + E(nJ(r.jenis)) + '</td><td>' + E(pcNama(nilaiKbc(r).join(','))) + '</td><td>'
+      + E(String(r.indikator || '').split(' | ').join('; ')) + '</td><td>' + E(r.teknik) + '</td><td>' + E(r.hasil) + '</td></tr>').join('') + '</tbody></table></div>';
+  const fo = [];
+  rs.forEach(r => String(r.foto || '').split(/\s+/).filter(Boolean).forEach(id => { if (!lihat.has(id)) { lihat.add(id); fo.push({ id: id, r: r }); } }));
+  if (fo.length) h += '<h4>Dokumentasi pengamatan</h4><div class="gal">' + fo.slice(0, 30).map(x => '<figure><img data-fid="' + E(x.id) + '" src="' + BLANK + '" alt="Foto"><figcaption>' + tgl(x.r.tanggal) + '<br>' + E(pcNama(nilaiKbc(x.r).join(','))) + '</figcaption></figure>').join('') + '</div>';
+  return h + '<p style="font-size:11px;margin:4px 0 0">Pengamatan autentik tanpa nilai angka, bersumber dari Jurnal Perkembangan dan Jurnal Penilaian.</p>';
+}
+
+window.portofolio = function (o, dari, sampai) {
+  const html = portoAsli(o, dari, sampai);
+  if (!KBP) return html;
+  try {
+    const rs = KBP.filter(r => r.anakid && kunci(r.anaknama) === o.k && (!dari || String(r.tanggal) >= dari) && (!sampai || String(r.tanggal) <= sampai))
+      .sort((a, b) => String(a.tanggal).localeCompare(String(b.tanggal)));
+    const sec = bagianPorto(rs, o), i = html.lastIndexOf('<div class="ttd">');
+    return i < 0 ? html + sec : html.slice(0, i) + sec + html.slice(i);
+  } catch (e) { return html; }
+};
+
+/* ---------- 3. Dashboard: ringkasan KBC bulan ini ---------- */
+const berandaAsli = window.gambarBeranda;
+let KBD = null; // data terakhir, supaya langsung tampil saat dashboard digambar ulang
+const IKON = { PC1: '🕌', PC2: '📚', PC3: '🌿', PC4: '🤝', PC5: '🇮🇩' }, WARNA_K = ['#fde7bf', '#d7ecfb', '#e1f2c9', '#fbd3e0', '#ede3fb'];
+
+function htmlDash(rows, bln) {
+  const ns = (KBCN || KBCN0);
+  const anak = new Set(rows.filter(r => r.anakid).map(r => r.anakid)).size;
+  const hariH = new Set(rows.filter(r => r.jenis === 'harian').map(r => r.tanggal)).size;
+  return '<div id="kbcdash"><h2 class="sec">Penguatan KBC (Panca Cinta) Bulan Ini</h2><div class="strip">'
+    + ns.map(([id, n], i) => '<div class="sti"><i style="background:' + WARNA_K[i % 5] + '">' + (IKON[id] || '💗') + '</i><div><b>' + rows.filter(r => nilaiKbc(r).indexOf(id) >= 0).length + '</b><small>' + E(n) + '</small></div></div>').join('')
+    + '</div><p class="sub" style="margin:-14px 0 10px;font-size:13px">' + blnNama(bln) + ': ' + rows.length + ' catatan KBC, ' + anak + ' anak teramati, ' + hariH + ' hari jurnal harian memuat KBC. '
+    + '<button type="button" class="btn o s" data-v="laporan" data-lk>Lihat laporan KBC</button></p></div>';
+}
+
+function pasangDash(rows, bln) {
+  const m = $('#main'); if (!m || S.view !== 'beranda' || !rows) return;
+  const st = m.querySelector('.strip'); if (!st) return;
+  const lama = $('#kbcdash'); if (lama) lama.remove();
+  st.insertAdjacentHTML('afterend', htmlDash(rows, bln));
+  const b = m.querySelector('#kbcdash [data-lk]'); if (b) b.addEventListener('click', () => { window.__lapJenis = 'kbc'; });
+}
+
+window.gambarBeranda = function () {
+  const r = berandaAsli.apply(this, arguments);
+  try {
+    const bln = hari().slice(0, 7);
+    if (KBD) pasangDash(KBD, bln);
+    kbcAmbil(bln + '-01', bln + '-31').then(rows => { if (rows) { KBD = rows; pasangDash(rows, bln); } });
+  } catch (e) {}
+  return r;
+};
 })();
