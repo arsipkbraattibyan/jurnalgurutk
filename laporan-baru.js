@@ -286,7 +286,7 @@ function sRingkas(F) {
 /* ---------- penyusunan halaman ---------- */
 function kertas(F, judul, secs) {
   const g = S.guru, today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-  const kop = '<div class="kop"><img class="kl" src="' + LOGO + '" alt=""><div class="kt"><h2>' + E((g.sekolah || 'NAMA SEKOLAH').toUpperCase()) + '</h2><p>' + E(g.jenjang || '') + (g.npsn ? ' - NPSN ' + E(g.npsn) : '') + '</p>'
+  const kop = '<div class="kop"><img class="kl" src="' + logoSek() + '" alt=""><div class="kt"><h2>' + E((g.sekolah || 'NAMA SEKOLAH').toUpperCase()) + '</h2><p>' + E(g.jenjang || '') + (g.npsn ? ' - NPSN ' + E(g.npsn) : '') + '</p>'
     + (alamatSek(g) ? '<p>' + E(alamatSek(g)) + (g.telpsekolah ? ' | Telp. ' + E(g.telpsekolah) : '') + '</p>' : '') + '</div></div>';
   const ket = [F.kel ? 'Kelompok: ' + E(F.kel) : '', F.anakNama ? 'Anak: ' + E(F.anakNama) : ''].filter(Boolean).join(' | ');
   return '<div class="paper">' + kop + '<h1 class="jd">' + judul + '</h1><p class="sj">Tahun pelajaran ' + E(F.rg.th || '-') + ', semester ' + E(F.rg.sm || '-') + '<br>Periode: ' + E(F.rg.label) + (ket ? '<br>' + ket : '') + '</p>'
