@@ -95,8 +95,12 @@ function sIdent(F) {
   const tabel = rows => '<table class="rt id">' + rows.map(x => '<tr><td>' + x[0] + '</td><td>' + E(x[1] || '-') + '</td></tr>').join('') + '</table>';
   const sek = tabel([['Nama sekolah', g.sekolah], ['NPSN', g.npsn], ['Jenjang', g.jenjang], ['Alamat sekolah', alamatSek(g)],
     ['Kepala sekolah', g.kepsek], ['NIP / NUPTK kepala sekolah', g.nipkepsek], ['Tahun pelajaran', F.rg.th], ['Semester', F.rg.sm]]);
-  const gur = tabel([['Nama guru', g.nama], ['NIP / NUPTK', [g.nip, g.nuptk].filter(Boolean).join(' / ')], ['Status kepegawaian', g.status],
-    ['Kelompok yang diampu', kelNorm(g.kelas) || g.kelas]]);
+  const BLN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  const tp = d => { const m = String(d || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? (+m[3]) + ' ' + BLN[+m[2] - 1] + ' ' + m[1] : String(d || ''); };
+  const gur = tabel([['Nama guru', g.nama], ['NIP / NUPTK', [g.nip, g.nuptk].filter(Boolean).join(' / ')],
+    ['Tempat, tanggal lahir', [g.tempatlahir, tp(g.tgllahir)].filter(Boolean).join(', ')],
+    ['Pendidikan terakhir', [g.pendidikan, g.jurusan].filter(Boolean).join(' - ')], ['Jabatan', g.jabatan], ['Status kepegawaian', g.status],
+    ['Mulai mengajar', tp(g.mulaitugas)], ['Kelompok yang diampu', kelNorm(g.kelas) || g.kelas]]);
   return ['Identitas sekolah dan guru', '<div class="idgrid"><div><h4>Identitas sekolah</h4>' + sek + '</div><div><h4>Identitas guru</h4>' + gur + '</div></div>'];
 }
 
