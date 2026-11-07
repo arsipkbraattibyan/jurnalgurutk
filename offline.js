@@ -26,6 +26,15 @@
  * - Ditolak server (mis. validasi): ditandai GAGAL, tetap tersimpan, dicoba lagi otomatis tiap 30 menit
  *   atau lewat tombol SINKRONKAN SEKARANG.
  * - Tombol SINKRONKAN SEKARANG (mengambang dan di panel) + hitungan berhasil / gagal / menunggu.
+ *
+ * FOTO OFFLINE (versi ini):
+ * - Foto yang dipilih saat offline disimpan di IndexedDB (store "foto") dengan ID sementara "tmp_<16 hex>".
+ * - Saat online, foto yang dipakai antrean diunggah LEBIH DULU ke Google Drive (dengan cid = bagian hex ID sementara,
+ *   sehingga server tidak membuat berkas ganda bila unggahan diulang). ID Drive dicatat di salinan lokal (rec.real).
+ * - Salinan lokal TIDAK dihapus sebelum unggahan berhasil, dan tidak dihapus selama masih dipakai data antrean.
+ *   Hanya foto yang SUDAH terunggah, tidak dipakai antrean mana pun, dan berumur > 7 hari yang dibersihkan.
+ * - ID Drive foto disimpan di kolom "foto" jurnal (tautan KBC ke Drive ada di kolom "fototautan" KBC_Jurnal).
+ * - Status foto (menunggu / sudah di Drive / gagal) tampil di panel sinkronisasi, indikator, dan pesan sinkron.
  */
 (function () {
 'use strict';
@@ -266,12 +275,14 @@ async function tulis(action, p) {
 /* ---------- foto ---------- */
 async function unggah(p) {
   await pastikan();
+  const c = acak(16); // cid foto: unggahan yang diulang (respons hilang) tidak membuat berkas ganda di Drive
   if (online()) {
-    try { return await core('unggahLampiran', p, 60000, true); }
+    try { return await core('unggahLampiran', Object.assign({}, p, { cid: c }), 60000, true); }
     catch (e) { if (!e.net && !e.auth) throw e; if (e.auth) perluLogin = true; }
   }
-  const id = 'tmp_' + acak(16);
-  try { await idbPut('foto', { id: id, gid: gid(), b64: p.b64, t: Date.now() }); } catch (e) { throw penuh(); }
+  const id = 'tmp_' + c;
+  try { await idbPut('foto', { id: id, cid: c, gid: gid(), b64: p.b64, t: Date.now() }); } catch (e) { throw penuh(); }
+  statusBaru();
   return { ok: true, id: id, queued: true };
 }
 async function fotoBaca(p) {
@@ -284,21 +295,71 @@ async function fotoBaca(p) {
   if (!online()) throw netErr();
   return apiAsli('fotoData', p);
 }
+// unggah satu foto lokal ke Drive; hasilnya (ID Drive) dicatat di salinan lokal, salinan TIDAK dihapus
+async function naikFoto(rec) {
+  if (rec.real) return rec.real;
+  const j = await kirim('unggahLampiran', { b64: rec.b64, cid: rec.cid || String(rec.id).slice(4) }, S.token, 60000);
+  if (!j.ok) { const e = new Error(j.error || 'Unggah foto gagal'); e.auth = !!j.auth; throw e; }
+  if (!j.id) throw new Error('Server tidak mengonfirmasi foto tersimpan.');
+  rec.real = j.id; rec.err = ''; rec.up = Date.now();
+  await idbPut('foto', rec).catch(() => {}); // jika gagal dicatat, unggahan ulang aman (cid sama = berkas sama)
+  return j.id;
+}
+let hilang = 0; // foto yang salinan lokalnya tidak ada lagi (hanya jika peramban menghapusnya)
 // ganti ID sementara dengan ID Drive (unggah dulu jika belum)
 async function petaFoto(str) {
   const out = [];
   for (const id of String(str || '').split(/\s+/).filter(Boolean)) {
     if (id.indexOf('tmp_') !== 0) { out.push(id); continue; }
     const rec = await idbGet('foto', id).catch(() => null);
-    if (!rec) continue; // berkas lokal hilang
-    if (rec.real) { out.push(rec.real); continue; }
-    const j = await kirim('unggahLampiran', { b64: rec.b64 }, S.token, 60000);
-    if (!j.ok) { const e = new Error(j.error || 'Unggah foto gagal'); e.auth = !!j.auth; throw e; }
-    rec.real = j.id;
-    await idbPut('foto', rec).catch(() => {});
-    out.push(j.id);
+    if (!rec) { hilang++; continue; } // salinan lokal hilang: catatan tetap dikirim tanpa foto itu, dan guru diberi tahu
+    out.push(await naikFoto(rec));
   }
   return out.join(' ');
+}
+// ID foto sementara yang dipakai satu item antrean
+const fotoItem = it => {
+  const ds = !it || it.type === 'hapus' ? [] : it.type === 'simpanBanyak' ? it.data : [it.data];
+  const o = [];
+  ds.forEach(d => String((d && d.foto) || '').split(/\s+/).filter(x => x.indexOf('tmp_') === 0).forEach(x => o.push(x)));
+  return o;
+};
+// langkah awal sinkron: unggah semua foto yang dipakai antrean (hanya melempar galat jaringan / sesi / gangguan server)
+async function naikSemuaFoto(R, items) { // hanya foto milik item yang memang akan dikirim sekarang
+  const ref = new Set(); items.forEach(it => fotoItem(it).forEach(x => ref.add(x)));
+  for (const id of ref) {
+    const rec = await idbGet('foto', id).catch(() => null);
+    if (!rec || rec.real) continue;
+    try { await naikFoto(rec); R.fotoOk++; }
+    catch (e) {
+      if (e.net || e.auth || TRANSIEN.test(e.message || '')) throw e;
+      rec.err = e.message; rec.tries = (rec.tries || 0) + 1; // ditolak server: foto tetap di perangkat
+      await idbPut('foto', rec).catch(() => {});
+      R.fotoGagal++;
+    }
+  }
+}
+// status foto untuk tampilan: FM[id] = 'tunggu' | 'naik' | 'gagal' (hanya foto yang dipakai antrean guru ini)
+let FS = { tunggu: 0, naik: 0, gagal: 0 }, FM = {}, fsKey = '';
+async function segarFoto() {
+  const g = gid(); if (!g) return;
+  try {
+    await pastikan();
+    const ref = new Set(); Q.forEach(it => fotoItem(it).forEach(x => ref.add(x)));
+    const f = { tunggu: 0, naik: 0, gagal: 0 }, m = {};
+    (await idbAll('foto')).forEach(x => {
+      if (x.gid !== g || !ref.has(x.id)) return;
+      const k = x.real ? 'naik' : x.err ? 'gagal' : 'tunggu';
+      f[k]++; m[x.id] = k;
+    });
+    const key = JSON.stringify([f, m]);
+    if (key !== fsKey) { fsKey = key; FS = f; FM = m; gambar(); }
+  } catch (e) {}
+}
+// hapus foto lokal milik item yang DIBUANG guru sendiri, hanya yang tidak dipakai item lain
+async function hapusFotoYatim(ids) {
+  const ref = new Set(); Q.forEach(it => fotoItem(it).forEach(x => ref.add(x)));
+  for (const id of ids) if (!ref.has(id)) await idbDel('foto', id).catch(() => {});
 }
 
 /* ---------- sinkron ---------- */
@@ -322,7 +383,7 @@ function catatStat(R) {
   try {
     const s = bacaStat();
     s.t = Date.now(); s.ok = R.ok; s.gagal = R.gagal; s.dup = R.dup;
-    s.tot = (s.tot || 0) + R.ok; s.totDup = (s.totDup || 0) + R.dup;
+    s.tot = (s.tot || 0) + R.ok; s.totDup = (s.totDup || 0) + R.dup; s.fotoTot = (s.fotoTot || 0) + (R.fotoOk || 0);
     localStorage.setItem(kStat(), JSON.stringify(s));
   } catch (e) {}
 }
@@ -375,12 +436,15 @@ async function sinkron(paksa) {
   if (!S.token || !gid() || !online()) return null;
   const now = Date.now();
   const items = urutQ().filter(x => x.status === 'antri' || (x.status === 'gagal' && (paksa || (x.next || 0) <= now)));
-  const R = { ok: 0, gagal: 0, dup: 0, kbc: '', kena: new Set() };
+  const R = { ok: 0, gagal: 0, dup: 0, kbc: '', kena: new Set(), fotoOk: 0, fotoGagal: 0 };
   if (!items.length) return R;
   jalan = true; perluLogin = false; statusBaru();
   let ulang = false, putus = false;
   try {
+    try { await naikSemuaFoto(R, items); } // foto diunggah lebih dulu, baru catatannya
+    catch (e) { if (e.auth) perluLogin = true; else putus = true; }
     for (const it of items) {
+      if (putus || perluLogin) break;
       if (!Q.has(it.qid)) continue; // dibuang saat sinkron berjalan
       const rev = it.rev, n0 = jml(it);
       let j;
@@ -400,18 +464,21 @@ async function sinkron(paksa) {
       else if (cur) { ulang = true; cur.status = 'antri'; } // diubah saat sedang dikirim: kirim lagi versi terbaru
     }
   } finally { jalan = false; }
-  if (R.ok || R.gagal) catatStat(R);
+  if (R.ok || R.gagal || R.fotoOk) catatStat(R);
   statusBaru();
   const c = hitung();
-  if (R.ok || R.gagal || paksa) {
+  if (R.ok || R.gagal || paksa || R.fotoOk || R.fotoGagal) {
     let m = (R.gagal ? '⚠️ ' : '✅ ') + R.ok + ' berhasil · ' + R.gagal + ' gagal · ' + c.n + ' menunggu';
     if (R.dup) m += ' · ' + R.dup + ' sudah ada di server (tidak dobel)';
+    if (R.fotoOk) m += ' · 📷 ' + R.fotoOk + ' foto terunggah ke Drive';
+    if (R.fotoGagal) m += ' · ⚠️ ' + R.fotoGagal + ' foto gagal';
     if (putus && !R.ok && !R.gagal) m = '📴 Koneksi atau server bermasalah. Data tetap aman dan akan dicoba lagi otomatis.';
     if (perluLogin) m = '🔑 Sesi login berakhir. Masuk ulang, sinkron akan lanjut otomatis. Data tetap aman.';
     toast(m, !!R.gagal || putus || perluLogin);
   }
   if (R.ok) await segarkan([...R.kena]);
   if (R.kbc) toast('Jurnal tersimpan, tetapi bagian KBC belum tersimpan: ' + R.kbc, true);
+  if (hilang) { toast('⚠️ ' + hilang + ' foto tidak ditemukan lagi di perangkat (dihapus peramban). Catatannya tetap terkirim tanpa foto itu.', true); hilang = 0; }
   if (ulang) setTimeout(sinkron, 1500);
   return R;
 }
@@ -461,7 +528,8 @@ function hitung() {
   Q.forEach(x => { if (x.status === 'gagal') g += jml(x); else n += jml(x); });
   return { n: n, g: g };
 }
-function statusBaru() {
+function statusBaru() { gambar(); segarFoto(); }
+function gambar() {
   const b = el('ofl');
   if (!b) return;
   const c = hitung(), off = !online();
@@ -472,6 +540,7 @@ function statusBaru() {
   else if (off) { t = '📴 Offline' + (c.n ? ' · ' + c.n + ' MENUNGGU SINKRONISASI' : ''); bg = '#fff3cd'; fg = '#8a5a00'; }
   else if (c.n) { t = '⏳ ' + c.n + ' MENUNGGU SINKRONISASI'; bg = '#e3f2fd'; fg = '#1565c0'; }
   else { t = '🟢 Online'; bg = '#e8f5e9'; fg = '#2e7d32'; }
+  if (FS.tunggu && !jalan) t += ' · 📷 ' + FS.tunggu + ' foto';
   b.style.display = ''; b.textContent = t; b.style.background = bg; b.style.color = fg; b.style.opacity = (!off && !c.n && !c.g && !jalan) ? '.8' : '1';
   const s = el('ofs');
   if (s) {
@@ -486,6 +555,24 @@ function deskripsi(it) {
   if (it.type === 'hapus') return ['Hapus catatan: ' + nm, ''];
   if (it.type === 'simpanBanyak') return [nm + ' (' + it.data.length + ' anak)', tgl((it.data[0] || {}).tanggal || '')];
   return [nm + (it.baru ? ' (baru)' : ' (ubah)'), tgl(it.data.tanggal || '')];
+}
+function fotoBlok() {
+  const st = bacaStat();
+  if (!FS.tunggu && !FS.naik && !FS.gagal && !st.fotoTot) return '';
+  const k = (a, l, w) => '<span style="margin-right:12px;white-space:nowrap">' + l + ' <b style="color:' + w + '">' + a + '</b></span>';
+  return '<p class="sub" style="margin-bottom:12px;font-size:13px">📷 Foto: ' + k(FS.tunggu, 'menunggu unggah', '#1565c0') + k(FS.naik, 'sudah di Drive (data belum terkirim)', '#2e7d32') + k(FS.gagal, 'gagal', FS.gagal ? '#b4233f' : 'inherit')
+    + (st.fotoTot ? '<br><small>Total foto terunggah dari perangkat ini: ' + st.fotoTot + '. Salinan lokal disimpan sampai data terkirim.</small>' : '') + '</p>';
+}
+function ketFoto(it) {
+  const ids = fotoItem(it);
+  if (!ids.length) return '';
+  const h = { tunggu: 0, naik: 0, gagal: 0 };
+  ids.forEach(x => { h[FM[x] || 'tunggu']++; });
+  const p = [];
+  if (h.tunggu) p.push(h.tunggu + ' menunggu unggah');
+  if (h.naik) p.push(h.naik + ' sudah di Drive');
+  if (h.gagal) p.push(h.gagal + ' gagal');
+  return '<span style="flex:1 1 100%;font-size:12px">📷 ' + ids.length + ' foto: ' + p.join(', ') + '</span>';
 }
 function bukaPanel() {
   if (!gid()) return;
@@ -503,10 +590,11 @@ function bukaPanel() {
     md.innerHTML = '<div class="sheet"><h2>🔄 Sinkronisasi data</h2><p class="sub" style="margin-bottom:10px">' + esc(ket) + '</p>'
       + '<div style="display:flex;gap:8px;margin-bottom:6px">' + kotak(st.ok || 0, '✅ Berhasil (sinkron terakhir)', '#2e7d32') + kotak(c.g, '⚠️ Gagal', c.g ? '#b4233f' : 'inherit') + kotak(c.n, '⏳ Menunggu', '#1565c0') + '</div>'
       + '<p class="sub" style="margin-bottom:12px;font-size:12px">' + (jam ? 'Sinkron terakhir: ' + esc(jam) + ' · ' : '') + 'Total terkirim dari perangkat ini: ' + (st.tot || 0) + (st.totDup ? ' · Dicegah dobel: ' + st.totDup : '') + '</p>'
-      + (v.length ? v.map(it => {
+      + fotoBlok() + (v.length ? v.map(it => {
         const d = deskripsi(it), gg = it.status === 'gagal';
         return '<div class="ukb" style="margin-bottom:8px"><b>' + esc(d[0]) + ' <small>' + esc(d[1]) + '</small></b>'
           + '<span style="flex:1 1 100%;font-size:13px;color:' + (gg ? '#b4233f' : 'inherit') + '">' + (gg ? '⚠️ ' + esc(it.err || 'Ditolak server') + ' (dicoba lagi otomatis tiap 30 menit)' : '⏳ Menunggu sinkronisasi' + (it.err ? ' (percobaan ulang: ' + esc(it.err) + ')' : '')) + '</span>'
+          + ketFoto(it)
           + (gg ? '<button type="button" class="btn gh s" data-rt="' + esc(it.qid) + '">Coba lagi</button>' : '')
           + '<button type="button" class="btn rd s" data-bg="' + esc(it.qid) + '">Buang</button></div>';
       }).join('') : '<div class="empty">Tidak ada data yang mengantre.</div>')
@@ -526,7 +614,9 @@ function bukaPanel() {
     if (bg) {
       const it = Q.get(bg.dataset.bg); if (!it) return;
       if (!await tanya('Buang data ini?', 'Data ini belum terkirim. Jika dibuang, data hilang dari perangkat dan tidak akan masuk ke spreadsheet.', 'Buang')) return;
+      const fid = fotoItem(it);
       await buangItem(it).catch(() => {});
+      await hapusFotoYatim(fid);
       statusBaru(); segarkan([it.jenis]);
     }
   };
@@ -576,12 +666,17 @@ if (typeof keluarAsli === 'function') window.keluar = function () {
   return r;
 };
 
-// bersihkan foto lokal lama (sudah terunggah > 7 hari, atau yatim > 60 hari)
-function bersihkanFoto() {
-  idbAll('foto').then(a => a.forEach(f => {
-    const umur = Date.now() - (f.t || 0);
-    if ((f.real && umur > 7 * 864e5) || umur > 60 * 864e5) idbDel('foto', f.id).catch(() => {});
-  })).catch(() => {});
+// Pembersihan foto lokal. ATURAN: foto yang belum terunggah TIDAK PERNAH dihapus otomatis, dan foto yang masih
+// dipakai item antrean (semua guru di perangkat ini) tidak dihapus. Hanya foto yang sudah terunggah, tidak dipakai
+// antrean mana pun, dan sudah lebih dari 7 hari sejak terunggah.
+async function bersihkanFoto() {
+  try {
+    const ref = new Set(); (await idbAll('q')).forEach(it => fotoItem(it).forEach(x => ref.add(x)));
+    (await idbAll('foto')).forEach(f => {
+      if (!f.real || ref.has(f.id)) return;
+      if (Date.now() - (f.up || f.t || 0) > 7 * 864e5) idbDel('foto', f.id).catch(() => {});
+    });
+  } catch (e) {}
 }
 
 buatPil();
@@ -592,5 +687,5 @@ addEventListener('online', () => { statusBaru(); sinkron(); });
 addEventListener('offline', statusBaru);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { statusBaru(); sinkron(); } });
 setInterval(() => { statusBaru(); sinkron(); }, 60000);
-window.__offline = { sinkron: sinkron, sinkronSekarang: sinkronSekarang, antrean: () => urutQ(), stat: bacaStat }; // untuk pengujian
+window.__offline = { sinkron: sinkron, sinkronSekarang: sinkronSekarang, antrean: () => urutQ(), stat: bacaStat, foto: () => idbAll('foto'), statusFoto: () => FS, bersihkanFoto: bersihkanFoto }; // untuk pengujian
 })();
