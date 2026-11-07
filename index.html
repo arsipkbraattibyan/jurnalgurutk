@@ -733,7 +733,8 @@ $('#me').innerHTML=`${av(g.foto,g.nama)}<span>${esc(g.nama)}</span><button class
 function go(v){S.view=v;document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.dataset.v===v));window.scrollTo(0,0);
 $('#pt').textContent=v==='laporan'?'Laporan':v==='siswa'?'Data siswa dan presensi':v==='portofolio'?'Portofolio perkembangan anak':v==='identitas'?J.identitas.n:v==='pengaturan'?'Pengaturan':'';
 $('#pt').style.display=['laporan','siswa','portofolio','identitas','pengaturan'].includes(v)?'':'none';
-v==='beranda'?viewBeranda():v==='identitas'?viewIdentitas():v==='pengaturan'?viewPengaturan():v==='laporan'?viewLaporan():v==='siswa'?viewSiswa():v==='portofolio'?viewPortofolio():viewJurnal(v)}
+if(v!=='identitas'&&v!=='laporan')segarAkad();
+v==='beranda'?viewBeranda():v==='identitas'?viewIdentitas():v==='pengaturan'?viewPengaturan():v==='laporan'?segarAkad().then(()=>{if(S.view==='laporan')viewLaporan()}):v==='siswa'?viewSiswa():v==='portofolio'?viewPortofolio():viewJurnal(v)}
 const muat=()=>'<div class="empty">Memuat data...</div>';
 
 /* ---------- wajib pilih kelompok jika belum diisi ---------- */
@@ -826,6 +827,37 @@ if(ada)gambarBeranda();else m.innerHTML=muat();
 try{await muatSemua();if(S.view!=='beranda')return;gambarBeranda();loadSiswa()}
 catch(e){if(!ada&&S.view==='beranda')m.innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
 
+/* ---------- Pengaturan Akademik (satu pengaturan untuk semua guru; disimpan di sheet "Akademik") ---------- */
+let AKAD=null,_akT=0;
+const akadMuat=()=>api('akademik').then(j=>{AKAD=j}).catch(()=>{});
+const akadPer=x=>x&&(x.mulai||x.selesai)?(x.mulai?tgl(x.mulai):'...')+' s.d. '+(x.selesai?tgl(x.selesai):'...'):'Tanggal belum diatur';
+// segarkan tahun ajaran dan semester aktif di perangkat ini (guru lain mengubahnya dari perangkatnya sendiri)
+function segarAkad(){if(Date.now()-_akT<60000)return Promise.resolve();_akT=Date.now();
+return Promise.race([api('profil').then(j=>{const g=j.guru,o=S.guru;if(o&&(g.tahun!==o.tahun||g.semester!==o.semester||JSON.stringify(g.akademik)!==JSON.stringify(o.akademik))){o.tahun=g.tahun;o.semester=g.semester;o.akademik=g.akademik;simpanSesi()}}),new Promise(r=>setTimeout(r,2500))]).catch(()=>{})}
+function akadIsi(ed){const box=$('#akd');if(!box)return;const A=AKAD;
+if(!A){box.innerHTML='<p class="sub">Memuat pengaturan akademik...</p>';return}
+const a=A.aktif,n=new Date(),e=ed||a||{tahun:tahunAjaranList()[1],semester:n.getMonth()>=6?'Ganjil':'Genap',aktif:'ya',mulai:'',selesai:''};
+const ak=x=>x.aktif===true||x.aktif==='ya';
+const info=`<div class="fd"><label>Sedang aktif</label><p style="margin:0;font-weight:800;color:var(--navy)">${a?esc(a.tahun+' · Semester '+a.semester):'Belum diatur'}</p><p class="sub" style="font-size:12px;margin:2px 0 0">${a?esc(akadPer(a)):'Selama belum diatur, laporan memakai isian tahun ajaran lama di profil guru.'}</p></div>`;
+const form=A.boleh?`<div class="fg"><div class="fd"><label for="akt">Tahun ajaran</label><input id="akt" maxlength="9" inputmode="numeric" placeholder="2026/2027" autocomplete="off" value="${esc(e.tahun)}"></div>
+<div class="fd"><label>Semester</label>${radioGrup('aks',[['Ganjil','Ganjil'],['Genap','Genap']],e.semester,'aks')}</div>
+<div class="fd"><label>Status</label>${radioGrup('ast',[['ya','Aktif'],['tidak','Tidak aktif']],ak(e)?'ya':'tidak','ast')}</div>
+<div class="fd"><label for="akm">Tanggal mulai (opsional)</label><input type="date" id="akm" value="${esc(e.mulai||'')}"></div>
+<div class="fd"><label for="ake">Tanggal selesai (opsional)</label><input type="date" id="ake" value="${esc(e.selesai||'')}"></div></div>
+<div class="act"><button class="btn y" id="aksv" type="button">Simpan Pengaturan Akademik</button></div>`
+:'<p class="sub" style="font-size:12px;margin:8px 0 0">Hanya kepala sekolah atau admin yang dapat mengubah pengaturan ini.</p>';
+const rw=(A.daftar||[]).map((x,i)=>`<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--ln)"><span style="flex:1"><b>${esc(x.tahun)} · ${esc(x.semester)}</b><br><small class="sub">${esc(akadPer(x))}</small></span>${ak(x)?'<span class="abg hadir" style="white-space:nowrap">Aktif</span>':''}${A.boleh?`<button class="btn gh s" type="button" data-ae="${i}">Ubah</button>`:''}</div>`).join('');
+box.innerHTML=info+form+(rw?`<p class="sub" style="font-size:13px;margin:16px 0 4px;font-weight:800">Riwayat tahun ajaran</p>${rw}`:'');
+box.oninput=()=>{box.dataset.t=1};
+const t=$('#akt');if(t)t.onblur=()=>{if(/^\d{4}$/.test(t.value.trim()))t.value=t.value.trim()+'/'+(+t.value.trim()+1)};
+box.onclick=ev=>{const b=ev.target.closest('[data-ae]');if(b){akadIsi(A.daftar[+b.dataset.ae]);box.dataset.t=1;box.scrollIntoView({behavior:'smooth',block:'nearest'})}};
+const sv=$('#aksv');if(sv)sv.onclick=async()=>{const th=$('#akt').value.trim(),sm=nilai('aks'),on=nilai('ast')==='ya',mu=$('#akm').value,se=$('#ake').value;
+if(!/^\d{4}\/\d{4}$/.test(th)||+th.slice(5)!==+th.slice(0,4)+1)return toast('Tahun ajaran harus berformat 2026/2027',1);
+if(mu&&se&&se<mu)return toast('Tanggal selesai tidak boleh sebelum tanggal mulai',1);
+if(on&&a&&!(a.tahun===th&&a.semester===sm)&&!await tanya('Ganti periode aktif?','Seluruh guru akan memakai '+th+' semester '+sm+' di laporan dan cetakan. Data periode sebelumnya tidak berubah dan tetap tersimpan.','Ya, aktifkan',false))return;
+if(!on&&a&&a.tahun===th&&a.semester===sm&&!await tanya('Nonaktifkan periode?','Tidak ada periode aktif. Laporan akan memakai isian tahun ajaran lama di profil guru sampai Anda mengaktifkan periode lain.','Ya, nonaktifkan',false))return;
+sv.disabled=true;try{const j=await api('simpanAkademik',{data:{tahun:th,semester:sm,aktif:on,mulai:mu,selesai:se}});AKAD={aktif:j.aktif,daftar:j.daftar,boleh:j.boleh};S.guru=j.guru;simpanSesi();isiAkun();_akT=Date.now();
+const bx=$('#akd');if(bx)delete bx.dataset.t;akadIsi();const lp=$('#lap');if(lp)lp.innerHTML=dataPaper(nilai('dj')||'guru');toast('Pengaturan akademik tersimpan')}catch(er){toast(er.message,1);sv.disabled=false}}}
 /* ---------- identitas (tanpa foto) ---------- */
 function viewIdentitas(){formIdentitas();const m=$('#main');let sentuh=false;const h=()=>{sentuh=true};m.addEventListener('input',h);m.addEventListener('change',h);
 api('profil').then(j=>{const beda=JSON.stringify(j.guru)!==JSON.stringify(S.guru);S.guru=j.guru;simpanSesi();if(beda&&!sentuh&&S.view==='identitas')formIdentitas()}).catch(()=>{}).then(()=>{m.removeEventListener('input',h);m.removeEventListener('change',h)})}
@@ -852,9 +884,9 @@ const t=+String(d.tahunberdiri||'').trim();if(t&&t>new Date().getFullYear()&&!er
 return er}
 function formIdentitas(){const g=S.guru,P=k=>PROFIL.find(f=>f.k===k);
 const sek=(ic,jd,ket,ks)=>`<div class="card"><h3>${ic} ${jd}</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">${ket}</p><div class="fg">${ks.map(k=>fld(P(k),k==='kelas'?kelNorm(g[k]):k==='jenjang'&&g[k]==='PAUD'?'':g[k])).join('')}</div></div>`;
-$('#main').innerHTML=`<div class="noprint"><div class="card"><h3>🖨️ Cetak / Unduh Data</h3><p class="sub" style="font-size:13px;margin:-6px 0 12px">Berdasarkan data yang sudah disimpan. Pilih data, lalu cetak atau simpan sebagai PDF, Excel, atau Word.</p><div class="fd"><label>Data yang dicetak</label>${radioGrup('dj',[['guru','Data guru'],['sekolah','Data sekolah'],['semua','Data guru + sekolah']],'guru','dj')}</div>${ukrHtml()}</div><div id="pf">${sek('👩‍🏫','A. Data pribadi','Identitas dan kontak Anda. NIP dan NUPTK boleh dikosongkan jika belum ada.',['nama','nip','nuptk','tempatlahir','tgllahir','jk','agama','alamat','telepon','email'])}
+$('#main').innerHTML=`<div class="noprint"><div class="card"><h3>🖨️ Cetak / Unduh Data</h3><p class="sub" style="font-size:13px;margin:-6px 0 12px">Berdasarkan data yang sudah disimpan. Pilih data, lalu cetak atau simpan sebagai PDF, Excel, atau Word.</p><div class="fd"><label>Data yang dicetak</label>${radioGrup('dj',[['guru','Data guru'],['sekolah','Data sekolah'],['semua','Data guru + sekolah']],'guru','dj')}</div>${ukrHtml()}</div><div class="card" id="akc"><h3>🗓️ Pengaturan Akademik</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Berlaku untuk seluruh guru. Tahun ajaran dan semester yang aktif dipakai otomatis di laporan dan cetakan, jadi guru tidak perlu mengisinya lagi. Periode sebelumnya tetap tersimpan.</p><div id="akd"></div></div><div id="pf">${sek('👩‍🏫','A. Data pribadi','Identitas dan kontak Anda. NIP dan NUPTK boleh dikosongkan jika belum ada.',['nama','nip','nuptk','tempatlahir','tgllahir','jk','agama','alamat','telepon','email'])}
 ${sek('🎓','B. Data kepegawaian','Status, pendidikan, jabatan, dan tugas Anda.',['status','pendidikan','jurusan','jabatan','tugastambahan','mulaitugas'])}
-${sek('📋','C. Data mengajar','Kelompok dan tahun ajaran yang sedang berjalan. Jurnal yang Anda isi mengikuti akun Anda sendiri.',['kelas','tahun','semester'])}
+${sek('📋','C. Data mengajar','Kelompok yang Anda ampu. Tahun ajaran dan semester mengikuti Pengaturan Akademik sekolah (saat ini: '+esc(g.tahun||'belum diatur')+', semester '+esc(g.semester||'-')+'). Jurnal yang Anda isi tetap milik akun Anda sendiri.',['kelas'])}
 <div class="card"><h3>🔐 D. Data akun</h3><div class="fup"><div class="avb" id="avp">${av(g.foto,g.nama)}</div><div><button class="btn o s" id="fpb" type="button">Unggah / Ganti Foto</button> <button class="btn o s" id="gp" type="button">Ganti PIN</button><input type="file" id="fpi" accept="image/*" style="display:none"><p class="sub" style="font-size:12px;margin-top:6px">Foto dan PIN langsung tersimpan, tanpa menunggu tombol Simpan Identitas. Masuk tetap memakai ID guru dan PIN 6 angka seperti biasa.</p></div></div></div>
 ${sek('🏫','A. Data utama','Identitas pokok sekolah.',['sekolah','npsn','nsm','jenjang','statussekolah','yayasan','akreditasi','tahunberdiri'])}
 ${sek('📜','B. Legalitas','Izin operasional sekolah (boleh dikosongkan).',['izinno','izintgl'])}
@@ -865,11 +897,11 @@ ${sek('🧑‍💼','E. Kepala sekolah','Nama, NIP, dan nomor HP kepala sekolah 
 <div class="act"><button class="btn y" id="sv">Simpan Identitas</button></div></div><div id="lap" class="hid"></div>`;
 const cards=[...$('#pf').children];cards.forEach((c,i)=>c.dataset.g=[0,1,2,3].includes(i)?'guru':'sekolah');
 const fl=()=>{const j=nilai('dj')||'guru';cards.forEach(c=>c.style.display=(j==='semua'||c.dataset.g===j)?'':'none')};
-const rl=()=>{fl();$('#lap').innerHTML=dataPaper(nilai('dj')||'guru')};rl();akordeon($('#pf'));$('#dj').onchange=rl;$('#gp').onclick=()=>dialogPin(false);$('#fpb').onclick=()=>$('#fpi').click();
+const rl=()=>{fl();$('#lap').innerHTML=dataPaper(nilai('dj')||'guru')};rl();akordeon($('#pf'));$('#dj').onchange=rl;akadIsi();if(!AKAD)akadMuat().then(()=>{const b=$('#akd');if(b&&!b.dataset.t)akadIsi()});$('#gp').onclick=()=>dialogPin(false);$('#fpb').onclick=()=>$('#fpi').click();
 $('#fpi').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let d;try{d=await pangkas(f,{judul:'Atur foto profil',out:400})}catch(er){return toast('Berkas bukan gambar yang valid',1)}if(!d)return;const b=$('#fpb');b.disabled=true;b.textContent='Mengunggah...';
 try{const j=await api('unggahFoto',{b64:d.split(',')[1]});S.guru.foto=j.foto;simpanSesi();isiAkun();$('#avp').innerHTML=av(j.foto,S.guru.nama);toast('Foto profil tersimpan')}catch(er){toast(er.message,1)}b.disabled=false;b.textContent='Unggah / Ganti Foto'};$('#lgb').onclick=()=>$('#lgi').click();$('#lgh').onclick=async()=>{await simpanLogo('');rl()};
 $('#lgi').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let d;try{d=await pangkas(f,{judul:'Atur logo sekolah',out:160,logo:1})}catch(er){return toast('Berkas bukan gambar yang valid',1)}if(d){await simpanLogo(d);rl()}};$('.ukr').onclick=e=>{const b=e.target.closest('[data-ak]');if(b)aksiLap(b.dataset.uk,b.dataset.ak)};
-$('#sv').onclick=async()=>{const{d,kurang,kk}=ambil($('#pf'),PROFIL);if(kurang){const pf=$('#pf'),el=pf.querySelector('[name='+kk+']'),f=el&&el.closest('.fd');const cd=el&&el.closest('#pf>.card');if(cd&&cd.style.display==='none'){const r=document.querySelector('input[name=dj][value=semua]');if(r){r.checked=true;rl()}}if(f&&f.classList.contains('acc')&&pf._bk)pf._bk(f);return toast('Lengkapi dulu: '+kurang,1)}
+$('#sv').onclick=async()=>{const{d,kurang,kk}=ambil($('#pf'),PROFIL.filter(f=>f.k!=='tahun'&&f.k!=='semester'));if(kurang){const pf=$('#pf'),el=pf.querySelector('[name='+kk+']'),f=el&&el.closest('.fd');const cd=el&&el.closest('#pf>.card');if(cd&&cd.style.display==='none'){const r=document.querySelector('input[name=dj][value=semua]');if(r){r.checked=true;rl()}}if(f&&f.classList.contains('acc')&&pf._bk)pf._bk(f);return toast('Lengkapi dulu: '+kurang,1)}
 const er=cekProfil(d);if(er.length)return toast(er[0],1);
 const k0=kelNorm(S.guru.kelas),k1=kelNorm(d.kelas); // kelompok menentukan data anak yang tampil dan boleh diubah: minta konfirmasi
 if(k0&&k1!==k0&&!await tanya('Ubah kelompok?',/^semua/i.test(k1)?'Anda akan melihat dan dapat mengubah data anak dari SEMUA kelompok.':'Daftar anak, presensi, dan catatan yang tampil akan mengikuti '+k1+'. Catatan lama Anda tidak dihapus.','Ya, ubah',false))return;
