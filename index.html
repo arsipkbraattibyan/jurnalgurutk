@@ -585,13 +585,13 @@ t:r=>r.jenis||''}};
 const ORDER=['identitas','harian','kehadiran','perkembangan','penilaian','kokurikuler','refleksi','tambahan'];
 const tahunAjaranList=()=>{const n=new Date(),y=n.getMonth()>=6?n.getFullYear():n.getFullYear()-1;return[y-1,y,y+1,y+2].map(a=>a+'/'+(a+1))}; // tahun ajaran dimulai Juli; daftar ikut tanggal hari ini
 const PROFIL=[
-{k:'nama',l:'Nama lengkap',t:'txt'},{k:'nip',l:'NIP / NUPTK',t:'txt',opt:1},
+{k:'nama',l:'Nama lengkap',t:'txt'},{k:'nip',l:'NIP (jika ada)',t:'txt',opt:1},{k:'nuptk',l:'NUPTK (jika ada)',t:'txt',opt:1},
 {k:'tempatlahir',l:'Tempat lahir',t:'txt',opt:1},{k:'tgllahir',l:'Tanggal lahir',t:'tgl',opt:1},
 {k:'jk',l:'Jenis kelamin',t:'sel',o:['Perempuan','Laki-laki'],opt:1},{k:'agama',l:'Agama',t:'sel',o:['Islam','Kristen','Katolik','Hindu','Buddha','Konghucu'],opt:1},
-{k:'alamat',l:'Alamat lengkap',t:'alm',opt:1},{k:'telepon',l:'Nomor telepon / WhatsApp',t:'tel',opt:1},{k:'email',l:'Email',t:'eml',opt:1},
-{k:'pendidikan',l:'Pendidikan terakhir',t:'sel',o:['SMA / SMK / MA','D3','S1','S2'],opt:1},
+{k:'alamat',l:'Alamat lengkap',t:'alm',opt:1},{k:'telepon',l:'Nomor HP',t:'tel',opt:1},{k:'email',l:'Email',t:'eml',opt:1},
+{k:'pendidikan',l:'Pendidikan terakhir',t:'sel',o:['SMA / SMK / MA','D3','S1','S2'],opt:1},{k:'jurusan',l:'Jurusan atau bidang pendidikan',t:'txt',opt:1},{k:'tugastambahan',l:'Tugas tambahan (jika ada)',t:'txt',opt:1},
 {k:'jabatan',l:'Jabatan',t:'sel',o:['Guru kelas','Guru pendamping','Kepala sekolah','Guru ekstrakurikuler'],opt:1},
-{k:'mulaitugas',l:'Mulai bertugas sejak',t:'tgl',opt:1},
+{k:'mulaitugas',l:'Tanggal mulai mengajar',t:'tgl',opt:1},
 {k:'statussekolah',l:'Status sekolah',t:'sel',o:['Swasta','Negeri'],opt:1},{k:'yayasan',l:'Nama yayasan',t:'txt',opt:1},
 {k:'akreditasi',l:'Akreditasi',t:'sel',o:['A','B','C','Belum terakreditasi'],opt:1},{k:'tahunberdiri',l:'Tahun berdiri',t:'txt',opt:1},
 {k:'alamatsekolah',l:'Jalan dan nomor',t:'alm',opt:1,ph:'Nama jalan dan nomor, RT/RW'},{k:'kelurahan',l:'Kelurahan / desa',t:'txt',opt:1},{k:'kecamatan',l:'Kecamatan',t:'txt',opt:1},
@@ -600,7 +600,7 @@ const PROFIL=[
 {k:'nipkepsek',l:'NIP kepala sekolah (jika ada)',t:'txt',opt:1},{k:'hpkepsek',l:'Nomor HP kepala sekolah',t:'tel',opt:1},{k:'nsm',l:'NSM (jika ada)',t:'txt',opt:1},{k:'izinno',l:'Nomor izin operasional (opsional)',t:'txt',opt:1},{k:'izintgl',l:'Tanggal izin operasional (opsional)',t:'tgl',opt:1},{k:'sekolah',l:'Nama Sekolah',t:'txt'},{k:'npsn',l:'NPSN',t:'txt',opt:1},
 {k:'jenjang',l:'Jenjang',t:'sel',o:['TK','RA','KB']},{k:'kelas',l:'Kelompok yang diampu',t:'sel',o:KELAS.concat(['KB','Guru pendamping','Semua kelompok'])},
 {k:'tahun',l:'Tahun ajaran',t:'sel',o:tahunAjaranList()},{k:'semester',l:'Semester',t:'sel',o:['Ganjil','Genap']},
-{k:'status',l:'Status kepegawaian',t:'sel',o:['PNS','PPPK','Guru tetap yayasan','Guru honorer']},{k:'kepsek',l:'Nama Kepala Sekolah',t:'txt',opt:1}];
+{k:'status',l:'Status kepegawaian',t:'sel',o:['PNS','PPPK','Guru tetap yayasan','Guru honorer','Lainnya']},{k:'kepsek',l:'Nama Kepala Sekolah',t:'txt',opt:1}];
 
 
 const KEYS=ORDER.slice(1);
@@ -829,7 +829,7 @@ catch(e){if(!ada&&S.view==='beranda')m.innerHTML=`<div class="empty">${esc(e.mes
 /* ---------- identitas (tanpa foto) ---------- */
 function viewIdentitas(){formIdentitas();const m=$('#main');let sentuh=false;const h=()=>{sentuh=true};m.addEventListener('input',h);m.addEventListener('change',h);
 api('profil').then(j=>{const beda=JSON.stringify(j.guru)!==JSON.stringify(S.guru);S.guru=j.guru;simpanSesi();if(beda&&!sentuh&&S.view==='identitas')formIdentitas()}).catch(()=>{}).then(()=>{m.removeEventListener('input',h);m.removeEventListener('change',h)})}
-const ID_GURU=[['Data pribadi',['nama','nip','tempatlahir','tgllahir','jk','agama']],['Kontak dan alamat',['alamat','telepon','email']],['Pendidikan dan kepegawaian',['pendidikan','jabatan','status','mulaitugas']],['Penugasan',['kelas','tahun','semester']]];
+const ID_GURU=[['Data pribadi',['nama','nip','nuptk','tempatlahir','tgllahir','jk','agama','alamat','telepon','email']],['Data kepegawaian',['status','pendidikan','jurusan','jabatan','tugastambahan','mulaitugas']],['Data mengajar',['kelas','tahun','semester']]];
 const ID_SEK=[['Data utama',['sekolah','npsn','nsm','jenjang','statussekolah','yayasan','akreditasi','tahunberdiri']],['Legalitas',['izinno','izintgl']],['Alamat sekolah',['alamatsekolah','kelurahan','kecamatan','kota','provinsi','kodepos']],['Kontak sekolah',['telpsekolah','emailsekolah','website']],['Kepala sekolah',['kepsek','nipkepsek','hpkepsek']]];
 function dataPaper(jenis){const g=S.guru,P=k=>PROFIL.find(f=>f.k===k)||{k:k,l:k};
 const grp=[].concat(jenis!=='sekolah'?ID_GURU:[],jenis!=='guru'?ID_SEK:[]);
@@ -843,7 +843,7 @@ const VALID_PROFIL={npsn:[/^\d{8}$/,'NPSN harus 8 angka'],kodepos:[/^\d{5}$/,'Ko
 email:[/^[^\s@]+@[^\s@]+\.[^\s@]+$/,'Format email belum benar'],emailsekolah:[/^[^\s@]+@[^\s@]+\.[^\s@]+$/,'Format email belum benar'],
 telepon:[/^\+?[\d\s\-()\/,.]{6,40}$/,'Nomor telepon hanya boleh angka, spasi, dan tanda + - ( )'],telpsekolah:[/^\+?[\d\s\-()\/,.]{6,40}$/,'Nomor telepon hanya boleh angka, spasi, dan tanda + - ( )'],
 tahunberdiri:[/^(19|20)\d{2}$/,'Tahun berdiri harus 4 angka, mis. 2015'],
-nsm:[/^\d{12}$/,'NSM harus 12 angka'],hpkepsek:[/^\+?[\d\s\-()\/,.]{6,40}$/,'Nomor HP hanya boleh angka, spasi, dan tanda + - ( )'],izintgl:[/^\d{4}-\d{2}-\d{2}$/,'Tanggal izin tidak valid']};
+nsm:[/^\d{12}$/,'NSM harus 12 angka'],nuptk:[/^\d{16}$/,'NUPTK harus 16 angka'],hpkepsek:[/^\+?[\d\s\-()\/,.]{6,40}$/,'Nomor HP hanya boleh angka, spasi, dan tanda + - ( )'],izintgl:[/^\d{4}-\d{2}-\d{2}$/,'Tanggal izin tidak valid']};
 // hanya isian yang DIUBAH yang diperiksa, jadi data lama yang formatnya lain tidak menghalangi penyimpanan
 function cekProfil(d){const g=S.guru||{},er=[],lb=k=>(PROFIL.find(f=>f.k===k)||{l:k}).l;
 if(!String(d.nama||'').trim())er.push('Nama lengkap wajib diisi');
@@ -852,20 +852,22 @@ const t=+String(d.tahunberdiri||'').trim();if(t&&t>new Date().getFullYear()&&!er
 return er}
 function formIdentitas(){const g=S.guru,P=k=>PROFIL.find(f=>f.k===k);
 const sek=(ic,jd,ket,ks)=>`<div class="card"><h3>${ic} ${jd}</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">${ket}</p><div class="fg">${ks.map(k=>fld(P(k),k==='kelas'?kelNorm(g[k]):k==='jenjang'&&g[k]==='PAUD'?'':g[k])).join('')}</div></div>`;
-$('#main').innerHTML=`<div class="noprint"><div class="card"><h3>🖨️ Cetak / Unduh Data</h3><p class="sub" style="font-size:13px;margin:-6px 0 12px">Berdasarkan data yang sudah disimpan. Pilih data, lalu cetak atau simpan sebagai PDF, Excel, atau Word.</p><div class="fd"><label>Data yang dicetak</label>${radioGrup('dj',[['guru','Data guru'],['sekolah','Data sekolah'],['semua','Data guru + sekolah']],'guru','dj')}</div>${ukrHtml()}</div><div id="pf">${sek('👩‍🏫','Data pribadi','Nama, nomor pegawai, dan data kelahiran Anda.',['nama','nip','tempatlahir','tgllahir','jk','agama'])}
-${sek('📞','Kontak dan alamat','Alamat tempat tinggal dan kontak yang bisa dihubungi.',['alamat','telepon','email'])}
-${sek('🎓','Pendidikan dan kepegawaian','Pendidikan terakhir, jabatan, dan status Anda.',['pendidikan','jabatan','status','mulaitugas'])}
+$('#main').innerHTML=`<div class="noprint"><div class="card"><h3>🖨️ Cetak / Unduh Data</h3><p class="sub" style="font-size:13px;margin:-6px 0 12px">Berdasarkan data yang sudah disimpan. Pilih data, lalu cetak atau simpan sebagai PDF, Excel, atau Word.</p><div class="fd"><label>Data yang dicetak</label>${radioGrup('dj',[['guru','Data guru'],['sekolah','Data sekolah'],['semua','Data guru + sekolah']],'guru','dj')}</div>${ukrHtml()}</div><div id="pf">${sek('👩‍🏫','A. Data pribadi','Identitas dan kontak Anda. NIP dan NUPTK boleh dikosongkan jika belum ada.',['nama','nip','nuptk','tempatlahir','tgllahir','jk','agama','alamat','telepon','email'])}
+${sek('🎓','B. Data kepegawaian','Status, pendidikan, jabatan, dan tugas Anda.',['status','pendidikan','jurusan','jabatan','tugastambahan','mulaitugas'])}
+${sek('📋','C. Data mengajar','Kelompok dan tahun ajaran yang sedang berjalan. Jurnal yang Anda isi mengikuti akun Anda sendiri.',['kelas','tahun','semester'])}
+<div class="card"><h3>🔐 D. Data akun</h3><div class="fup"><div class="avb" id="avp">${av(g.foto,g.nama)}</div><div><button class="btn o s" id="fpb" type="button">Unggah / Ganti Foto</button> <button class="btn o s" id="gp" type="button">Ganti PIN</button><input type="file" id="fpi" accept="image/*" style="display:none"><p class="sub" style="font-size:12px;margin-top:6px">Foto dan PIN langsung tersimpan, tanpa menunggu tombol Simpan Identitas. Masuk tetap memakai ID guru dan PIN 6 angka seperti biasa.</p></div></div></div>
 ${sek('🏫','A. Data utama','Identitas pokok sekolah.',['sekolah','npsn','nsm','jenjang','statussekolah','yayasan','akreditasi','tahunberdiri'])}
 ${sek('📜','B. Legalitas','Izin operasional sekolah (boleh dikosongkan).',['izinno','izintgl'])}
 ${sek('📍','C. Alamat','Letak sekolah.',['alamatsekolah','kelurahan','kecamatan','kota','provinsi','kodepos'])}
 ${sek('📞','D. Kontak','Cara menghubungi sekolah.',['telpsekolah','emailsekolah','website'])}
 ${sek('🧑‍💼','E. Kepala sekolah','Nama, NIP, dan nomor HP kepala sekolah (nama tampil di tanda tangan laporan).',['kepsek','nipkepsek','hpkepsek'])}
-<div class="card"><h3>🖼️ F. Identitas visual</h3><div class="fup"><img class="lgprev" id="lgp" src="${logoSek()}" alt=""><div><button class="btn o s" id="lgb" type="button">Unggah / Ganti Logo</button> <button class="btn gh s" id="lgh" type="button"${g.logo?'':' style="display:none"'}>Pakai logo bawaan</button><input type="file" id="lgi" accept="image/*" style="display:none"><p class="sub" style="font-size:12px;margin-top:6px">Logo sekolah. Tampil di pojok kiri atas dan kop laporan. Logo langsung tersimpan setelah dipilih, tanpa menunggu tombol Simpan Identitas.</p></div></div></div>
-${sek('📋','Penugasan','Kelompok dan tahun ajaran yang sedang berjalan.',['kelas','tahun','semester'])}</div>
+<div class="card"><h3>🖼️ F. Identitas visual</h3><div class="fup"><img class="lgprev" id="lgp" src="${logoSek()}" alt=""><div><button class="btn o s" id="lgb" type="button">Unggah / Ganti Logo</button> <button class="btn gh s" id="lgh" type="button"${g.logo?'':' style="display:none"'}>Pakai logo bawaan</button><input type="file" id="lgi" accept="image/*" style="display:none"><p class="sub" style="font-size:12px;margin-top:6px">Logo sekolah. Tampil di pojok kiri atas dan kop laporan. Logo langsung tersimpan setelah dipilih, tanpa menunggu tombol Simpan Identitas.</p></div></div></div></div>
 <div class="act"><button class="btn y" id="sv">Simpan Identitas</button></div></div><div id="lap" class="hid"></div>`;
-const cards=[...$('#pf').children];cards.forEach((c,i)=>c.dataset.g=[0,1,2,9].includes(i)?'guru':'sekolah');
+const cards=[...$('#pf').children];cards.forEach((c,i)=>c.dataset.g=[0,1,2,3].includes(i)?'guru':'sekolah');
 const fl=()=>{const j=nilai('dj')||'guru';cards.forEach(c=>c.style.display=(j==='semua'||c.dataset.g===j)?'':'none')};
-const rl=()=>{fl();$('#lap').innerHTML=dataPaper(nilai('dj')||'guru')};rl();akordeon($('#pf'));$('#dj').onchange=rl;$('#lgb').onclick=()=>$('#lgi').click();$('#lgh').onclick=async()=>{await simpanLogo('');rl()};
+const rl=()=>{fl();$('#lap').innerHTML=dataPaper(nilai('dj')||'guru')};rl();akordeon($('#pf'));$('#dj').onchange=rl;$('#gp').onclick=()=>dialogPin(false);$('#fpb').onclick=()=>$('#fpi').click();
+$('#fpi').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let d;try{d=await pangkas(f,{judul:'Atur foto profil',out:400})}catch(er){return toast('Berkas bukan gambar yang valid',1)}if(!d)return;const b=$('#fpb');b.disabled=true;b.textContent='Mengunggah...';
+try{const j=await api('unggahFoto',{b64:d.split(',')[1]});S.guru.foto=j.foto;simpanSesi();isiAkun();$('#avp').innerHTML=av(j.foto,S.guru.nama);toast('Foto profil tersimpan')}catch(er){toast(er.message,1)}b.disabled=false;b.textContent='Unggah / Ganti Foto'};$('#lgb').onclick=()=>$('#lgi').click();$('#lgh').onclick=async()=>{await simpanLogo('');rl()};
 $('#lgi').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let d;try{d=await pangkas(f,{judul:'Atur logo sekolah',out:160,logo:1})}catch(er){return toast('Berkas bukan gambar yang valid',1)}if(d){await simpanLogo(d);rl()}};$('.ukr').onclick=e=>{const b=e.target.closest('[data-ak]');if(b)aksiLap(b.dataset.uk,b.dataset.ak)};
 $('#sv').onclick=async()=>{const{d,kurang,kk}=ambil($('#pf'),PROFIL);if(kurang){const pf=$('#pf'),el=pf.querySelector('[name='+kk+']'),f=el&&el.closest('.fd');const cd=el&&el.closest('#pf>.card');if(cd&&cd.style.display==='none'){const r=document.querySelector('input[name=dj][value=semua]');if(r){r.checked=true;rl()}}if(f&&f.classList.contains('acc')&&pf._bk)pf._bk(f);return toast('Lengkapi dulu: '+kurang,1)}
 const er=cekProfil(d);if(er.length)return toast(er[0],1);
@@ -1458,7 +1460,7 @@ return`<table class="rt"><thead><tr><th>No</th>${j.f.map(f=>`<th>${f.l}</th>`).j
 function laporan(rg,pres){const g=S.guru,per=rg.label;
 const F=k=>(ROWS[k]||[]).filter(r=>!rg.dari||(r.tanggal>=rg.dari&&r.tanggal<=rg.sampai)).slice().sort((a,b)=>String(a.tanggal).localeCompare(String(b.tanggal)));
 const kh=F('kehadiran'),pn=F('penilaian'),jh=sum(kh,'jumlah'),tn=sum(pn,'bb')+sum(pn,'mb')+sum(pn,'bsh')+sum(pn,'bsb');
-const idn=[['Nama guru',g.nama],['NIP / NUPTK',g.nip],['Status kepegawaian',g.status],['Nama sekolah',g.sekolah],['NPSN',g.npsn],['Jenjang',g.jenjang],['Kelompok yang diampu',g.kelas],['Tahun ajaran',g.tahun],['Semester',g.semester],['Status sekolah',g.statussekolah],['Akreditasi',g.akreditasi],['Yayasan',g.yayasan],['Alamat sekolah',alamatSek(g)],['Telepon / email sekolah',[g.telpsekolah,g.emailsekolah].filter(Boolean).join(' / ')],['Kepala sekolah',g.kepsek],['NIP / NUPTK kepala sekolah',g.nipkepsek]];
+const idn=[['Nama guru',g.nama],['NIP / NUPTK',[g.nip,g.nuptk].filter(Boolean).join(' / ')],['Status kepegawaian',g.status],['Nama sekolah',g.sekolah],['NPSN',g.npsn],['Jenjang',g.jenjang],['Kelompok yang diampu',g.kelas],['Tahun ajaran',g.tahun],['Semester',g.semester],['Status sekolah',g.statussekolah],['Akreditasi',g.akreditasi],['Yayasan',g.yayasan],['Alamat sekolah',alamatSek(g)],['Telepon / email sekolah',[g.telpsekolah,g.emailsekolah].filter(Boolean).join(' / ')],['Kepala sekolah',g.kepsek],['NIP / NUPTK kepala sekolah',g.nipkepsek]];
 const today=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
 return`<div class="paper"><div class="kop"><img class="kl" src="${logoSek()}" alt=""><div class="kt"><h2>${esc((g.sekolah||'NAMA SEKOLAH').toUpperCase())}</h2><p>${esc(g.jenjang||'')}${g.npsn?' - NPSN '+esc(g.npsn):''}</p>${alamatSek(g)?`<p>${esc(alamatSek(g))}${g.telpsekolah?' | Telp. '+esc(g.telpsekolah):''}</p>`:''}</div></div>
 <h1 class="jd">LAPORAN JURNAL GURU${rg.judul?' '+rg.judul:''}</h1><p class="sj">Tahun ajaran ${esc(g.tahun||'-')}, semester ${esc(g.semester||'-')}<br>Periode: ${esc(per)}</p>
