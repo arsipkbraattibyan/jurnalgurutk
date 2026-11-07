@@ -84,7 +84,7 @@ button{font:inherit;cursor:pointer}h1,h2,h3,p{margin:0}
 .frw{grid-column:1/-1;display:grid;gap:16px;align-items:start}.frw.f2{grid-template-columns:repeat(2,minmax(0,1fr))}.frw.f3{grid-template-columns:repeat(3,minmax(0,1fr))}.frw.f4{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.frw.f4 .ah{font-size:13px;padding:8px}.frw.f4 .ah span{min-width:0}
 .frw>.fd.full{grid-column:auto;min-width:0}.frw .ah{padding:8px 10px;gap:6px}.frw .ah i{max-width:50%}
 .frw:has(>.fd:not([data-m]))>.fd[data-m]{margin-top:23px} /* sejajarkan bilah dengan isian teks/tanggal yang punya label di atas */
-@media(max-width:640px){.frw.f4{grid-template-columns:repeat(2,minmax(0,1fr))}.frw.f3>.fd:first-child{grid-column:1/-1}.frw.f3>.fd[data-m]{margin-top:0}.frw.f3{grid-template-columns:repeat(2,minmax(0,1fr))}.frw{gap:12px}}
+@media(max-width:640px){.frw.f4{grid-template-columns:minmax(0,1fr)}.frw.f4>.fd[data-m]{margin-top:0}.frw.f3>.fd:first-child{grid-column:1/-1}.frw.f3>.fd[data-m]{margin-top:0}.frw.f3{grid-template-columns:repeat(2,minmax(0,1fr))}.frw{gap:12px}}
 input:not([type=radio]):not([type=hidden]),textarea{width:100%;font:inherit;height:48px;padding:0 14px;border:2px solid var(--ln);border-radius:14px;background:#fff;color:var(--ink)}
 textarea{height:auto;min-height:48px;padding:10px 14px}.ex{margin-top:8px}
 input:focus,textarea:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 4px #1e88e533}
@@ -172,6 +172,9 @@ input:focus,textarea:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 4
 .ukr{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px;margin-top:14px}
 .ukb{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#f3f9ff;border-radius:16px;padding:10px 12px}
 .ukb b{flex:1 1 100%;font:600 14px Fredoka;color:var(--navy)}.ukb b small{color:var(--mut);font:700 12px Nunito}
+.ukr{grid-template-columns:1fr!important}.ukb.u4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.ukb.u4 b{grid-column:1/-1}.ukb.u4 .btn{width:100%;margin:0;justify-content:center;text-align:center;white-space:nowrap;padding-left:8px;padding-right:8px}
+@media(max-width:640px){.ukb.u4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px}.kt{display:flex;flex-direction:column;align-items:center;gap:2px;height:auto;padding:12px 8px}.kt b{font:600 18px Fredoka}.kt small{font:700 12px Nunito;opacity:.9}
 .cap .paper{box-shadow:none;padding:0;max-width:none;border-radius:0;margin:0}.cap .ov{overflow:visible}.cap .rt{font-size:9px}.cap .rt.ap{font-size:10px}
 .fup{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
 .avb .av{width:96px;height:96px;font-size:38px}
@@ -1346,7 +1349,13 @@ catch(e){$('#lap').innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
 /* ---------- cetak, simpan PDF, simpan gambar (A4 dan HVS, potret) ---------- */
 const UK={a4:{n:'A4',w:210,h:297},hvs:{n:'HVS',w:215,h:330}},MM=96/25.4,MG=10; // ukuran mm, margin 10 mm
 const cm=v=>String(v/10).replace('.',',');
-function ukrHtml(){return`<div class="ukr">${Object.entries(UK).map(([c,u])=>`<div class="ukb"><b>${u.n} <small>(${cm(u.w)} x ${cm(u.h)} cm, potret)</small></b><button class="btn o s" data-uk="${c}" data-ak="cetak">🖨️ Cetak</button><button class="btn s" data-uk="${c}" data-ak="pdf">📄 Simpan PDF</button><button class="btn y s" data-uk="${c}" data-ak="xls">📊 Simpan Excel</button><button class="btn s" data-uk="${c}" data-ak="doc">📝 Simpan Word</button></div>`).join('')}</div>`}
+function ukrHtml(){return`<div class="ukr"><div class="ukb u4"><b>Cetak atau simpan <small>(ukuran kertas dipilih setelah tombol ditekan)</small></b><button class="btn o s" data-ak="cetak">🖨️ Cetak</button><button class="btn s" data-ak="pdf">📄 Simpan PDF</button><button class="btn y s" data-ak="xls">📊 Simpan Excel</button><button class="btn s" data-ak="doc">📝 Simpan Word</button></div></div>`}
+// jendela pilihan ukuran kertas (dipakai Cetak, PDF, dan Word; Excel tidak bergantung pada ukuran kertas)
+function pilihKertas(ak){return new Promise(ok=>{const md=document.createElement('div');md.className='md';md.style.zIndex=40;
+const lb={cetak:'Cetak',pdf:'Simpan PDF',doc:'Simpan Word'}[ak]||'';
+md.innerHTML=`<div class="sheet" style="max-width:420px"><h2>Pilih ukuran kertas</h2><p class="sub" style="margin-bottom:12px">${esc(lb)}. Semua ukuran berorientasi potret.</p><div class="kts">${Object.entries(UK).map(([c,u])=>`<button type="button" class="btn s kt" data-kt="${c}"><b>${u.n}</b><small>${cm(u.w)} x ${cm(u.h)} cm</small></button>`).join('')}</div><div class="act"><button class="btn gh" data-n>Batal</button></div></div>`;
+const t=x=>{md.remove();ok(x)};md.onclick=e=>{if(e.target===md)return t('');if(e.target.closest('[data-n]'))return t('');const b=e.target.closest('[data-kt]');if(b)t(b.dataset.kt)};
+document.body.appendChild(md)})}
 const _js={};
 const loadJs=u=>_js[u]||(_js[u]=new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;s.onload=ok;s.onerror=()=>{delete _js[u];no(new Error('Gagal memuat pustaka PDF/gambar. Periksa koneksi internet.'))};document.head.appendChild(s)}));
 const libs=()=>Promise.all([loadJs('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),loadJs('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')]);
@@ -1471,14 +1480,15 @@ const blob=await z.generateAsync({type:'blob',mimeType:'application/vnd.openxmlf
 const url=URL.createObjectURL(blob);unduh(url,nama+'.docx');setTimeout(()=>URL.revokeObjectURL(url),5000)}
 
 const nmGuru=()=>String((S.guru&&S.guru.nama)||'guru').replace(/[^\w]+/g,'_');
-function namaBerkas(u){if(S.view==='portofolio')return'Portofolio-'+String(S.pfNama||'anak').replace(/[^\w]+/g,'_')+'-'+u.n;
+function namaBerkas(u,ak){return namaBerkas0(u).replace(/-(A4|HVS)$/,ak==='xls'?'':'$&')}
+function namaBerkas0(u){if(S.view==='portofolio')return'Portofolio-'+String(S.pfNama||'anak').replace(/[^\w]+/g,'_')+'-'+u.n;
 if(S.view==='identitas')return'Data-'+({guru:'Guru',sekolah:'Sekolah',semua:'Guru-dan-Sekolah'}[nilai('dj')]||'Data')+'-'+nmGuru()+'-'+u.n;
 return'Laporan-Jurnal-'+nmGuru()+'-'+u.n}
-async function aksiLap(c,ak){const u=UK[c];if(!u)return;if(document.querySelector('#prs[data-w]'))return toast('Data presensi masih dimuat, tunggu sebentar',1);
+async function aksiLap(c,ak){if(!c){if(ak==='xls')c='a4';else{c=await pilihKertas(ak);if(!c)return}}const u=UK[c];if(!u)return;if(document.querySelector('#prs[data-w]'))return toast('Data presensi masih dimuat, tunggu sebentar',1);
 if(ak==='cetak'){if(!$('#lap .paper'))return toast('Laporan belum siap dimuat',1);setKertas(u);await siapFoto();window.print();return}
 const bt=document.querySelectorAll('.ukr button');bt.forEach(b=>b.disabled=true);
 const lb={pdf:'PDF',xls:'Excel',doc:'Word'}[ak]||ak;toast('Menyiapkan '+lb+(ak==='xls'?'...':' '+u.n+'...'));
-const nama=namaBerkas(u);
+const nama=namaBerkas(u,ak);
 try{if(ak==='xls'){await simpanExcel(nama);toast('Excel tersimpan')}
 else if(ak==='doc'){await simpanWord(nama,u);toast('Word '+u.n+' tersimpan')}
 else{const cs=await halaman(u),{jsPDF}=window.jspdf,doc=new jsPDF({orientation:'portrait',unit:'mm',format:[u.w,u.h]});
