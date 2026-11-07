@@ -35,7 +35,7 @@ const BUTUH = {
 const gid = () => (S.guru && S.guru.id) ? String(S.guru.id) : '';
 const online = () => navigator.onLine !== false;
 const acak = n => { const a = new Uint8Array(n); crypto.getRandomValues(a); let s = ''; a.forEach(x => { s += ('0' + x.toString(16)).slice(-2); }); return s.slice(0, n); };
-const baruId = () => 'j' + acak(8);
+const baruId = () => 'j' + acak(12); // 13 karakter; server menerima 6-20 huruf/angka
 const netErr = m => { const e = new Error(m || 'Tidak ada koneksi internet'); e.net = true; return e; };
 const el = i => document.getElementById(i);
 
@@ -375,8 +375,8 @@ function statusBaru() {
   if (jalan) { t = '🔄 Menyinkronkan...'; bg = '#e3f2fd'; fg = '#1565c0'; }
   else if (perluLogin && (c.n || c.g)) { t = '🔑 Masuk ulang untuk sinkron (' + (c.n + c.g) + ')'; bg = '#ffe0e6'; fg = '#b4233f'; }
   else if (c.g) { t = '⚠️ ' + c.g + ' gagal sinkron' + (c.n ? ', ' + c.n + ' menunggu' : ''); bg = '#ffe0e6'; fg = '#b4233f'; }
-  else if (off) { t = '📴 Offline' + (c.n ? ' · ' + c.n + ' menunggu' : ''); bg = '#fff3cd'; fg = '#8a5a00'; }
-  else if (c.n) { t = '⏳ ' + c.n + ' menunggu sinkron'; bg = '#e3f2fd'; fg = '#1565c0'; }
+  else if (off) { t = '📴 Offline' + (c.n ? ' · ' + c.n + ' MENUNGGU SINKRONISASI' : ''); bg = '#fff3cd'; fg = '#8a5a00'; }
+  else if (c.n) { t = '⏳ ' + c.n + ' MENUNGGU SINKRONISASI'; bg = '#e3f2fd'; fg = '#1565c0'; }
   else { t = '🟢 Online'; bg = '#e8f5e9'; fg = '#2e7d32'; }
   b.style.display = ''; b.textContent = t; b.style.background = bg; b.style.color = fg; b.style.opacity = (!off && !c.n && !c.g && !jalan) ? '.8' : '1';
   const p = el('ofp');
@@ -403,7 +403,7 @@ function bukaPanel() {
       + (v.length ? v.map(it => {
         const d = deskripsi(it), gg = it.status === 'gagal';
         return '<div class="ukb" style="margin-bottom:8px"><b>' + esc(d[0]) + ' <small>' + esc(d[1]) + '</small></b>'
-          + '<span style="flex:1 1 100%;font-size:13px;color:' + (gg ? '#b4233f' : 'inherit') + '">' + (gg ? '⚠️ ' + esc(it.err || 'Ditolak server') : '⏳ Menunggu sinkron' + (it.err ? ' (percobaan ulang: ' + esc(it.err) + ')' : '')) + '</span>'
+          + '<span style="flex:1 1 100%;font-size:13px;color:' + (gg ? '#b4233f' : 'inherit') + '">' + (gg ? '⚠️ ' + esc(it.err || 'Ditolak server') : '⏳ Menunggu sinkronisasi' + (it.err ? ' (percobaan ulang: ' + esc(it.err) + ')' : '')) + '</span>'
           + (gg ? '<button type="button" class="btn gh s" data-rt="' + esc(it.qid) + '">Coba lagi</button>' : '')
           + '<button type="button" class="btn rd s" data-bg="' + esc(it.qid) + '">Buang</button></div>';
       }).join('') : '<div class="empty">Tidak ada data yang mengantre.</div>')
@@ -455,7 +455,7 @@ if (typeof tampilAsli === 'function') window.tampil = function (k) {
       const st = m.get(b.dataset.e), c = b.closest('.card');
       if (!st || !c || c.querySelector('.ofb')) return;
       const s = c.querySelector('small');
-      if (s) s.insertAdjacentHTML('beforeend', ' <span class="bdg ofb">' + (st === 'gagal' ? '⚠️ gagal sinkron' : '⏳ menunggu sinkron') + '</span>');
+      if (s) s.insertAdjacentHTML('beforeend', ' <span class="bdg ofb">' + (st === 'gagal' ? '⚠️ gagal sinkron' : '⏳ Menunggu Sinkronisasi') + '</span>');
     });
   } catch (e) {}
   return r;
@@ -487,6 +487,7 @@ function bersihkanFoto() {
 buatPil();
 pastikan().then(() => { statusBaru(); sinkron(); });
 bersihkanFoto();
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) {} // minta agar data tidak dihapus otomatis oleh browser
 addEventListener('online', () => { statusBaru(); sinkron(); });
 addEventListener('offline', statusBaru);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { statusBaru(); sinkron(); } });
