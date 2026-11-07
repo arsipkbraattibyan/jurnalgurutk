@@ -1488,7 +1488,7 @@ const cap=o=>{const j=J[o.k];let s=`<b>${esc(j.n.replace('Jurnal ',''))}</b><br>
 const nm=[...new Set(o.rs.map(r=>r.nama).filter(Boolean))];
 if(nm.length)s+=`<br>${esc(nm.slice(0,4).join(', '))}${nm.length>4?' dan '+(nm.length-4)+' anak lain':''}`;
 else s+=`<br>${esc(j.t(o.rs[0]))}`;return s};
-return`<h3>E. Lampiran dokumentasi foto</h3>${sh.length?`<div class="gal">${sh.map(o=>`<figure><img data-fid="${esc(o.id)}" src="${BLANK}" alt="Foto"><figcaption>${cap(o)}</figcaption></figure>`).join('')}</div>${L.length>MX?`<p style="font-size:12px">Menampilkan ${MX} dari ${L.length} foto pada periode ini. Persempit periode laporan untuk melihat sisanya.</p>`:''}`:'<p style="font-size:12px">Tidak ada foto pada periode ini.</p>'}`}
+return`<h3>F. Lampiran dokumentasi foto</h3>${sh.length?`<div class="gal">${sh.map(o=>`<figure><img data-fid="${esc(o.id)}" src="${BLANK}" alt="Foto"><figcaption>${cap(o)}</figcaption></figure>`).join('')}</div>${L.length>MX?`<p style="font-size:12px">Menampilkan ${MX} dari ${L.length} foto pada periode ini. Persempit periode laporan untuk melihat sisanya.</p>`:''}`:'<p style="font-size:12px">Tidak ada foto pada periode ini.</p>'}`}
 const opsi=(k,f)=>J[k].f.find(x=>x.k===f).o;
 function dist(jd,rs,key,ops){const t=rs.length;
 return`<table class="rt sm dst"><thead><tr><th>${jd}</th><th>Jumlah</th><th>Persentase</th></tr></thead><tbody>${ops.map(o=>{const n=rs.filter(r=>r[key]===o).length;return`<tr><td>${esc(o)}</td><td class="c">${n}</td><td class="c">${pct(n,t)}</td></tr>`}).join('')}<tr class="tt"><td>Total</td><td class="c">${t}</td><td class="c">${t?'100%':'-'}</td></tr></tbody></table>`}
@@ -1497,20 +1497,23 @@ return`<table class="rt"><thead><tr><th>No</th>${j.f.map(f=>`<th>${f.l}</th>`).j
 function laporan(rg,pres){const g=S.guru,per=rg.label;
 const F=k=>(ROWS[k]||[]).filter(r=>!rg.dari||(r.tanggal>=rg.dari&&r.tanggal<=rg.sampai)).slice().sort((a,b)=>String(a.tanggal).localeCompare(String(b.tanggal)));
 const kh=F('kehadiran'),pn=F('penilaian'),jh=sum(kh,'jumlah'),tn=sum(pn,'bb')+sum(pn,'mb')+sum(pn,'bsh')+sum(pn,'bsb');
-const idn=[['Nama guru',g.nama],['NIP / NUPTK',[g.nip,g.nuptk].filter(Boolean).join(' / ')],['Status kepegawaian',g.status],['Nama sekolah',g.sekolah],['NPSN',g.npsn],['Jenjang',g.jenjang],['Kelompok yang diampu',g.kelas],['Tahun ajaran',g.tahun],['Semester',g.semester],['Status sekolah',g.statussekolah],['Akreditasi',g.akreditasi],['Yayasan',g.yayasan],['Alamat sekolah',alamatSek(g)],['Telepon / email sekolah',[g.telpsekolah,g.emailsekolah].filter(Boolean).join(' / ')],['Kepala sekolah',g.kepsek],['NIP / NUPTK kepala sekolah',g.nipkepsek]];
+const idG=[['Nama guru',g.nama],['NIP / NUPTK',[g.nip,g.nuptk].filter(Boolean).join(' / ')],['Status kepegawaian',g.status],['Kelompok yang diampu',g.kelas]];
+const idS=[['Nama sekolah',g.sekolah],['NPSN',g.npsn],['Jenjang',g.jenjang],['Status sekolah',g.statussekolah],['Akreditasi',g.akreditasi],['Yayasan',g.yayasan],['Alamat sekolah',alamatSek(g)],['Telepon / email sekolah',[g.telpsekolah,g.emailsekolah].filter(Boolean).join(' / ')],['Kepala sekolah',g.kepsek],['NIP / NUPTK kepala sekolah',g.nipkepsek],['Tahun ajaran',g.tahun],['Semester',g.semester]];
+const tabId=r=>`<table class="rt id">${r.map(x=>`<tr><td>${x[0]}</td><td>${esc(x[1]||'-')}</td></tr>`).join('')}</table>`;
 const today=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
 return`<div class="paper"><div class="kop"><img class="kl" src="${logoSek()}" alt=""><div class="kt"><h2>${esc((g.sekolah||'NAMA SEKOLAH').toUpperCase())}</h2><p>${esc(g.jenjang||'')}${g.npsn?' - NPSN '+esc(g.npsn):''}</p>${alamatSek(g)?`<p>${esc(alamatSek(g))}${g.telpsekolah?' | Telp. '+esc(g.telpsekolah):''}</p>`:''}</div></div>
 <h1 class="jd">LAPORAN JURNAL GURU${rg.judul?' '+rg.judul:''}</h1><p class="sj">Tahun ajaran ${esc(g.tahun||'-')}, semester ${esc(g.semester||'-')}<br>Periode: ${esc(per)}</p>
-<h3>A. Identitas guru dan sekolah</h3><table class="rt id">${idn.map(x=>`<tr><td>${x[0]}</td><td>${esc(x[1]||'-')}</td></tr>`).join('')}</table>
-<h3>B. Ringkasan hasil</h3>
+<h3>A. Identitas guru</h3>${tabId(idG)}
+<h3>B. Identitas sekolah</h3>${tabId(idS)}
+<h3>C. Ringkasan hasil</h3>
 <h4>1. Jumlah catatan per jurnal</h4><table class="rt sm"><thead><tr><th>No</th><th>Jenis jurnal</th><th>Periode pengisian</th><th>Jumlah catatan</th></tr></thead><tbody>${KEYS.map((k,i)=>`<tr><td class="c">${i+1}</td><td>${J[k].n}</td><td>${J[k].per}</td><td class="c">${F(k).length}</td></tr>`).join('')}<tr class="tt"><td colspan="3">Total</td><td class="c">${KEYS.reduce((a,k)=>a+F(k).length,0)}</td></tr></tbody></table>
 <h4>2. Rekapitulasi kehadiran anak</h4><table class="rt sm"><thead><tr><th>Hari tercatat</th><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Tanpa keterangan</th><th>Persentase hadir</th></tr></thead><tbody><tr><td class="c">${kh.length}</td><td class="c">${sum(kh,'hadir')}</td><td class="c">${sum(kh,'sakit')}</td><td class="c">${sum(kh,'izin')}</td><td class="c">${sum(kh,'alpha')}</td><td class="c">${pct(sum(kh,'hadir'),jh)}</td></tr></tbody></table>
 <h4>3. Capaian perkembangan anak</h4>${dist('Tingkat capaian',F('perkembangan'),'tingkat',TKT)}
 <h4>4. Hasil penilaian pembelajaran</h4><table class="rt sm dst"><thead><tr><th>Tingkat capaian</th><th>Jumlah anak</th><th>Persentase</th></tr></thead><tbody>${[['bb',TKT[0]],['mb',TKT[1]],['bsh',TKT[2]],['bsb',TKT[3]]].map(x=>`<tr><td>${x[1]}</td><td class="c">${sum(pn,x[0])}</td><td class="c">${pct(sum(pn,x[0]),tn)}</td></tr>`).join('')}<tr class="tt"><td>Total</td><td class="c">${tn}</td><td class="c">${tn?'100%':'-'}</td></tr></tbody></table>
 <h4>5. Ketercapaian kegiatan harian</h4>${dist('Ketercapaian',F('harian'),'capaian',opsi('harian','capaian'))}
 <h4>6. Hasil kegiatan kokurikuler</h4>${dist('Hasil kegiatan',F('kokurikuler'),'hasil',opsi('kokurikuler','hasil'))}
-<h3>C. Rincian isian jurnal</h3>${KEYS.map((k,i)=>`<h4>${i+1}. ${J[k].n}</h4><div class="ov">${tabel(k,F(k))}</div>`).join('')}
-<h3>D. Data siswa dan presensi per anak</h3><p style="margin:0 0 4px;font-size:12px">Sumber: Rekap Absen${klf()?', '+klf():''}, hanya pada tanggal yang Jurnal Kehadirannya sudah diisi.</p><div id="prs"${pres&&pres.loading?' data-w="1"':''}>${presTabel(pres)}</div>
+<h3>D. Rincian isian jurnal</h3>${KEYS.map((k,i)=>`<h4>${i+1}. ${J[k].n}</h4><div class="ov">${tabel(k,F(k))}</div>`).join('')}
+<h3>E. Data siswa dan presensi per anak</h3><p style="margin:0 0 4px;font-size:12px">Sumber: Rekap Absen${klf()?', '+klf():''}, hanya pada tanggal yang Jurnal Kehadirannya sudah diisi.</p><div id="prs"${pres&&pres.loading?' data-w="1"':''}>${presTabel(pres)}</div>
 ${lampiranHtml(F)}<div class="ttd"><div><p>Mengetahui,<br>Kepala ${esc(g.sekolah||'sekolah')}</p><div class="sp"></div><b><u>${esc(g.kepsek||'..............................')}</u></b></div>
 <div><p>${esc(kotaTtd(g))}, ${today}<br>Guru ${esc(g.kelas||'kelompok')}</p><div class="sp"></div><b><u>${esc(g.nama)}</u></b></div></div></div>`}
 
