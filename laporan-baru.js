@@ -41,7 +41,7 @@ function semRange(th, sm) {
   return sm === 'Genap' ? { dari: (y + 1) + '-01-01', sampai: (y + 1) + '-06-30' } : { dari: y + '-07-01', sampai: y + '-12-31' };
 }
 const tahunList = () => {
-  const s = new Set(['2025/2026', '2026/2027', '2027/2028']);
+  const s = new Set(tahunAjaranList());
   if (S.guru && S.guru.tahun) s.add(S.guru.tahun);
   return [...s].sort();
 };
@@ -292,7 +292,7 @@ function kertas(F, judul, secs) {
   return '<div class="paper">' + kop + '<h1 class="jd">' + judul + '</h1><p class="sj">Tahun pelajaran ' + E(F.rg.th || '-') + ', semester ' + E(F.rg.sm || '-') + '<br>Periode: ' + E(F.rg.label) + (ket ? '<br>' + ket : '') + '</p>'
     + secs.map((s, i) => '<h3>' + String.fromCharCode(65 + i) + '. ' + s[0] + '</h3>' + s[1]).join('')
     + '<div class="ttd"><div><p>Mengetahui,<br>Kepala ' + E(g.sekolah || 'sekolah') + '</p><div class="sp"></div><b><u>' + E(g.kepsek || '..............................') + '</u></b></div>'
-    + '<div><p>Surabaya, ' + today + '<br>Guru ' + E(g.kelas || 'kelompok') + '</p><div class="sp"></div><b><u>' + E(g.nama) + '</u></b></div></div></div>';
+    + '<div><p>' + E(kotaTtd(g)) + ', ' + today + '<br>Guru ' + E(g.kelas || 'kelompok') + '</p><div class="sp"></div><b><u>' + E(g.nama) + '</u></b></div></div></div>';
 }
 
 function bangun(F) {
