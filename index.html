@@ -405,6 +405,10 @@ html[data-tema=belajar] .hero h1{font-size:20px}html[data-tema=ujian] .hero{padd
 .kdp{animation:kdp .6s ease-in-out 2;border-radius:14px}
 @media(prefers-reduced-motion:reduce){.kdp{animation:none;box-shadow:0 0 0 4px #ee4f9a;border-color:#ee4f9a}}
 .opts.lipat .op.dis{display:none}
+#akd .akg{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.4fr) minmax(0,1.4fr);gap:14px 18px;align-items:start;margin-top:14px}
+#akd .akg2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px;max-width:560px;margin-top:14px}
+#akd .opts{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:720px){#akd .akg{grid-template-columns:1fr}}
 #lap.hid{display:none}@media print{#lap.hid{display:block!important}}
 .kbf{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
 .kbf .btn{min-height:40px}
@@ -839,10 +843,10 @@ if(!A){box.innerHTML='<p class="sub">Memuat pengaturan akademik...</p>';return}
 const a=A.aktif,n=new Date(),e=ed||a||{tahun:tahunAjaranList()[1],semester:n.getMonth()>=6?'Ganjil':'Genap',aktif:'ya',mulai:'',selesai:''};
 const ak=x=>x.aktif===true||x.aktif==='ya';
 const info=`<div class="fd"><label>Sedang aktif</label><p style="margin:0;font-weight:800;color:var(--navy)">${a?esc(a.tahun+' · Semester '+a.semester):'Belum diatur'}</p><p class="sub" style="font-size:12px;margin:2px 0 0">${a?esc(akadPer(a)):'Selama belum diatur, laporan memakai isian tahun ajaran lama di profil guru.'}</p></div>`;
-const form=A.boleh?`<div class="fg"><div class="fd"><label for="akt">Tahun ajaran</label><input id="akt" maxlength="9" inputmode="numeric" placeholder="2026/2027" autocomplete="off" value="${esc(e.tahun)}"></div>
+const form=A.boleh?`<div class="akg"><div class="fd"><label for="akt">Tahun ajaran</label><input id="akt" maxlength="9" inputmode="numeric" placeholder="2026/2027" autocomplete="off" value="${esc(e.tahun)}"></div>
 <div class="fd"><label>Semester</label>${radioGrup('aks',[['Ganjil','Ganjil'],['Genap','Genap']],e.semester,'aks')}</div>
 <div class="fd"><label>Status</label>${radioGrup('ast',[['ya','Aktif'],['tidak','Tidak aktif']],ak(e)?'ya':'tidak','ast')}</div>
-<div class="fd"><label for="akm">Tanggal mulai (opsional)</label><input type="date" id="akm" value="${esc(e.mulai||'')}"></div>
+</div><div class="akg2"><div class="fd"><label for="akm">Tanggal mulai (opsional)</label><input type="date" id="akm" value="${esc(e.mulai||'')}"></div>
 <div class="fd"><label for="ake">Tanggal selesai (opsional)</label><input type="date" id="ake" value="${esc(e.selesai||'')}"></div></div>
 <div class="act"><button class="btn y" id="aksv" type="button">Simpan Pengaturan Akademik</button></div>`
 :'<p class="sub" style="font-size:12px;margin:8px 0 0">Hanya kepala sekolah atau admin yang dapat mengubah pengaturan ini.</p>';
