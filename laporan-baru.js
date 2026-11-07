@@ -89,16 +89,15 @@ function tb(cols, rows) {
 }
 
 /* ---------- bagian laporan: masing-masing mengembalikan [judul, html] ---------- */
-// Identitas dipecah dua bagian: guru dan sekolah. Keterangan laporan (kelompok, anak, periode) ada di bawah judul.
+// Identitas: sekolah di kolom kiri, guru di kolom kanan (dua tabel berdampingan, lihat .idgrid di index.html).
 function sIdent(F) {
   const g = S.guru;
   const tabel = rows => '<table class="rt id">' + rows.map(x => '<tr><td>' + x[0] + '</td><td>' + E(x[1] || '-') + '</td></tr>').join('') + '</table>';
-  return [
-    ['Identitas sekolah', tabel([['Nama sekolah', g.sekolah], ['NPSN', g.npsn], ['Jenjang', g.jenjang], ['Alamat sekolah', alamatSek(g)],
-      ['Kepala sekolah', g.kepsek], ['NIP / NUPTK kepala sekolah', g.nipkepsek], ['Tahun pelajaran', F.rg.th], ['Semester', F.rg.sm]])],
-    ['Identitas guru', tabel([['Nama guru', g.nama], ['NIP / NUPTK', [g.nip, g.nuptk].filter(Boolean).join(' / ')], ['Status kepegawaian', g.status],
-      ['Kelompok yang diampu', kelNorm(g.kelas) || g.kelas]])]
-  ];
+  const sek = tabel([['Nama sekolah', g.sekolah], ['NPSN', g.npsn], ['Jenjang', g.jenjang], ['Alamat sekolah', alamatSek(g)],
+    ['Kepala sekolah', g.kepsek], ['NIP / NUPTK kepala sekolah', g.nipkepsek], ['Tahun pelajaran', F.rg.th], ['Semester', F.rg.sm]]);
+  const gur = tabel([['Nama guru', g.nama], ['NIP / NUPTK', [g.nip, g.nuptk].filter(Boolean).join(' / ')], ['Status kepegawaian', g.status],
+    ['Kelompok yang diampu', kelNorm(g.kelas) || g.kelas]]);
+  return ['Identitas sekolah dan guru', '<div class="idgrid"><div><h4>Identitas sekolah</h4>' + sek + '</div><div><h4>Identitas guru</h4>' + gur + '</div></div>'];
 }
 
 function sCP(F) {
@@ -301,14 +300,14 @@ function kertas(F, judul, secs) {
 
 function bangun(F) {
   F.kk = kbSaring(F);
-  if (F.jenis === 'kbc') return kertas(F, 'LAPORAN KURIKULUM BERBASIS CINTA', [...sIdent(F), sNilai(F), sTujuan(F), sAktPemb(F), sImpl(F), sPengamatan(F), sDok(F, false), sRefl(F, 'kbc')]);
+  if (F.jenis === 'kbc') return kertas(F, 'LAPORAN KURIKULUM BERBASIS CINTA', [sIdent(F), sNilai(F), sTujuan(F), sAktPemb(F), sImpl(F), sPengamatan(F), sDok(F, false), sRefl(F, 'kbc')]);
   if (F.jenis === 'terpadu') return kertas(F, 'LAPORAN TERPADU<br>KURIKULUM MERDEKA DAN KURIKULUM BERBASIS CINTA',
-    [...sIdent(F), sRingkas(F), sCP(F), sTema(F), sHarian(F, true), sHadir(F), sPerk(F, true), sKoku(F), sAses(F), sNilai(F), sTujuan(F), sImpl(F), sPengamatan(F), sRefl(F, 'gab'), sDok(F, true)]);
+    [sIdent(F), sRingkas(F), sCP(F), sTema(F), sHarian(F, true), sHadir(F), sPerk(F, true), sKoku(F), sAses(F), sNilai(F), sTujuan(F), sImpl(F), sPengamatan(F), sRefl(F, 'gab'), sDok(F, true)]);
   if (F.jenis === 'lama') {
     const rg = { dari: F.rg.dari, sampai: F.rg.sampai, label: F.rg.label, judul: '' };
     return laporan(rg, { loading: 1 });
   }
-  return kertas(F, 'LAPORAN KURIKULUM MERDEKA', [...sIdent(F), sCP(F), sTema(F), sHarian(F, false), sHadir(F), sPerk(F, false), sKoku(F), sAses(F), sRefl(F, 'km'), sTindak(F), sDok(F, true, true)]);
+  return kertas(F, 'LAPORAN KURIKULUM MERDEKA', [sIdent(F), sCP(F), sTema(F), sHarian(F, false), sHadir(F), sPerk(F, false), sKoku(F), sAses(F), sRefl(F, 'km'), sTindak(F), sDok(F, true, true)]);
 }
 
 /* ---------- ambil data KBC dari database yang sama (tanpa menulis) ---------- */
