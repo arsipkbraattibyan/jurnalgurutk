@@ -94,10 +94,10 @@ function sIdent(F) {
   const g = S.guru;
   const tabel = rows => '<table class="rt id">' + rows.map(x => '<tr><td>' + x[0] + '</td><td>' + E(x[1] || '-') + '</td></tr>').join('') + '</table>';
   return [
-    ['Identitas guru', tabel([['Nama guru', g.nama], ['NIP / NUPTK', [g.nip, g.nuptk].filter(Boolean).join(' / ')], ['Status kepegawaian', g.status],
-      ['Kelompok yang diampu', kelNorm(g.kelas) || g.kelas]])],
     ['Identitas sekolah', tabel([['Nama sekolah', g.sekolah], ['NPSN', g.npsn], ['Jenjang', g.jenjang], ['Alamat sekolah', alamatSek(g)],
-      ['Kepala sekolah', g.kepsek], ['NIP / NUPTK kepala sekolah', g.nipkepsek], ['Tahun pelajaran', F.rg.th], ['Semester', F.rg.sm]])]
+      ['Kepala sekolah', g.kepsek], ['NIP / NUPTK kepala sekolah', g.nipkepsek], ['Tahun pelajaran', F.rg.th], ['Semester', F.rg.sm]])],
+    ['Identitas guru', tabel([['Nama guru', g.nama], ['NIP / NUPTK', [g.nip, g.nuptk].filter(Boolean).join(' / ')], ['Status kepegawaian', g.status],
+      ['Kelompok yang diampu', kelNorm(g.kelas) || g.kelas]])]
   ];
 }
 
