@@ -859,8 +859,8 @@ ${sek('📍','Alamat dan kontak sekolah','Letak dan cara menghubungi sekolah.',[
 ${sek('🧑‍💼','Kepala sekolah','Nama dan nomor pegawai kepala sekolah (tampil di tanda tangan laporan).',['kepsek','nipkepsek'])}
 ${sek('📋','Penugasan','Kelompok dan tahun ajaran yang sedang berjalan.',['kelas','tahun','semester'])}</div>
 <div class="act"><button class="btn y" id="sv">Simpan Identitas</button></div></div><div id="lap" class="hid"></div>`;
-const rl=()=>{$('#lap').innerHTML=dataPaper(nilai('dj')||'guru')};rl();$('#dj').onchange=rl;$('.ukr').onclick=e=>{const b=e.target.closest('[data-ak]');if(b)aksiLap(b.dataset.uk,b.dataset.ak)};
-$('#sv').onclick=async()=>{const{d,kurang}=ambil($('#pf'),PROFIL);if(kurang)return toast('Lengkapi dulu: '+kurang,1);
+const rl=()=>{$('#lap').innerHTML=dataPaper(nilai('dj')||'guru')};rl();akordeon($('#pf'));$('#dj').onchange=rl;$('.ukr').onclick=e=>{const b=e.target.closest('[data-ak]');if(b)aksiLap(b.dataset.uk,b.dataset.ak)};
+$('#sv').onclick=async()=>{const{d,kurang,kk}=ambil($('#pf'),PROFIL);if(kurang){const pf=$('#pf'),el=pf.querySelector('[name='+kk+']'),f=el&&el.closest('.fd');if(f&&f.classList.contains('acc')&&pf._bk)pf._bk(f);return toast('Lengkapi dulu: '+kurang,1)}
 const er=cekProfil(d);if(er.length)return toast(er[0],1);
 const k0=kelNorm(S.guru.kelas),k1=kelNorm(d.kelas); // kelompok menentukan data anak yang tampil dan boleh diubah: minta konfirmasi
 if(k0&&k1!==k0&&!await tanya('Ubah kelompok?',/^semua/i.test(k1)?'Anda akan melihat dan dapat mengubah data anak dari SEMUA kelompok.':'Daftar anak, presensi, dan catatan yang tampil akan mengikuti '+k1+'. Catatan lama Anda tidak dihapus.','Ya, ubah',false))return;
