@@ -370,7 +370,6 @@ function hitung() {
 function statusBaru() {
   const b = el('ofl');
   if (!b) return;
-  if (!gid() || S.mode === 'login') { b.style.display = 'none'; return; }
   const c = hitung(), off = !online();
   let t, bg, fg;
   if (jalan) { t = '🔄 Menyinkronkan...'; bg = '#e3f2fd'; fg = '#1565c0'; }
@@ -390,6 +389,7 @@ function deskripsi(it) {
   return [nm + (it.baru ? ' (baru)' : ' (ubah)'), tgl(it.data.tanggal || '')];
 }
 function bukaPanel() {
+  if (!gid()) return;
   if (el('ofp')) return;
   const md = document.createElement('div');
   md.className = 'md'; md.id = 'ofp';
