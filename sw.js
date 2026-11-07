@@ -1,7 +1,7 @@
 // Service worker Jurnal Guru: cangkang aplikasi disimpan agar bisa dipasang dan terbuka cepat.
 // Permintaan ke Google Apps Script (data jurnal) TIDAK pernah disimpan.
-const V = 'jurnal-guru-v2';
-const CANGKANG = ['./', 'index.html', 'manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
+const V = 'jurnal-guru-v3';
+const CANGKANG = ['./', 'index.html', 'manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png', 'laporan-baru.js', 'offline.js', './favicon-64.png', './icon-maskable-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(V)
@@ -18,5 +18,5 @@ self.addEventListener('fetch', e => {
   e.respondWith(fetch(r).then(res => {
     if (res.ok) { const c = res.clone(); caches.open(V).then(x => x.put(r, c)); }
     return res;
-  }).catch(() => caches.match(r).then(m => m || caches.match('index.html'))));
+  }).catch(() => caches.match(r, { ignoreSearch: true }).then(m => m || caches.match('index.html'))));
 });
