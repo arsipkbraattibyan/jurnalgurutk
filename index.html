@@ -832,8 +832,8 @@ try{await muatSemua();if(S.view!=='beranda')return;gambarBeranda();loadSiswa()}
 catch(e){if(!ada&&S.view==='beranda')m.innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
 
 /* ---------- Pengaturan Akademik (satu pengaturan untuk semua guru; disimpan di sheet "Akademik") ---------- */
-let AKAD=null,_akT=0;
-const akadMuat=()=>api('akademik').then(j=>{AKAD=j}).catch(()=>{});
+let AKAD=null,_akT=0,_akF=0;
+const akadMuat=()=>api('akademik').then(j=>{AKAD={aktif:j.aktif,daftar:j.daftar,boleh:j.boleh};cSet('akad',AKAD)}).catch(()=>{});
 const akadPer=x=>x&&(x.mulai||x.selesai)?(x.mulai?tgl(x.mulai):'...')+' s.d. '+(x.selesai?tgl(x.selesai):'...'):'Tanggal belum diatur';
 // segarkan tahun ajaran dan semester aktif di perangkat ini (guru lain mengubahnya dari perangkatnya sendiri)
 function segarAkad(){if(Date.now()-_akT<60000)return Promise.resolve();_akT=Date.now();
@@ -860,7 +860,7 @@ if(!/^\d{4}\/\d{4}$/.test(th)||+th.slice(5)!==+th.slice(0,4)+1)return toast('Tah
 if(mu&&se&&se<mu)return toast('Tanggal selesai tidak boleh sebelum tanggal mulai',1);
 if(on&&a&&!(a.tahun===th&&a.semester===sm)&&!await tanya('Ganti periode aktif?','Seluruh guru akan memakai '+th+' semester '+sm+' di laporan dan cetakan. Data periode sebelumnya tidak berubah dan tetap tersimpan.','Ya, aktifkan',false))return;
 if(!on&&a&&a.tahun===th&&a.semester===sm&&!await tanya('Nonaktifkan periode?','Tidak ada periode aktif. Laporan akan memakai isian tahun ajaran lama di profil guru sampai Anda mengaktifkan periode lain.','Ya, nonaktifkan',false))return;
-sv.disabled=true;try{const j=await api('simpanAkademik',{data:{tahun:th,semester:sm,aktif:on,mulai:mu,selesai:se}});AKAD={aktif:j.aktif,daftar:j.daftar,boleh:j.boleh};S.guru=j.guru;simpanSesi();isiAkun();_akT=Date.now();
+sv.disabled=true;try{const j=await api('simpanAkademik',{data:{tahun:th,semester:sm,aktif:on,mulai:mu,selesai:se}});AKAD={aktif:j.aktif,daftar:j.daftar,boleh:j.boleh};cSet('akad',AKAD);S.guru=j.guru;simpanSesi();isiAkun();_akT=Date.now();
 const bx=$('#akd');if(bx)delete bx.dataset.t;akadIsi();const lp=$('#lap');if(lp)lp.innerHTML=dataPaper(nilai('dj')||'guru');toast('Pengaturan akademik tersimpan')}catch(er){toast(er.message,1);sv.disabled=false}}}
 /* ---------- identitas (tanpa foto) ---------- */
 function viewIdentitas(){formIdentitas();const m=$('#main');let sentuh=false;const h=()=>{sentuh=true};m.addEventListener('input',h);m.addEventListener('change',h);
@@ -901,7 +901,8 @@ ${sek('🧑‍💼','E. Kepala sekolah','Nama, NIP, dan nomor HP kepala sekolah 
 <div class="act"><button class="btn y" id="sv">Simpan Identitas</button></div></div><div id="lap" class="hid"></div>`;
 const cards=[...$('#pf').children];cards.forEach((c,i)=>c.dataset.g=[0,1,2,3].includes(i)?'guru':'sekolah');
 const fl=()=>{const j=nilai('dj')||'guru';cards.forEach(c=>c.style.display=(j==='semua'||c.dataset.g===j)?'':'none')};
-const rl=()=>{fl();$('#lap').innerHTML=dataPaper(nilai('dj')||'guru')};rl();akordeon($('#pf'));$('#dj').onchange=rl;akadIsi();if(!AKAD)akadMuat().then(()=>{const b=$('#akd');if(b&&!b.dataset.t)akadIsi()});$('#gp').onclick=()=>dialogPin(false);$('#fpb').onclick=()=>$('#fpi').click();
+const rl=()=>{fl();$('#lap').innerHTML=dataPaper(nilai('dj')||'guru')};rl();akordeon($('#pf'));$('#dj').onchange=rl;if(!AKAD)AKAD=cGet('akad'); // tampil langsung dari data terakhir di perangkat, lalu disegarkan diam-diam
+akadIsi();{const lm=JSON.stringify(AKAD);if(Date.now()-_akF>15000){_akF=Date.now();akadMuat().then(()=>{const b=$('#akd');if(b&&!b.dataset.t&&JSON.stringify(AKAD)!==lm)akadIsi()})}}$('#gp').onclick=()=>dialogPin(false);$('#fpb').onclick=()=>$('#fpi').click();
 $('#fpi').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let d;try{d=await pangkas(f,{judul:'Atur foto profil',out:400})}catch(er){return toast('Berkas bukan gambar yang valid',1)}if(!d)return;const b=$('#fpb');b.disabled=true;b.textContent='Mengunggah...';
 try{const j=await api('unggahFoto',{b64:d.split(',')[1]});S.guru.foto=j.foto;simpanSesi();isiAkun();$('#avp').innerHTML=av(j.foto,S.guru.nama);toast('Foto profil tersimpan')}catch(er){toast(er.message,1)}b.disabled=false;b.textContent='Unggah / Ganti Foto'};$('#lgb').onclick=()=>$('#lgi').click();$('#lgh').onclick=async()=>{await simpanLogo('');rl()};
 $('#lgi').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let d;try{d=await pangkas(f,{judul:'Atur logo sekolah',out:160,logo:1})}catch(er){return toast('Berkas bukan gambar yang valid',1)}if(d){await simpanLogo(d);rl()}};$('.ukr').onclick=e=>{const b=e.target.closest('[data-ak]');if(b)aksiLap(b.dataset.uk,b.dataset.ak)};
