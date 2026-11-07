@@ -1503,8 +1503,8 @@ const tabId=r=>`<table class="rt id">${r.map(x=>`<tr><td>${x[0]}</td><td>${esc(x
 const today=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
 return`<div class="paper"><div class="kop"><img class="kl" src="${logoSek()}" alt=""><div class="kt"><h2>${esc((g.sekolah||'NAMA SEKOLAH').toUpperCase())}</h2><p>${esc(g.jenjang||'')}${g.npsn?' - NPSN '+esc(g.npsn):''}</p>${alamatSek(g)?`<p>${esc(alamatSek(g))}${g.telpsekolah?' | Telp. '+esc(g.telpsekolah):''}</p>`:''}</div></div>
 <h1 class="jd">LAPORAN JURNAL GURU${rg.judul?' '+rg.judul:''}</h1><p class="sj">Tahun ajaran ${esc(g.tahun||'-')}, semester ${esc(g.semester||'-')}<br>Periode: ${esc(per)}</p>
-<h3>A. Identitas guru</h3>${tabId(idG)}
-<h3>B. Identitas sekolah</h3>${tabId(idS)}
+<h3>A. Identitas sekolah</h3>${tabId(idS)}
+<h3>B. Identitas guru</h3>${tabId(idG)}
 <h3>C. Ringkasan hasil</h3>
 <h4>1. Jumlah catatan per jurnal</h4><table class="rt sm"><thead><tr><th>No</th><th>Jenis jurnal</th><th>Periode pengisian</th><th>Jumlah catatan</th></tr></thead><tbody>${KEYS.map((k,i)=>`<tr><td class="c">${i+1}</td><td>${J[k].n}</td><td>${J[k].per}</td><td class="c">${F(k).length}</td></tr>`).join('')}<tr class="tt"><td colspan="3">Total</td><td class="c">${KEYS.reduce((a,k)=>a+F(k).length,0)}</td></tr></tbody></table>
 <h4>2. Rekapitulasi kehadiran anak</h4><table class="rt sm"><thead><tr><th>Hari tercatat</th><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Tanpa keterangan</th><th>Persentase hadir</th></tr></thead><tbody><tr><td class="c">${kh.length}</td><td class="c">${sum(kh,'hadir')}</td><td class="c">${sum(kh,'sakit')}</td><td class="c">${sum(kh,'izin')}</td><td class="c">${sum(kh,'alpha')}</td><td class="c">${pct(sum(kh,'hadir'),jh)}</td></tr></tbody></table>
