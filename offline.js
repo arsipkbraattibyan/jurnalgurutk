@@ -17,6 +17,15 @@
  * - Aksi lain (login, ganti PIN, foto profil, logo, hapus 1 hari, simpan identitas, simpan data siswa)
  *   tetap butuh internet dan menampilkan pesan yang jelas.
  * - Antrean disimpan per guru. Keluar dari akun tidak menghapus antrean.
+ *
+ * AUTO SYNC (versi ini):
+ * - Data lokal dihapus dari antrean HANYA setelah server membalas ok dan mengonfirmasi ID (simpan)
+ *   atau jumlah yang sama dengan yang dikirim (simpanBanyak). Selain itu data tetap di IndexedDB.
+ * - simpanBanyak dikirim per 50 catatan; catatan yang sudah dikonfirmasi langsung dibuang dari antrean.
+ * - Gangguan jaringan / server sibuk: tetap mengantre, dicoba lagi otomatis (tiap menit, saat online, saat aplikasi dibuka).
+ * - Ditolak server (mis. validasi): ditandai GAGAL, tetap tersimpan, dicoba lagi otomatis tiap 30 menit
+ *   atau lewat tombol SINKRONKAN SEKARANG.
+ * - Tombol SINKRONKAN SEKARANG (mengambang dan di panel) + hitungan berhasil / gagal / menunggu.
  */
 (function () {
 'use strict';
@@ -301,44 +310,120 @@ async function payload(it) {
   if (it.baru) { delete o.ID; o.cid = it.id; } else { o.ID = it.id; delete o.cid; }
   return { jenis: it.jenis, data: o };
 }
+const UKURAN = 50; // catatan per pengiriman simpanBanyak (server menerima maksimal 60)
+// gangguan sementara di sisi server: bukan kesalahan data, jadi tidak ditandai gagal, dicoba lagi nanti
+const TRANSIEN = /lock|timed? ?out|waktu habis|too many times|try again|server error|exceeded|quota|bandwidth|sibuk/i;
+const jml = it => it.type === 'simpanBanyak' ? it.data.length : 1;
+
+// statistik sinkron terakhir, disimpan per guru di localStorage (bukan data jurnal)
+const kStat = () => 'jg_sync_' + gid();
+function bacaStat() { try { return JSON.parse(localStorage.getItem(kStat()) || '{}') || {}; } catch (e) { return {}; } }
+function catatStat(R) {
+  try {
+    const s = bacaStat();
+    s.t = Date.now(); s.ok = R.ok; s.gagal = R.gagal; s.dup = R.dup;
+    s.tot = (s.tot || 0) + R.ok; s.totDup = (s.totDup || 0) + R.dup;
+    localStorage.setItem(kStat(), JSON.stringify(s));
+  } catch (e) {}
+}
+
+// Ditolak server: data TETAP di perangkat, ditandai gagal, dicoba lagi otomatis tiap 30 menit atau lewat tombol sinkron
 async function tandaiGagal(it, msg) {
-  it.tries = (it.tries || 0) + 1; it.err = msg;
-  if (it.tries >= 3) { it.status = 'gagal'; toast('Ada data yang ditolak server. Ketuk indikator di kanan bawah untuk melihatnya.', true); }
+  const baru = it.status !== 'gagal';
+  it.tries = (it.tries || 0) + 1; it.err = msg; it.status = 'gagal'; it.next = Date.now() + 30 * 60000;
+  if (baru) toast('Ada data yang ditolak server. Data tetap aman di perangkat. Ketuk indikator di kanan bawah untuk melihatnya.', true);
   await simpanItem(it).catch(() => {});
 }
-async function sinkron() {
-  if (jalan) return;
+
+// simpanBanyak: kirim per UKURAN catatan. Catatan yang sudah DIKONFIRMASI server (n sama) langsung dibuang dari item,
+// sisanya tetap tersimpan sehingga kegagalan di tengah jalan tidak mengirim ulang yang sudah masuk.
+async function kirimBanyak(it, R) {
+  while (it.data.length) {
+    const potong = it.data.slice(0, UKURAN), fix = [];
+    for (const d of potong) { const o = Object.assign({}, d); if (o.foto) o.foto = await petaFoto(o.foto); fix.push(o); }
+    const j = await kirim('simpanBanyak', { jenis: it.jenis, data: fix }, S.token, 60000);
+    if (!j.ok) return j;
+    if (j.n !== potong.length) return { ok: false, error: 'Server hanya mengonfirmasi ' + j.n + ' dari ' + potong.length + ' data.' };
+    if (j.kbcError) R.kbc = j.kbcError;
+    R.ok += potong.length; R.dup += j.duplikat || 0; R.kena.add(it.jenis);
+    const sudah = new Set(potong);
+    it.data = it.data.filter(d => !sudah.has(d));
+    if (it.data.length) await simpanItem(it).catch(() => {});
+  }
+  return { ok: true };
+}
+// kirim satu item antrean; mengembalikan { ok } atau { ok:false, error, auth }. Galat jaringan dilempar (e.net).
+async function kirimSatu(it, R) {
+  if (it.type === 'simpanBanyak') return kirimBanyak(it, R);
+  const j = await kirim(it.type, await payload(it), S.token, 60000);
+  if (!j.ok) {
+    if (!j.auth && it.type === 'hapus' && /tidak ditemukan/i.test(j.error || '')) { R.ok++; R.kena.add(it.jenis); return { ok: true }; }
+    return j;
+  }
+  // konfirmasi server: simpan harus mengembalikan ID baris yang tersimpan
+  if (it.type === 'simpan' && !j.ID) return { ok: false, error: 'Server tidak mengonfirmasi data tersimpan.' };
+  R.ok++; R.kena.add(it.jenis);
+  if (j.duplikat) R.dup++;
+  if (j.kbcError) R.kbc = j.kbcError;
+  return { ok: true };
+}
+
+// paksa = dari tombol: abaikan jadwal tunggu data gagal
+async function sinkron(paksa) {
+  if (jalan) return null;
   await pastikan();
-  if (!S.token || !gid() || !online()) return;
-  const items = urutQ().filter(x => x.status === 'antri');
-  if (!items.length) return;
+  if (!S.token || !gid() || !online()) return null;
+  const now = Date.now();
+  const items = urutQ().filter(x => x.status === 'antri' || (x.status === 'gagal' && (paksa || (x.next || 0) <= now)));
+  const R = { ok: 0, gagal: 0, dup: 0, kbc: '', kena: new Set() };
+  if (!items.length) return R;
   jalan = true; perluLogin = false; statusBaru();
-  let ok = 0, ulang = false, kbcMsg = '';
-  const kena = new Set();
+  let ulang = false, putus = false;
   try {
     for (const it of items) {
       if (!Q.has(it.qid)) continue; // dibuang saat sinkron berjalan
-      const rev = it.rev;
+      const rev = it.rev, n0 = jml(it);
       let j;
-      try { j = await kirim(it.type, await payload(it), S.token, 60000); }
+      try { j = await kirimSatu(it, R); }
       catch (e) {
-        if (e.net) break;
+        if (e.net) { putus = true; break; }
         if (e.auth) { perluLogin = true; break; }
-        await tandaiGagal(it, e.message); continue;
+        j = { ok: false, error: e.message };
       }
       if (!j.ok) {
         if (j.auth) { perluLogin = true; break; }
-        if (!(it.type === 'hapus' && /tidak ditemukan/i.test(j.error || ''))) { await tandaiGagal(it, j.error || 'Ditolak server'); continue; }
-      } else if (j.kbcError) kbcMsg = j.kbcError;
+        if (TRANSIEN.test(j.error || '')) { it.err = j.error; await simpanItem(it).catch(() => {}); putus = true; break; }
+        R.gagal += jml(it); await tandaiGagal(it, j.error || 'Ditolak server'); continue;
+      }
       const cur = Q.get(it.qid);
-      if (cur && cur.rev === rev) await buangItem(cur).catch(() => {});
-      else if (cur) ulang = true; // diubah saat sedang dikirim: kirim lagi versi terbaru
-      kena.add(it.jenis); ok++;
+      if (cur && (it.type === 'simpanBanyak' ? !cur.data.length : cur.rev === rev)) await buangItem(cur).catch(() => {}); // dikonfirmasi server: baru boleh dibuang
+      else if (cur) { ulang = true; cur.status = 'antri'; } // diubah saat sedang dikirim: kirim lagi versi terbaru
     }
-  } finally { jalan = false; statusBaru(); }
-  if (ok) { toast('✅ ' + ok + ' data berhasil disinkronkan'); await segarkan([...kena]); }
-  if (kbcMsg) toast('Jurnal tersimpan, tetapi bagian KBC belum tersimpan: ' + kbcMsg, true);
+  } finally { jalan = false; }
+  if (R.ok || R.gagal) catatStat(R);
+  statusBaru();
+  const c = hitung();
+  if (R.ok || R.gagal || paksa) {
+    let m = (R.gagal ? '⚠️ ' : '✅ ') + R.ok + ' berhasil · ' + R.gagal + ' gagal · ' + c.n + ' menunggu';
+    if (R.dup) m += ' · ' + R.dup + ' sudah ada di server (tidak dobel)';
+    if (putus && !R.ok && !R.gagal) m = '📴 Koneksi atau server bermasalah. Data tetap aman dan akan dicoba lagi otomatis.';
+    if (perluLogin) m = '🔑 Sesi login berakhir. Masuk ulang, sinkron akan lanjut otomatis. Data tetap aman.';
+    toast(m, !!R.gagal || putus || perluLogin);
+  }
+  if (R.ok) await segarkan([...R.kena]);
+  if (R.kbc) toast('Jurnal tersimpan, tetapi bagian KBC belum tersimpan: ' + R.kbc, true);
   if (ulang) setTimeout(sinkron, 1500);
+  return R;
+}
+// tombol SINKRONKAN SEKARANG
+async function sinkronSekarang() {
+  await pastikan();
+  if (!gid()) return;
+  if (!online()) return toast('Belum ada internet. Data tetap aman di perangkat.', true);
+  if (jalan) return toast('Sinkronisasi sedang berjalan...');
+  if (!hitung().n && !hitung().g) { toast('✅ Semua data sudah tersinkron'); return statusBaru(); }
+  const R = await sinkron(true);
+  if (R && !R.ok && !R.gagal && !hitung().n && !hitung().g) toast('✅ Semua data sudah tersinkron');
 }
 // muat ulang data jurnal yang baru tersinkron (tanpa mengganggu form yang sedang terbuka)
 async function segarkan(ks) {
@@ -362,10 +447,19 @@ function buatPil() {
   b.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:15;border:0;border-radius:99px;padding:6px 14px;font:700 12px/1.4 Nunito,system-ui,sans-serif;box-shadow:0 4px 14px #0003;cursor:pointer;display:none';
   b.onclick = bukaPanel;
   document.body.appendChild(b);
+  // tombol SINKRONKAN SEKARANG: muncul hanya jika ada data yang menunggu atau gagal
+  const t = document.createElement('button');
+  t.id = 'ofs'; t.type = 'button'; t.className = 'noprint';
+  t.style.cssText = 'position:fixed;right:12px;bottom:50px;z-index:15;border:0;border-radius:99px;padding:8px 16px;font:800 12px/1.4 Nunito,system-ui,sans-serif;background:#1e88e5;color:#fff;box-shadow:0 4px 14px #0004;cursor:pointer;display:none';
+  t.textContent = '🔄 SINKRONKAN SEKARANG';
+  t.onclick = () => { sinkronSekarang(); };
+  document.body.appendChild(t);
 }
+// jumlah DATA (bukan jumlah item antrean): n = menunggu, g = gagal
 function hitung() {
-  const v = [...Q.values()], n = v.filter(x => x.status === 'antri').length;
-  return { n: n, g: v.length - n };
+  let n = 0, g = 0;
+  Q.forEach(x => { if (x.status === 'gagal') g += jml(x); else n += jml(x); });
+  return { n: n, g: g };
 }
 function statusBaru() {
   const b = el('ofl');
@@ -379,6 +473,11 @@ function statusBaru() {
   else if (c.n) { t = '⏳ ' + c.n + ' MENUNGGU SINKRONISASI'; bg = '#e3f2fd'; fg = '#1565c0'; }
   else { t = '🟢 Online'; bg = '#e8f5e9'; fg = '#2e7d32'; }
   b.style.display = ''; b.textContent = t; b.style.background = bg; b.style.color = fg; b.style.opacity = (!off && !c.n && !c.g && !jalan) ? '.8' : '1';
+  const s = el('ofs');
+  if (s) {
+    s.style.display = (gid() && (c.n || c.g) && !jalan) ? '' : 'none';
+    s.style.opacity = off ? '.6' : '1';
+  }
   const p = el('ofp');
   if (p && p._g) p._g();
 }
@@ -394,34 +493,35 @@ function bukaPanel() {
   const md = document.createElement('div');
   md.className = 'md'; md.id = 'ofp';
   md._g = () => {
-    const v = urutQ(), c = hitung();
+    const v = urutQ(), c = hitung(), st = bacaStat();
     const ket = !online() ? 'Anda sedang offline. Catatan tetap bisa diisi dan akan dikirim otomatis saat internet kembali.'
       : perluLogin ? 'Sesi login berakhir. Masuk ulang untuk melanjutkan sinkron. Data di bawah aman di perangkat ini.'
       : jalan ? 'Sedang menyinkronkan data...'
       : (c.n || c.g) ? 'Ada data yang belum terkirim ke spreadsheet.' : 'Semua data sudah tersinkron.';
+    const kotak = (a, l, w) => '<div style="flex:1;min-width:92px;text-align:center;background:#f3f9ff;border-radius:16px;padding:10px 6px"><div style="font:700 26px/1.2 Fredoka,system-ui,sans-serif;color:' + w + '">' + a + '</div><div style="font-size:12px;font-weight:700">' + l + '</div></div>';
+    const jam = st.t ? new Date(st.t).toLocaleString('id-ID') : '';
     md.innerHTML = '<div class="sheet"><h2>🔄 Sinkronisasi data</h2><p class="sub" style="margin-bottom:10px">' + esc(ket) + '</p>'
+      + '<div style="display:flex;gap:8px;margin-bottom:6px">' + kotak(st.ok || 0, '✅ Berhasil (sinkron terakhir)', '#2e7d32') + kotak(c.g, '⚠️ Gagal', c.g ? '#b4233f' : 'inherit') + kotak(c.n, '⏳ Menunggu', '#1565c0') + '</div>'
+      + '<p class="sub" style="margin-bottom:12px;font-size:12px">' + (jam ? 'Sinkron terakhir: ' + esc(jam) + ' · ' : '') + 'Total terkirim dari perangkat ini: ' + (st.tot || 0) + (st.totDup ? ' · Dicegah dobel: ' + st.totDup : '') + '</p>'
       + (v.length ? v.map(it => {
         const d = deskripsi(it), gg = it.status === 'gagal';
         return '<div class="ukb" style="margin-bottom:8px"><b>' + esc(d[0]) + ' <small>' + esc(d[1]) + '</small></b>'
-          + '<span style="flex:1 1 100%;font-size:13px;color:' + (gg ? '#b4233f' : 'inherit') + '">' + (gg ? '⚠️ ' + esc(it.err || 'Ditolak server') : '⏳ Menunggu sinkronisasi' + (it.err ? ' (percobaan ulang: ' + esc(it.err) + ')' : '')) + '</span>'
+          + '<span style="flex:1 1 100%;font-size:13px;color:' + (gg ? '#b4233f' : 'inherit') + '">' + (gg ? '⚠️ ' + esc(it.err || 'Ditolak server') + ' (dicoba lagi otomatis tiap 30 menit)' : '⏳ Menunggu sinkronisasi' + (it.err ? ' (percobaan ulang: ' + esc(it.err) + ')' : '')) + '</span>'
           + (gg ? '<button type="button" class="btn gh s" data-rt="' + esc(it.qid) + '">Coba lagi</button>' : '')
           + '<button type="button" class="btn rd s" data-bg="' + esc(it.qid) + '">Buang</button></div>';
       }).join('') : '<div class="empty">Tidak ada data yang mengantre.</div>')
-      + '<div class="act"><button type="button" class="btn gh" data-x>Tutup</button><button type="button" class="btn" data-sy>Sinkronkan sekarang</button></div></div>';
+      + '<div class="act"><button type="button" class="btn gh" data-x>Tutup</button><button type="button" class="btn" data-sy' + (jalan ? ' disabled' : '') + '>' + (jalan ? '🔄 Menyinkronkan...' : '🔄 SINKRONKAN SEKARANG') + '</button></div></div>';
   };
   md.onclick = async e => {
     const t = e.target;
     if (t === md || t.closest('[data-x]')) return md.remove();
-    if (t.closest('[data-sy]')) {
-      if (!online()) return toast('Belum ada internet', true);
-      sinkron(); return;
-    }
+    if (t.closest('[data-sy]')) { sinkronSekarang(); return; }
     const rt = t.closest('[data-rt]'), bg = t.closest('[data-bg]');
     if (rt) {
       const it = Q.get(rt.dataset.rt); if (!it) return;
-      it.status = 'antri'; it.tries = 0; it.err = '';
+      it.status = 'antri'; it.tries = 0; it.err = ''; it.next = 0;
       await simpanItem(it).catch(() => {});
-      statusBaru(); sinkron();
+      statusBaru(); sinkron(true);
     }
     if (bg) {
       const it = Q.get(bg.dataset.bg); if (!it) return;
@@ -492,5 +592,5 @@ addEventListener('online', () => { statusBaru(); sinkron(); });
 addEventListener('offline', statusBaru);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { statusBaru(); sinkron(); } });
 setInterval(() => { statusBaru(); sinkron(); }, 60000);
-window.__offline = { sinkron: sinkron, antrean: () => urutQ() }; // untuk pengujian
+window.__offline = { sinkron: sinkron, sinkronSekarang: sinkronSekarang, antrean: () => urutQ(), stat: bacaStat }; // untuk pengujian
 })();
