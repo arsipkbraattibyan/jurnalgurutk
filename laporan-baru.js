@@ -90,7 +90,7 @@ function tb(cols, rows) {
 
 /* ---------- bagian laporan: masing-masing mengembalikan [judul, html] ---------- */
 function sIdent(F) {
-  const g = S.guru, rows = [['Nama guru', g.nama], ['NIP / NUPTK', g.nip], ['Status kepegawaian', g.status], ['Nama sekolah', g.sekolah], ['NPSN', g.npsn],
+  const g = S.guru, rows = [['Nama guru', g.nama], ['NIP / NUPTK', [g.nip, g.nuptk].filter(Boolean).join(' / ')], ['Status kepegawaian', g.status], ['Nama sekolah', g.sekolah], ['NPSN', g.npsn],
     ['Jenjang', g.jenjang], ['Kelompok yang diampu', kelNorm(g.kelas) || g.kelas], ['Tahun pelajaran', F.rg.th], ['Semester', F.rg.sm],
     ['Alamat sekolah', alamatSek(g)], ['Kepala sekolah', g.kepsek], ['NIP / NUPTK kepala sekolah', g.nipkepsek],
     ['Kelompok dalam laporan', F.kel || 'Semua kelompok'], ['Anak dalam laporan', F.anakNama || 'Semua anak'], ['Periode laporan', F.rg.label]];
