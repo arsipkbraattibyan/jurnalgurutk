@@ -955,15 +955,77 @@ md.remove();URL.revokeObjectURL(u);res(r)}};
 im.src=u})}
 
 /* ---------- daftar jurnal ---------- */
+/* ---------- kartu pencarian dinamis (mengikuti menu yang dibuka) ----------
+   Filter hanya muncul jika datanya ada di catatan yang sudah dimuat (juga dari cache offline). Tidak ada kolom baru. */
+let KF={k:'',v:{},sig:'',on:[]};
+const FIL={harian:['kelas','tema','subtema'],kehadiran:['kelas','nama','status'],perkembangan:['kelas','nama','aspek'],penilaian:['kelas','jenis'],kokurikuler:['kelas','keg'],refleksi:['kelas'],tambahan:['kelas','jenis']};
+const FLB={kelas:'Kelompok',tema:'Tema',subtema:'Subtema',nama:'Nama anak',status:'Status kehadiran',aspek:'Aspek perkembangan',jenis:{penilaian:'Jenis penilaian',tambahan:'Jenis kegiatan'},keg:'Tema / kegiatan'};
+const FSTAT=[['hadir','Hadir'],['sakit','Sakit'],['izin','Izin'],['alpha','Tanpa keterangan']];
+const fUniq=a=>[...new Set(a.filter(Boolean))].sort((x,y)=>String(x).localeCompare(String(y),'id'));
+function filOpsi(k,f){const R=ROWS[k]||[],v=KF.v,t=x=>String(x||'').trim();
+if(f==='kelas')return fUniq(R.map(r=>kelNorm(r.kelas)));
+if(f==='tema')return fUniq(R.map(r=>t(r.tema)));
+if(f==='subtema')return fUniq(R.filter(r=>!v.tema||t(r.tema)===v.tema).map(r=>t(r.subtema)));
+if(f==='aspek'||f==='jenis')return fUniq(R.map(r=>t(r[f])));
+if(f==='status')return R.length?FSTAT:[];
+if(f==='nama'){const kl=v.kelas||klf(),sw=(SISWA||[]).filter(s=>!kl||kelNorm(s.kelas)===kl).map(s=>s.nama);return fUniq(k==='kehadiran'?sw:R.map(r=>t(r.nama)).concat(sw))}
+if(f==='keg')return fUniq(R.map(r=>t(r.tema)).concat(R.map(r=>t(r.bentuk))));
+return[]}
+function filDyn(k){const sig=[],on=[];let h='';
+(FIL[k]||[]).forEach(f=>{let o=filOpsi(k,f);
+if(f==='kelas'&&!(o.length>=2||(o.length===1&&!klf())))o=[]; // satu pilihan saja (kelompok guru sendiri) tidak perlu disaring
+if(!o.length)return;on.push(f);sig.push(f,o);
+const L=typeof FLB[f]==='object'?FLB[f][k]:FLB[f],id='f_'+f;let cur=KF.v[f]||'';
+if(f==='nama'||f==='keg')h+=`<div class="fd"><label for="${id}">${L}</label><input id="${id}" data-f="${f}" list="dl_${f}" placeholder="${f==='nama'?'Ketik atau pilih nama anak':'Ketik tema atau kegiatan'}" autocomplete="off" style="width:210px" value="${esc(cur)}"><datalist id="dl_${f}">${o.map(x=>`<option value="${esc(x)}">`).join('')}</datalist></div>`;
+else{const ops=o.map(x=>Array.isArray(x)?x:[x,x]);if(cur&&!ops.some(x=>x[0]===cur)){KF.v[f]=cur=''}
+h+=`<div class="fd"><label for="${id}">${L}</label><select id="${id}" data-f="${f}" style="width:210px"><option value="">Semua</option>${ops.map(([a,b])=>`<option value="${esc(a)}"${a===cur?' selected':''}>${esc(b)}</option>`).join('')}</select></div>`}});
+return{h,on,sig:JSON.stringify(sig)}}
+function filSync(k){const d=$('#fdyn');if(!d)return;if(KF.k!==k)KF={k,v:{},sig:'',on:[]};
+const x=filDyn(k);KF.on=x.on;if(x.sig===KF.sig)return;
+const a=document.activeElement,fa=a&&a.dataset&&a.dataset.f&&d.contains(a)?a.dataset.f:'',p=fa?a.selectionStart:null;
+d.innerHTML=x.h;KF.sig=x.sig;
+if(fa){const n=d.querySelector('[data-f='+fa+']');if(n){n.focus();try{n.setSelectionRange(p,p)}catch(e){}}}}
+// status anak pada satu catatan Kehadiran: anak di kelompok itu = hadir, lalu ditimpa daftar tidak hadir (absen) dan perubahan guru (manual)
+function khPeta(r){const m=new Map();
+(SISWA||[]).filter(s=>kelNorm(s.kelas)===kelNorm(r.kelas)).forEach(s=>m.set(kunci(s.nama),'hadir'));
+const a=absenDari(r);Object.keys(a).forEach(n=>m.set(kunci(n),a[n]));
+const mn=parseManual(r.manual);Object.keys(mn).forEach(n=>m.set(kunci(n),mn[n]));return m}
+function khCocok(r,q,st){q=kunci(q);if(!q&&!st)return true;const m=khPeta(r);
+if(!q)return[...m.values()].includes(st)||+r[st]>0;
+return[...m.entries()].some(([n,s])=>n.includes(q)&&(!st||s===st))}
+function filCocok(k){const b=($('#bln')||{}).value||'',t=($('#tg')||{}).value||'',v=KF.v,on=KF.on||[];
+return(ROWS[k]||[]).filter(r=>{const d=String(r.tanggal).slice(0,10);
+if(b&&d.slice(0,7)!==b)return false;if(t&&d!==t)return false;
+if(k==='kehadiran'&&(on.includes('nama')||on.includes('status'))&&!khCocok(r,on.includes('nama')?v.nama:'',on.includes('status')?v.status:''))return false;
+return on.every(f=>{const x=v[f];if(!x)return true;
+if(f==='kelas')return kelNorm(r.kelas)===x;
+if(f==='tema'||f==='subtema'||f==='aspek'||f==='jenis')return String(r[f]||'').trim()===x;
+if(f==='nama')return k==='kehadiran'||kunci(r.nama).includes(kunci(x));
+if(f==='keg')return[r.tema,r.bentuk,r.aktivitas,r.tujuan].join(' ').toLowerCase().includes(String(x).trim().toLowerCase());
+return true})})}
+const filKartu=()=>`<div class="fd"><label for="bln">Bulan dan tahun</label><input type="month" id="bln" value="${hari().slice(0,7)}" style="width:210px"></div><div class="fd"><label for="tg">Tanggal</label><input type="date" id="tg" style="width:210px"></div><div id="fdyn" style="display:contents"></div><div class="fd" style="display:flex;gap:8px"><button type="button" class="btn y" id="fcari">Cari</button><button type="button" class="btn gh" id="freset">Reset</button></div><small class="sub" style="flex-basis:100%">Boleh memakai satu atau beberapa filter sekaligus. Kosongkan bulan untuk melihat semua.</small>`;
+function filPasang(k){const fc=$('#fc');let tm=0;const segar=()=>tampil(k);
+fc.addEventListener('input',e=>{const t=e.target;if(t.tagName==='INPUT'&&t.dataset.f){KF.v[t.dataset.f]=t.value;clearTimeout(tm);tm=setTimeout(segar,150)}});
+fc.addEventListener('change',e=>{const t=e.target;
+if(t.id==='tg'){if(t.value)$('#bln').value=t.value.slice(0,7)}
+else if(t.id==='bln'){const g=$('#tg');if(g.value&&g.value.slice(0,7)!==t.value)g.value=''}
+else if(t.dataset&&t.dataset.f){KF.v[t.dataset.f]=t.value;if(t.dataset.f==='tema')KF.v.subtema=''}
+else return;segar()});
+fc.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+if(b.id==='fcari'){if(document.activeElement)document.activeElement.blur();segar()}
+else if(b.id==='freset'){KF.v={};KF.sig='';$('#bln').value=hari().slice(0,7);$('#tg').value='';segar()}})}
+
 async function viewJurnal(k){const j=J[k],m=$('#main');
 m.innerHTML=`<div class="jh c${j.no%4}"><span class="em">${j.ic}</span><div><h2>${j.n}</h2><small>${j.no}. ${j.per}${klf()?' - '+klf():''}</small></div><div class="jbt"><button class="btn rd" id="hh">Hapus 1 Hari</button><button class="btn y" id="ad">+ Tambah Catatan</button></div></div>
-<div class="card filt"><div class="fd"><label for="bln">Bulan</label><input type="month" id="bln" value="${hari().slice(0,7)}" style="width:210px"></div><small class="sub">Kosongkan untuk melihat semua</small></div><div id="ls">${muat()}</div>`;
-$('#ad').onclick=()=>bukaForm(k);$('#hh').onclick=()=>hapusHariDialog(k);$('#bln').onchange=()=>tampil(k);
+<div class="card filt" id="fc">${filKartu()}</div><div id="ls">${muat()}</div>`;
+KF={k,v:{},sig:'',on:[]};
+$('#ad').onclick=()=>bukaForm(k);$('#hh').onclick=()=>hapusHariDialog(k);filPasang(k);
+if(k==='kehadiran'||k==='perkembangan')loadSiswa().then(()=>{if(S.view===k&&$('#fdyn'))tampil(k)}).catch(()=>{}); // daftar nama anak (dari cache bila offline)
 const cc=cGet('semua');if(!ROWS[k]&&cc&&Array.isArray(cc[k]))ROWS[k]=urut(cc[k].slice());if(ROWS[k])tampil(k);
 try{const r=await api('list',{jenis:k});ROWS[k]=urut(r.rows);cRows(k);if(S.view===k)tampil(k)}
 catch(e){if(!ROWS[k])$('#ls').innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
-function tampil(k){const j=J[k],b=$('#bln').value,rs=(ROWS[k]||[]).filter(r=>!b||String(r.tanggal).slice(0,7)===b);
-$('#ls').innerHTML=rs.length?rs.map(r=>`<div class="card row"><small>${fmt(r.tanggal)}</small><h3>${esc(j.t(r))}</h3><div class="kv">${j.f.filter(f=>f.k!=='tanggal'&&r[f.k]!==''&&r[f.k]!==undefined).map(f=>`<div><small>${f.l}</small>${esc(fv(f,r))}</div>`).join('')}</div>${fotoHtml(r)}<button class="btn gh s" data-e="${r.ID}">Ubah</button> <button class="btn rd s" data-d="${r.ID}">Hapus</button></div>`).join(''):`<div class="card empty">Belum ada catatan. Ketuk <b>+ Tambah Catatan</b> untuk mengisi jurnal.</div>`;
+function tampil(k){const j=J[k];filSync(k);const rs=filCocok(k);
+$('#ls').innerHTML=rs.length?rs.map(r=>`<div class="card row"><small>${fmt(r.tanggal)}</small><h3>${esc(j.t(r))}</h3><div class="kv">${j.f.filter(f=>f.k!=='tanggal'&&r[f.k]!==''&&r[f.k]!==undefined).map(f=>`<div><small>${f.l}</small>${esc(fv(f,r))}</div>`).join('')}</div>${fotoHtml(r)}<button class="btn gh s" data-e="${r.ID}">Ubah</button> <button class="btn rd s" data-d="${r.ID}">Hapus</button></div>`).join(''):`<div class="card empty">${(ROWS[k]||[]).length?'Data tidak ditemukan':'Belum ada catatan. Ketuk <b>+ Tambah Catatan</b> untuk mengisi jurnal.'}</div>`;
 isiFoto($('#ls'));
 $('#ls').onclick=async e=>{const bf=e.target.closest('img.ft');if(bf&&bf.dataset.loaded)return lihatFoto(bf.src);const be=e.target.closest('[data-e]'),bd=e.target.closest('[data-d]');
 if(be)bukaForm(k,ROWS[k].find(r=>r.ID===be.dataset.e));
@@ -1342,16 +1404,32 @@ function renderDataSiswa(){const q=(($('#sq')||{}).value||'').trim().toLowerCase
 if(!SD||SD.iNama<0)return $('#sr').innerHTML='<div class="empty">Kolom nama tidak ditemukan di sheet Data Siswa.</div>';
 if(!SD.rows.length)return $('#sr').innerHTML='<div class="empty">Belum ada data siswa untuk kelompok ini.</div>';
 const cs=sdCols(),ix=SD.rows.map((r,i)=>i).filter(i=>!q||String(SD.rows[i][SD.iNama]).toLowerCase().includes(q));
-$('#sr').innerHTML=`<p style="margin:0 0 8px"><b>${ix.length}</b> anak. Ketuk baris untuk melihat data lengkap: alamat, orang tua/wali, dan kontak.</p><div class="ov"><table class="rt ap sis"><thead><tr><th>No</th>${cs.map(c=>`<th>${c.l}</th>`).join('')}</tr></thead><tbody>${ix.length?ix.map((i,n)=>`<tr data-i="${i}"><td class="c">${n+1}</td>${cs.map(c=>`<td>${esc(sdv(SD.kolom[c.i],SD.rows[i][c.i]))}</td>`).join('')}</tr>`).join(''):`<tr><td class="c" colspan="${cs.length+1}">Tidak ada nama yang cocok.</td></tr>`}</tbody></table></div>`}
+$('#sr').innerHTML=`<p style="margin:0 0 8px"><b>${ix.length}</b> anak. Ketuk baris untuk melihat data lengkap: alamat, orang tua/wali, dan kontak.</p><div class="ov"><table class="rt ap sis"><thead><tr><th>No</th>${cs.map(c=>`<th>${c.l}</th>`).join('')}</tr></thead><tbody>${ix.length?ix.map((i,n)=>`<tr data-i="${i}"><td class="c">${n+1}</td>${cs.map(c=>`<td>${esc(sdv(SD.kolom[c.i],SD.rows[i][c.i]))}</td>`).join('')}</tr>`).join(''):`<tr><td class="c" colspan="${cs.length+1}">Data tidak ditemukan</td></tr>`}</tbody></table></div>`}
 async function muatDataSiswa(){const kc='ds_'+(klf()||nilai('sk')||''),cd=cGet(kc);if(cd){SD=cd;renderDataSiswa()}else $('#sr').innerHTML=muat();
 try{const j=await api('dataSiswa',{kelas:klf()||nilai('sk')});cSet(kc,j);if(S.view!=='siswa'||SISTAB!=='data')return;SD=j;renderDataSiswa()}
 catch(e){if(!cd&&S.view==='siswa'&&SISTAB==='data')$('#sr').innerHTML=`<div class="empty">${esc(/tidak dikenal/i.test(e.message)?'Backend belum diperbarui. Pasang Code.gs versi terbaru lalu Deploy > Manage deployments > Edit > Version baru.':e.message)}</div>`}}
+let PJ=null; // hasil presensi terakhir; nama anak dan status disaring di sini, tanpa memanggil server lagi
+function presTampil(){const sr=$('#sr'),n=$('#sn'),s=$('#st'),j=PJ;if(!sr||!n||!s||!j||S.view!=='siswa'||SISTAB!=='pres')return;
+if(j.err||j.loading||!j.hari)return sr.innerHTML=presTabel(j,'ap');
+const q=kunci(n.value),st=s.value,rs=j.rows.filter(r=>(!q||kunci(r.nama).includes(q))&&(!st||(st==='hadir'?r.hadir>0&&r.sakit+r.izin+r.alpha===0:r[st]>0)));
+sr.innerHTML=rs.length?presTabel({...j,rows:rs},'ap'):'<div class="empty" style="padding:16px">Data tidak ditemukan</div>'}
 function tabSiswa(){document.querySelectorAll('#stb button').forEach(b=>b.classList.toggle('on',b.dataset.t===SISTAB));const sr=$('#sr');sr.onclick=null;
-if(SISTAB==='data'){$('#sfil').innerHTML=`<div class="filt"><div class="fd"><label for="sq">Cari nama</label><input id="sq" placeholder="Ketik nama anak" style="width:260px" autocomplete="off"></div><small class="sub">Daftar anak dari spreadsheet absensi, data lengkap diisi di sini (tombol Ubah)</small></div>`;
-$('#sq').oninput=renderDataSiswa;sr.onclick=e=>{const t=e.target.closest('tr[data-i]');if(t)sdDetail(+t.dataset.i)};muatDataSiswa()}
-else{$('#sfil').innerHTML=`<div class="filt"><div class="fd"><label for="sb">Bulan</label><input type="month" id="sb" value="${hari().slice(0,7)}" style="width:210px"></div><small class="sub">Sumber: Rekap Absen, hanya pada tanggal yang Jurnal Kehadirannya sudah diisi</small></div>`;
-const r=async()=>{const kc='pr_'+$('#sb').value+'_'+(klf()||nilai('sk')||''),cd=cGet(kc);if(cd)sr.innerHTML=presTabel(cd,'ap');else sr.innerHTML=muat();try{const j=await api('presensi',{bulan:$('#sb').value,kelas:klf()||nilai('sk')});cSet(kc,j);if(S.view==='siswa'&&SISTAB==='pres')sr.innerHTML=presTabel(j,'ap')}catch(e){if(!cd&&S.view==='siswa'&&SISTAB==='pres')sr.innerHTML=`<div class="empty">${esc(e.message)}</div>`}};
-$('#sb').onchange=r;r()}}
+if(SISTAB==='data'){$('#sfil').innerHTML=`<div class="filt"><div class="fd"><label for="sq">Cari nama</label><input id="sq" placeholder="Ketik nama anak" style="width:260px" autocomplete="off"></div><div class="fd" style="display:flex;gap:8px"><button type="button" class="btn y" id="qc">Cari</button><button type="button" class="btn gh" id="qx">Reset</button></div><small class="sub">Daftar anak dari spreadsheet absensi, data lengkap diisi di sini (tombol Ubah)</small></div>`;
+$('#sq').oninput=renderDataSiswa;$('#qc').onclick=renderDataSiswa;$('#qx').onclick=()=>{$('#sq').value='';renderDataSiswa()};sr.onclick=e=>{const t=e.target.closest('tr[data-i]');if(t)sdDetail(+t.dataset.i)};muatDataSiswa()}
+else{$('#sfil').innerHTML=`<div class="filt"><div class="fd"><label for="sb">Bulan dan tahun</label><input type="month" id="sb" value="${hari().slice(0,7)}" style="width:210px"></div><div class="fd"><label for="sd">Dari tanggal</label><input type="date" id="sd" style="width:210px"></div><div class="fd"><label for="ss">Sampai tanggal</label><input type="date" id="ss" style="width:210px"></div><div class="fd"><label for="sn">Nama anak</label><input id="sn" list="dl_sn" placeholder="Ketik atau pilih nama anak" autocomplete="off" style="width:210px"><datalist id="dl_sn"></datalist></div><div class="fd"><label for="st">Status presensi</label><select id="st" style="width:210px"><option value="">Semua</option><option value="sakit">Pernah sakit</option><option value="izin">Pernah izin</option><option value="alpha">Pernah tanpa keterangan</option><option value="hadir">Selalu hadir</option></select></div><div class="fd" style="display:flex;gap:8px"><button type="button" class="btn y" id="sc">Cari</button><button type="button" class="btn gh" id="sx">Reset</button></div><small class="sub" style="flex-basis:100%">Rentang tanggal menggantikan bulan. Sumber: Rekap Absen, hanya pada tanggal yang Jurnal Kehadirannya sudah diisi</small></div>`;
+PJ=null;const sb=$('#sb'),sd=$('#sd'),ss=$('#ss'),kl=()=>klf()||nilai('sk')||'';
+const rg=()=>!!(sd.value||ss.value),kc=()=>rg()?'pr_r'+sd.value+'_'+ss.value+'_'+kl():'pr_'+sb.value+'_'+kl();
+const prm=()=>rg()?{dari:sd.value,sampai:ss.value,kelas:kl()}:{bulan:sb.value,kelas:kl()};
+const isi=()=>{const dl=$('#dl_sn');if(dl&&PJ&&PJ.rows)dl.innerHTML=PJ.rows.map(x=>`<option value="${esc(x.nama)}">`).join('');presTampil()};
+const ld=async()=>{if(sd.value&&ss.value&&sd.value>ss.value)return toast('Tanggal "Dari" tidak boleh setelah "Sampai"',1);
+const c=kc(),cd=cGet(c);if(cd){PJ=cd;isi()}else sr.innerHTML=muat();
+try{const j=await api('presensi',prm());cSet(c,j);if(S.view==='siswa'&&SISTAB==='pres'&&c===kc()){PJ=j;isi()}}
+catch(e){if(!cd&&S.view==='siswa'&&SISTAB==='pres')sr.innerHTML=`<div class="empty">${esc(e.message)}</div>`}};
+sb.onchange=()=>{sd.value='';ss.value='';ld()};
+sd.onchange=ss.onchange=()=>{if(rg())sb.value='';ld()};
+$('#sn').oninput=presTampil;$('#st').onchange=presTampil;$('#sc').onclick=ld;
+$('#sx').onclick=()=>{sb.value=hari().slice(0,7);sd.value=ss.value='';$('#sn').value='';$('#st').value='';ld()};
+ld()}}
 /* ===== Kehadiran otomatis + manual =====
    Status anak diubah lewat tombol Ubah pada Jurnal Kehadiran. Yang berbeda dari Rekap Absen disimpan di kolom "manual"
    (aksi 'simpan' biasa, jadi offline + sinkron otomatis tetap berlaku). Tab Presensi hanya menampilkan rekap. */
