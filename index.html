@@ -737,7 +737,7 @@ async function masuk(){busy=true;
 try{const j=await api('login',{id:GID,pin:PIN,dev:devAmbil(GID)}),lama=PIN;if(j.dev)devSimpan(GID,j.dev);S.token=j.token;S.guru=j.guru;simpanSesi();bunyi('ok');shell();if(j.lemah)dialogPin(true,lama,j.wajib?'admin':'')}
 catch(e){toast(e.message,1);PIN='';const d=$('#dots');d.classList.add('shake');setTimeout(()=>{d.classList.remove('shake');d.querySelectorAll('i').forEach(i=>i.classList.remove('on'))},400)}
 busy=false}
-function keluar(){KBD=null;KBDT=0;document.querySelectorAll('.md').forEach(x=>x.remove());cHapusSemua();S.token=null;S.guru=null;ROWS={};SISWA=null;Object.keys(FP).forEach(k=>delete FP[k]);try{localStorage.removeItem('jg')}catch(e){}viewLogin()}
+function keluar(){KBD=null;KBDT=0;document.querySelectorAll('.md').forEach(x=>x.remove());cHapusSemua();S.token=null;S.guru=null;ROWS={};SISWA=null;Object.keys(FP).forEach(k=>delete FP[k]);LH.data=null;LH.id='';Object.keys(FL).forEach(k=>delete FL[k]);try{localStorage.removeItem('jg')}catch(e){}viewLogin()}
 
 /* ---------- ganti PIN (wajib jika PIN lemah / bawaan) ---------- */
 function dialogPin(wajib,lamaOtomatis,alasan){const md=document.createElement('div');md.className='md';
@@ -757,20 +757,20 @@ catch(er){toast(er.message,1);b.disabled=false;b.textContent='Simpan PIN'}}}
 /* ---------- kerangka ---------- */
 const SHORT=k=>J[k].no+'. '+J[k].n.replace('Jurnal ','').replace(' Guru dan Sekolah','');
 function shell(){S.mode='app';
-const items=[['beranda','🏠','Dashboard'],...ORDER.map(k=>[k,J[k].ic,SHORT(k)]),['siswa','🧑‍🎓','Data Siswa'],['portofolio','👧','Portofolio Anak'],['laporan','📄','Laporan'],['pengaturan','⚙️','Pengaturan']];
+const items=[['beranda','🏠','Dashboard'],...ORDER.map(k=>[k,J[k].ic,SHORT(k)]),['siswa','🧑‍🎓','Data Siswa'],['portofolio','👧','Portofolio Anak'],['laporan','📄','Laporan'],...(boleh('guru.lihat')?[['lihat','👁️','Lihat Guru']]:[]),['pengaturan','⚙️','Pengaturan']];
 $('#app').innerHTML=`<header class="top"><div class="brand"><img class="lg" src="${logoSek()}" alt=""><div><b>Jurnal Guru</b><small>KB-RA AT TIBYAN</small></div></div><div class="cu" id="me"></div></header>
 <nav class="menu" id="nav">${items.map(([v,ic,l])=>`<button class="nv" data-v="${v}"><i class="ni">${ic}</i><span>${l}</span></button>`).join('')}<div class="sbx"><button type="button" class="promo" data-v="harian"><b>Catat hari ini</b><small>Isi jurnal harian sebelum pulang agar tidak menumpuk.</small><i>→</i></button><button type="button" class="lo2" data-lo><i class="ni">🚪</i>Keluar</button></div></nav>
 <div class="page"><h1 class="pt" id="pt"></h1><main id="main"></main></div>
 <footer class="foot">⭐ Jurnal Guru TK: mencatat langkah kecil, mendukung mimpi besar ⭐</footer>`;
 $('#nav').onclick=e=>{if(e.target.closest('[data-lo]'))return keluar();const b=e.target.closest('[data-v]');if(b)go(b.dataset.v)};
-isiAkun();loadSiswa();go(S.view);segarPeran().then(b=>{if(b&&S.view==='pengaturan')viewPengaturan()});if(!String(S.guru.kelas||'').trim())pilihKelompok()}
+isiAkun();loadSiswa();go(S.view);segarPeran().then(b=>{if(b)shell()});if(!String(S.guru.kelas||'').trim())pilihKelompok()}
 function isiAkun(){const g=S.guru;
 $('#me').innerHTML=`${av(g.foto,g.nama)}<span>${esc(g.nama)}</span><button class="btn y s" id="out">Keluar</button>`;$('#out').onclick=keluar}
 function go(v){S.view=v;document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.dataset.v===v));window.scrollTo(0,0);
-$('#pt').textContent=v==='laporan'?'Laporan':v==='siswa'?'Data siswa dan presensi':v==='portofolio'?'Portofolio perkembangan anak':v==='identitas'?J.identitas.n:v==='pengaturan'?'Pengaturan':'';
-$('#pt').style.display=['laporan','siswa','portofolio','identitas','pengaturan'].includes(v)?'':'none';
+$('#pt').textContent=v==='laporan'?'Laporan':v==='siswa'?'Data siswa dan presensi':v==='portofolio'?'Portofolio perkembangan anak':v==='identitas'?J.identitas.n:v==='pengaturan'?'Pengaturan':v==='lihat'?'Lihat jurnal guru':'';
+$('#pt').style.display=['laporan','siswa','portofolio','identitas','pengaturan','lihat'].includes(v)?'':'none';
 if(v!=='identitas'&&v!=='laporan')segarAkad();
-v==='beranda'?viewBeranda():v==='identitas'?viewIdentitas():v==='pengaturan'?viewPengaturan():v==='laporan'?segarAkad().then(()=>{if(S.view==='laporan')viewLaporan()}):v==='siswa'?viewSiswa():v==='portofolio'?viewPortofolio():viewJurnal(v)}
+v==='beranda'?viewBeranda():v==='identitas'?viewIdentitas():v==='pengaturan'?viewPengaturan():v==='laporan'?segarAkad().then(()=>{if(S.view==='laporan')viewLaporan()}):v==='siswa'?viewSiswa():v==='portofolio'?viewPortofolio():v==='lihat'?viewLihat():viewJurnal(v)}
 const muat=()=>'<div class="empty">Memuat data...</div>';
 
 /* ---------- wajib pilih kelompok jika belum diisi ---------- */
@@ -1878,6 +1878,36 @@ const gambar=()=>{const f=md.querySelector('#lgf').value,r=J2.rows.filter(x=>!f|
 box.innerHTML=(r.slice(0,200).map(x=>{const nm=J2.nama[x[1]];return`<div style="padding:8px 0;border-top:1px solid var(--ln);font-size:13px"><b>${esc(nm?nm+' ('+x[1]+')':x[1])}</b> <span class="abg ${x[3]==='ok'?'hadir':x[3]==='nonaktif'||x[3]==='gagal'||x[3]==='ditolak'?'alpha':'sakit'}">${esc(x[3])}</span> ${esc(x[2])}<br><small class="sub">${esc(x[0])}${x[4]?' · '+esc(x[4]):''}</small></div>`}).join('')||'<div class="empty">Tidak ada catatan.</div>')+(r.length>200?`<p class="sub" style="font-size:12px;margin-top:8px">Menampilkan 200 dari ${r.length} catatan terbaru.</p>`:'')};
 md.querySelector('#lgf').onchange=gambar;
 try{const j=await api('logAkses');J2={rows:j.rows||[],nama:j.nama||{}};gambar()}catch(er){md.querySelector('#lgl').innerHTML=`<div class="empty">${esc(er.message)}</div>`}}
+/* ---------- Lihat Guru (kepala sekolah dan admin): HANYA MEMBACA ---------- */
+/* Terpisah dari data milik sendiri: tidak memakai ROWS, cache lokal, antrean offline, maupun salinan IndexedDB.
+   Data guru lain hanya ada di memori halaman ini dan hilang saat berpindah guru atau keluar. Semua aksi tulis memakai akun sendiri. */
+const LH={id:'',nama:'',data:null,ring:null},FL={},FLQ=[];let FLA=0;
+function fotoLihat(id){const key=LH.id+'|'+id;return FL[key]||(FL[key]=new Promise((ok,no)=>{FLQ.push({id,gid:LH.id,key,ok,no});flJalan()}))}
+function flJalan(){while(FLA<3&&FLQ.length){const t=FLQ.shift();FLA++;api('fotoData',{id:t.id,guruId:t.gid}).then(j=>t.ok(j.data)).catch(e=>{delete FL[t.key];t.no(e)}).finally(()=>{FLA--;flJalan()})}}
+function isiFotoLihat(root){root.querySelectorAll('img[data-fid]:not([data-ok])').forEach(im=>{im.dataset.ok=1;fotoLihat(im.dataset.fid).then(s=>{im.src=s;im.dataset.loaded=1}).catch(()=>{im.alt='Foto gagal dimuat'})})}
+async function viewLihat(){
+const m=$('#main');LH.id='';LH.data=null;Object.keys(FL).forEach(k=>delete FL[k]);FLQ.length=0;
+if(!boleh('guru.lihat')){m.innerHTML='<div class="card empty">Menu ini hanya untuk kepala sekolah dan admin.</div>';return}
+m.innerHTML=`<div class="card"><h3>👁️ Lihat jurnal guru</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Hanya membaca: Anda tidak bisa menambah, mengubah, atau menghapus catatan guru lain. Setiap pembukaan tercatat di Log Akses. Data tidak disimpan di perangkat ini dan perlu koneksi internet.</p><div class="fd"><label for="lgs">Pilih guru</label><select id="lgs"><option value="">Memuat daftar guru...</option></select></div></div><div id="lhs"></div>`;
+try{const j=await api('daftarLihat'),s=$('#lgs');if(!s||S.view!=='lihat')return;
+const L=(j.guru||[]).filter(x=>x.id!==S.guru.id);
+s.innerHTML='<option value="">Pilih guru...</option>'+L.map(x=>`<option value="${esc(x.id)}">${esc(x.nama||x.id)}${x.kelas?' · '+esc(x.kelas):''}${x.aktif==='tidak'?' (nonaktif)':''}</option>`).join('');
+s.onchange=()=>{const id=s.value;if(!id){LH.id='';LH.data=null;$('#lhs').innerHTML='';return}lihatMuat(id,s.options[s.selectedIndex].text)}}
+catch(er){const s=$('#lgs');if(s)s.innerHTML='<option value="">'+esc(er.message)+'</option>'}}
+async function lihatMuat(id,label){
+const box=$('#lhs');box.innerHTML='<div class="card empty">Memuat jurnal...</div>';LH.id=id;LH.data=null;Object.keys(FL).forEach(k=>delete FL[k]);FLQ.length=0;
+try{const j=await api('lihatSemua',{guruId:id});if(LH.id!==id||S.view!=='lihat')return;
+LH.data=j.data||{};LH.ring=j.ringkasan||{};LH.nama=(j.guru&&j.guru.nama)||label;
+box.innerHTML=`<div class="card"><h3>${esc(LH.nama)}</h3><div class="kv">${KEYS.map(k=>{const r=LH.ring[k]||{};return`<div><small>${J[k].ic} ${esc(SHORT(k))}</small>${r.total||0} catatan · bulan ini ${r.bulan||0}</div>`}).join('')}</div></div><div class="card"><div class="filt"><div class="fd" style="flex:1 1 240px"><label for="lhj">Jurnal</label><select id="lhj">${KEYS.map(k=>`<option value="${k}">${esc(SHORT(k))} (${(LH.data[k]||[]).length})</option>`).join('')}</select></div><div class="fd"><label for="lhb">Bulan</label><input type="month" id="lhb" style="width:190px"></div></div><small class="sub">Bulan boleh dikosongkan untuk melihat semua catatan.</small></div><div id="lhl"></div>`;
+$('#lhj').onchange=lihatGambar;$('#lhb').onchange=lihatGambar;
+$('#lhl').onclick=e=>{const bf=e.target.closest('img.ft');if(bf&&bf.dataset.loaded)lihatFoto(bf.src)};
+lihatGambar()}
+catch(er){if(LH.id===id)box.innerHTML=`<div class="card empty">${esc(er.message)}</div>`}}
+function lihatGambar(){
+const k=($('#lhj')||{}).value,b=($('#lhb')||{}).value,j=J[k],el=$('#lhl');if(!j||!el||!LH.data)return;
+const rs=urut((LH.data[k]||[]).slice()).filter(r=>!b||String(r.tanggal).slice(0,7)===b);
+el.innerHTML=rs.length?rs.slice(0,150).map(r=>`<div class="card row"><small>${fmt(r.tanggal)}</small><h3>${esc(j.t(r))}</h3><div class="kv">${j.f.filter(f=>f.k!=='tanggal'&&r[f.k]!==''&&r[f.k]!==undefined).map(f=>`<div><small>${f.l}</small>${esc(fv(f,r))}</div>`).join('')}</div>${fotoHtml(r)}</div>`).join('')+(rs.length>150?`<p class="sub" style="font-size:12px;margin:8px 0">Menampilkan 150 dari ${rs.length} catatan terbaru. Pilih bulan untuk mempersempit.</p>`:''):'<div class="card empty">Tidak ada catatan.</div>';
+isiFotoLihat(el)}
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 
 /* ---------- mulai ---------- */
