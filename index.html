@@ -466,6 +466,11 @@ html[data-tema=belajar] .hero h1{font-size:20px}html[data-tema=ujian] .hero{padd
 @media(min-width:900px){.lgx-card{max-width:880px;display:grid;grid-template-columns:1fr 1fr}.lgx-hd{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:48px 32px}.lgx-logo{width:150px;height:150px;padding:12px}.lgx-hd h1{font-size:34px;margin-top:20px}.lgx-hd p{font-size:17px}.lgx-fm{padding:0 48px}.lgx-ft{padding:12px 48px 0}}
 @media(max-height:560px) and (max-width:899px){.lgx{place-items:start center}.lgx-hd{padding:14px}.lgx-logo{width:56px;height:56px}.lgx-hd h1{font-size:21px;margin-top:6px}}
 @media(prefers-reduced-motion:reduce){.lgx-card.shake{animation:none}}
+/* halaman login tidak ikut desain/tema aplikasi: tanpa menu samping, warna dan huruf tetap seperti desain login */
+#app.lgmode{padding:0!important;min-height:0!important;--blue:#1e88e5;--blued:#1565c0;--navy:#243b7b;--ink:#2b3a67;--mut:#6c7aa5;--ln:#cfe6fa;--sh:0 8px 24px #1e88e51f;font-family:'Nunito',system-ui,sans-serif}
+#app.lgmode::before{display:none!important}
+#app.lgmode :is(h1,h2,h3,button,input,select){font-family:inherit}
+
 /* daftar nama login: pilihan modern, latar putih */
 .dd{position:relative}
 .dd-b{font:inherit;font-size:16px;height:50px;width:100%;box-sizing:border-box;border:2px solid var(--ln);border-radius:14px;padding:0 44px 0 14px;background:#fff;color:var(--ink);text-align:left;cursor:pointer;position:relative;display:flex;align-items:center}
@@ -791,7 +796,7 @@ document.addEventListener('pointerdown',luar);
 new MutationObserver(sync).observe(U,{childList:true,attributes:true,attributeFilter:['disabled']});
 sync()}
 async function viewLogin(){S.mode='login';GID='';PIN='';busy=false;
-$('#app').innerHTML=`<div class="lgx"><div class="lgx-card">
+$('#app').classList.add('lgmode');$('#app').innerHTML=`<div class="lgx"><div class="lgx-card">
 <div class="lgx-hd"><img class="lgx-logo" id="lgxLogo" src="${LOGO}" alt="Logo sekolah"><h1>Jurnal Guru TK</h1><p id="lgxSek">KB-RA At Tibyan</p></div>
 <div class="lgx-body"><form class="lgx-fm" id="lgxF" novalidate>
 <label for="lgxU">Nama pengguna</label>
@@ -848,7 +853,7 @@ catch(er){toast(er.message,1);b.disabled=false;b.textContent='Simpan PIN'}}}
 
 /* ---------- kerangka ---------- */
 const SHORT=k=>J[k].no+'. '+J[k].n.replace('Jurnal ','').replace(' Guru dan Sekolah','');
-function shell(){S.mode='app';
+function shell(){S.mode='app';$('#app').classList.remove('lgmode');
 const aj=ngajar(),items=[['beranda','🏠','Dashboard'],...(aj?ORDER:['identitas']).map(k=>[k,J[k].ic,SHORT(k)]),...(aj?[['siswa','🧑‍🎓','Data Siswa'],['portofolio','👧','Portofolio Anak'],['laporan','📄','Laporan']]:adminSek()?[['siswa','🧑‍🎓','Data Siswa']]:[]),...(boleh('guru.lihat')?[['lihat','👁️','Lihat Guru']]:[]),['pengaturan','⚙️','Pengaturan']];
 $('#app').innerHTML=`<header class="top"><div class="brand"><img class="lg" src="${logoSek()}" alt=""><div><b>Jurnal Guru</b><small>KB-RA AT TIBYAN</small></div></div><div class="cu" id="me"></div></header>
 <nav class="menu" id="nav">${items.map(([v,ic,l])=>`<button class="nv" data-v="${v}"><i class="ni">${ic}</i><span>${l}</span></button>`).join('')}<div class="sbx">${aj?'<button type="button" class="promo" data-v="harian"><b>Catat hari ini</b><small>Isi jurnal harian sebelum pulang agar tidak menumpuk.</small><i>→</i></button>':''}<button type="button" class="lo2" data-lo><i class="ni">🚪</i>Logout</button></div></nav>
