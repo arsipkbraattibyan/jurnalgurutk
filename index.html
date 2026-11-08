@@ -734,14 +734,14 @@ document.querySelectorAll('#dots i').forEach((d,i)=>d.classList.toggle('on',i<PI
 if(PIN.length===6)masuk()}
 document.addEventListener('keydown',e=>{if(S.mode!=='login')return;if(/^\d$/.test(e.key))tekan(e.key);else if(e.key==='Backspace')tekan('⌫')});
 async function masuk(){busy=true;
-try{const j=await api('login',{id:GID,pin:PIN,dev:devAmbil(GID)}),lama=PIN;if(j.dev)devSimpan(GID,j.dev);S.token=j.token;S.guru=j.guru;simpanSesi();bunyi('ok');shell();if(j.lemah)dialogPin(true,lama)}
+try{const j=await api('login',{id:GID,pin:PIN,dev:devAmbil(GID)}),lama=PIN;if(j.dev)devSimpan(GID,j.dev);S.token=j.token;S.guru=j.guru;simpanSesi();bunyi('ok');shell();if(j.lemah)dialogPin(true,lama,j.wajib?'admin':'')}
 catch(e){toast(e.message,1);PIN='';const d=$('#dots');d.classList.add('shake');setTimeout(()=>{d.classList.remove('shake');d.querySelectorAll('i').forEach(i=>i.classList.remove('on'))},400)}
 busy=false}
 function keluar(){KBD=null;KBDT=0;document.querySelectorAll('.md').forEach(x=>x.remove());cHapusSemua();S.token=null;S.guru=null;ROWS={};SISWA=null;Object.keys(FP).forEach(k=>delete FP[k]);try{localStorage.removeItem('jg')}catch(e){}viewLogin()}
 
 /* ---------- ganti PIN (wajib jika PIN lemah / bawaan) ---------- */
-function dialogPin(wajib,lamaOtomatis){const md=document.createElement('div');md.className='md';
-md.innerHTML=`<div class="sheet"><h2>🔒 ${wajib?'Buat PIN baru sekarang':'Ganti PIN'}</h2><p class="sub" style="margin-bottom:12px">${wajib?'PIN Anda terlalu mudah ditebak. Buat PIN baru 6 angka sebelum melanjutkan.':'PIN 6 angka. Hindari 123456, 111111, tanggal lahir, atau urutan angka.'}</p><div class="fg">${lamaOtomatis?'':'<div class="fd"><label>PIN lama</label><input type="password" inputmode="numeric" maxlength="6" autocomplete="current-password" name="pl"></div>'}<div class="fd"><label>PIN baru</label><input type="password" inputmode="numeric" maxlength="6" autocomplete="new-password" name="pb"></div><div class="fd"><label>Ulangi PIN baru</label><input type="password" inputmode="numeric" maxlength="6" autocomplete="new-password" name="pu"></div></div><div class="act">${wajib?'':'<button class="btn gh" data-x>Batal</button>'}<button class="btn" data-s>Simpan PIN</button></div></div>`;
+function dialogPin(wajib,lamaOtomatis,alasan){const md=document.createElement('div');md.className='md';
+md.innerHTML=`<div class="sheet"><h2>🔒 ${wajib?'Buat PIN baru sekarang':'Ganti PIN'}</h2><p class="sub" style="margin-bottom:12px">${wajib?(alasan==='admin'?'Admin meminta Anda membuat PIN baru. Buat PIN baru 6 angka sebelum melanjutkan.':'PIN Anda terlalu mudah ditebak. Buat PIN baru 6 angka sebelum melanjutkan.'):'PIN 6 angka. Hindari 123456, 111111, tanggal lahir, atau urutan angka.'}</p><div class="fg">${lamaOtomatis?'':'<div class="fd"><label>PIN lama</label><input type="password" inputmode="numeric" maxlength="6" autocomplete="current-password" name="pl"></div>'}<div class="fd"><label>PIN baru</label><input type="password" inputmode="numeric" maxlength="6" autocomplete="new-password" name="pb"></div><div class="fd"><label>Ulangi PIN baru</label><input type="password" inputmode="numeric" maxlength="6" autocomplete="new-password" name="pu"></div></div><div class="act">${wajib?'':'<button class="btn gh" data-x>Batal</button>'}<button class="btn" data-s>Simpan PIN</button></div></div>`;
 document.body.appendChild(md);
 md.oninput=e=>{if(/^p[lbu]$/.test(e.target.name||''))e.target.value=e.target.value.replace(/\D/g,'').slice(0,6)};
 md.onclick=async e=>{if(e.target.closest('[data-x]'))return md.remove();const b=e.target.closest('[data-s]');if(!b)return;
@@ -763,7 +763,7 @@ $('#app').innerHTML=`<header class="top"><div class="brand"><img class="lg" src=
 <div class="page"><h1 class="pt" id="pt"></h1><main id="main"></main></div>
 <footer class="foot">⭐ Jurnal Guru TK: mencatat langkah kecil, mendukung mimpi besar ⭐</footer>`;
 $('#nav').onclick=e=>{if(e.target.closest('[data-lo]'))return keluar();const b=e.target.closest('[data-v]');if(b)go(b.dataset.v)};
-isiAkun();loadSiswa();go(S.view);if(!String(S.guru.kelas||'').trim())pilihKelompok()}
+isiAkun();loadSiswa();go(S.view);segarPeran().then(b=>{if(b&&S.view==='pengaturan')viewPengaturan()});if(!String(S.guru.kelas||'').trim())pilihKelompok()}
 function isiAkun(){const g=S.guru;
 $('#me').innerHTML=`${av(g.foto,g.nama)}<span>${esc(g.nama)}</span><button class="btn y s" id="out">Keluar</button>`;$('#out').onclick=keluar}
 function go(v){S.view=v;document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.dataset.v===v));window.scrollTo(0,0);
@@ -1812,21 +1812,72 @@ const TM3=[['ceria','Ceria Biru','Desain bawaan: biru, kuning, dan hijau yang ce
 $('#main').innerHTML=`<div class="card"><h3>🎨 Ganti desain</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Pilih tampilan aplikasi. Pilihan tersimpan di perangkat ini.</p>
 <div class="tmg" id="tmg">${TM3.map(([v,n,k,c,bg])=>`<button type="button" class="tmc${SET.tema===v?' on':''}" data-tm="${v}"><div class="tmv" style="background:${bg}">${c.map((x,i)=>`<i style="background:${x};height:${[70,46,58,34][i]}%"></i>`).join('')}</div><b>${n}</b><small>${k}</small></button>`).join('')}</div></div>
 <div class="card"><h3>🔒 Keamanan akun</h3><p class="sub" style="font-size:13px;margin:-6px 0 12px">PIN dipakai untuk masuk. Ganti secara berkala dan jangan dibagikan ke orang lain.</p><button class="btn o s" id="gp" type="button">Ganti PIN</button></div>
+${boleh('pengguna.kelola')?`<div class="card"><h3>👥 Kelola Pengguna</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Atur peran (guru, kepala sekolah, admin), aktifkan atau nonaktifkan akun, wajibkan ganti PIN, dan reset PIN guru. Perlu koneksi internet.</p><button class="btn o s" id="kpb" type="button">Buka Kelola Pengguna</button></div>`:''}${boleh('log.lihat')?`<div class="card"><h3>📜 Log Akses</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Riwayat masuk, percobaan masuk yang gagal, dan tindakan yang ditolak. Perlu koneksi internet.</p><button class="btn o s" id="lgb" type="button">Lihat Log Akses</button></div>`:''}
 <div class="card"><h3>🔊 Suara</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Bunyi pendek saat menekan tombol dan saat data tersimpan atau gagal. Saat catatan jurnal berhasil disimpan, terdengar ucapan "Catatan berhasil disimpan".</p>
 <div class="fg" style="grid-template-columns:repeat(2,1fr);max-width:360px" id="sps"><label class="op"><input type="radio" name="su" value="1"${SET.suara?' checked':''}><span>Hidup</span></label><label class="op"><input type="radio" name="su" value="0"${SET.suara?'':' checked'}><span>Mati</span></label></div>
 <p class="sub" style="font-size:13px;margin:14px 0 6px">Volume</p>
 <div class="fg" style="grid-template-columns:repeat(3,1fr);max-width:460px" id="spv">${[[1,'Pelan'],[2,'Sedang'],[3,'Keras']].map(([v,l])=>`<label class="op"><input type="radio" name="vo" value="${v}"${SET.vol===v?' checked':''}><span>${l}</span></label>`).join('')}</div></div>
-<div class="card"><h3>🧪 Data demo</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Mengisi contoh jurnal Senin sampai Sabtu minggu ini untuk percobaan atau pelatihan. Data demo bertanda khusus, jadi bisa dihapus tanpa menyentuh data asli. Tanggal yang sudah berisi Jurnal Harian atau Kehadiran asli dilewati. Perlu koneksi internet.</p><div class="act" style="justify-content:flex-start;gap:10px;flex-wrap:wrap"><button class="btn y s" id="dmi" type="button">Isi data demo</button><button class="btn gh s" id="dmh" type="button">Hapus data demo</button></div></div>
+${boleh('demo')?`<div class="card"><h3>🧪 Data demo</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Mengisi contoh jurnal Senin sampai Sabtu minggu ini untuk percobaan atau pelatihan. Data demo bertanda khusus, jadi bisa dihapus tanpa menyentuh data asli. Tanggal yang sudah berisi Jurnal Harian atau Kehadiran asli dilewati. Perlu koneksi internet.</p><div class="act" style="justify-content:flex-start;gap:10px;flex-wrap:wrap"><button class="btn y s" id="dmi" type="button">Isi data demo</button><button class="btn gh s" id="dmh" type="button">Hapus data demo</button></div></div>`:''}
 <div class="card"><h3>📲 Pasang di HP atau komputer</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Tampil seperti aplikasi biasa dengan ikon logo sekolah, tanpa bilah alamat browser.</p>${cara}</div>`;
 $('#tmg').onclick=e=>{const b=e.target.closest('[data-tm]');if(!b)return;SET.tema=b.dataset.tm;simpanSet();applyTema();bunyi('ok');viewPengaturan()};
 $('#sps').onchange=e=>{SET.suara=e.target.value==='1';simpanSet();bunyi('ok')};
 $('#spv').onchange=e=>{SET.vol=+e.target.value;simpanSet();bunyi('ok')};
 $('#gp').onclick=()=>dialogPin(false);
-$('#dmi').onclick=async()=>{if(!await tanya('Isi data demo?','Contoh jurnal Senin sampai Sabtu minggu ini akan dibuat, memakai nama anak dari kelompok Anda. Demo sebelumnya diganti. Data asli tidak diubah.','Ya, isi demo',false))return;const b=$('#dmi');b.disabled=true;b.textContent='Mengisi...';
+if($('#kpb'))$('#kpb').onclick=dialogPengguna;if($('#lgb'))$('#lgb').onclick=dialogLog;
+if($('#dmi'))$('#dmi').onclick=async()=>{if(!await tanya('Isi data demo?','Contoh jurnal Senin sampai Sabtu minggu ini akan dibuat, memakai nama anak dari kelompok Anda. Demo sebelumnya diganti. Data asli tidak diubah.','Ya, isi demo',false))return;const b=$('#dmi');b.disabled=true;b.textContent='Mengisi...';
 try{const j=await api('isiDemo');await muatSemua();const x=[];if(j.lewat&&j.lewat.length)x.push(j.lewat.length+' tanggal dilewati karena sudah ada data asli');if(j.tanpaAnak)x.push('jurnal perkembangan dan penilaian per anak dilewati karena daftar anak kosong');if(j.galat&&j.galat.length)x.push('ada bagian yang gagal: '+j.galat[0]);toast('Data demo dibuat: '+j.n+' catatan'+(x.length?'. '+x.join('; '):''),!!(j.galat&&j.galat.length))}catch(er){toast(er.message,1)}b.disabled=false;b.textContent='Isi data demo'};
-$('#dmh').onclick=async()=>{if(!await tanya('Hapus data demo?','Hanya catatan yang dibuat dari tombol Isi data demo yang dihapus. Data asli Anda tidak disentuh.','Ya, hapus'))return;const b=$('#dmh');b.disabled=true;b.textContent='Menghapus...';
+if($('#dmh'))$('#dmh').onclick=async()=>{if(!await tanya('Hapus data demo?','Hanya catatan yang dibuat dari tombol Isi data demo yang dihapus. Data asli Anda tidak disentuh.','Ya, hapus'))return;const b=$('#dmh');b.disabled=true;b.textContent='Menghapus...';
 try{const j=await api('hapusDemo');await muatSemua();toast(j.n?'Data demo dihapus: '+j.n+' catatan':'Tidak ada data demo')}catch(er){toast(er.message,1)}b.disabled=false;b.textContent='Hapus data demo'};
 const b=$('#ins');if(b)b.onclick=async()=>{DIP.prompt();try{await DIP.userChoice}catch(e){}DIP=null;viewPengaturan()}}
+/* ---------- peran dan izin: menu sesuai peran, Kelola Pengguna, Log Akses ---------- */
+/* Menu hanya disembunyikan di tampilan; backend tetap memeriksa izin pada setiap aksi. */
+const boleh=a=>!!(S.guru&&Array.isArray(S.guru.izin)&&S.guru.izin.includes(a));
+const PERAN_L={guru:'Guru',kepsek:'Kepala sekolah',admin:'Admin'};
+function segarPeran(){return api('profil').then(j=>{const o=S.guru,g=j.guru;if(!o||!g)return false;const b=JSON.stringify([o.peran,o.izin])!==JSON.stringify([g.peran,g.izin]);o.peran=g.peran;o.izin=g.izin;simpanSesi();return b}).catch(()=>false)}
+function dialogPengguna(){
+const md=document.createElement('div');md.className='md';
+md.innerHTML=`<div class="sheet"><h2>👥 Kelola Pengguna</h2><p class="sub" style="margin-bottom:10px">Perubahan peran dan status langsung berlaku pada permintaan berikutnya. Guru baru ditambahkan di sheet Guru, lalu PIN-nya dibuat dengan tombol Reset PIN.</p><div id="kpl">${muat()}</div><div class="act"><button class="btn gh" data-x>Tutup</button></div></div>`;
+document.body.appendChild(md);
+let L=[];
+const el=()=>md.querySelector('#kpl');
+const gambar=()=>{el().innerHTML=L.map((u,i)=>`<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--ln)"><span style="flex:1;min-width:0"><b>${esc(u.nama||u.id)}</b><br><small class="sub">${esc(u.id)}${u.kelas?' · '+esc(u.kelas):''}</small><br><span class="abg ${u.peran==='admin'?'izin':u.peran==='kepsek'?'sakit':'hadir'}">${esc(PERAN_L[u.peran]||u.peran)}</span>${u.aktif==='tidak'?' <span class="abg alpha">Nonaktif</span>':''}${u.wajibpin==='ya'?' <span class="abg sakit">Wajib ganti PIN</span>':''}${u.punyaPin?'':' <span class="abg alpha">Belum ada PIN</span>'}</span><button class="btn gh s" type="button" data-u="${i}">Ubah</button></div>`).join('')||'<div class="empty">Belum ada pengguna.</div>'};
+const muatUlang=()=>api('pengguna').then(j=>{L=j.rows||[];gambar()}).catch(er=>{el().innerHTML=`<div class="empty">${esc(er.message)}<br><button class="btn s" data-re type="button" style="margin-top:10px">Coba lagi</button></div>`});
+md.onclick=e=>{if(e.target===md||e.target.closest('[data-x]'))return md.remove();if(e.target.closest('[data-re]'))return muatUlang();const b=e.target.closest('[data-u]');if(b)dialogUbahPengguna(L[+b.dataset.u],muatUlang)};
+muatUlang()}
+function dialogUbahPengguna(u,sesudah){
+const md=document.createElement('div');md.className='md';md.style.zIndex=40;
+const sel=(n,o,v)=>`<select name="${n}">${o.map(([k,l])=>`<option value="${k}"${k===v?' selected':''}>${l}</option>`).join('')}</select>`;
+md.innerHTML=`<div class="sheet" style="max-width:460px"><h2>${esc(u.nama||u.id)}</h2><p class="sub" style="margin-bottom:10px">ID ${esc(u.id)}</p><div class="fg"><div class="fd"><label>Peran</label>${sel('peran',[['guru','Guru'],['kepsek','Kepala sekolah'],['admin','Admin']],u.peran)}</div><div class="fd"><label>Status akun</label>${sel('aktif',[['ya','Aktif'],['tidak','Nonaktif']],u.aktif)}</div><div class="fd"><label>Wajib ganti PIN saat masuk berikutnya</label>${sel('wajibpin',[['tidak','Tidak'],['ya','Ya']],u.wajibpin)}</div></div><div class="act" style="flex-wrap:wrap"><button class="btn rd s" data-r type="button">Reset PIN</button><button class="btn gh" data-x type="button">Batal</button><button class="btn" data-s type="button">Simpan</button></div></div>`;
+document.body.appendChild(md);
+const diri=u.id===S.guru.id,g=n=>md.querySelector(`[name=${n}]`).value;
+md.onclick=async e=>{
+if(e.target===md||e.target.closest('[data-x]'))return md.remove();
+const r=e.target.closest('[data-r]');
+if(r){if(!await tanya('Reset PIN '+(u.nama||u.id)+'?','PIN sementara acak akan dibuat dan PIN lama tidak berlaku lagi. PIN sementara hanya ditampilkan sekali. Saat masuk, guru diminta membuat PIN baru.','Ya, reset'))return;
+r.disabled=true;try{const j=await api('resetPin',{id:u.id});md.remove();tampilPinSementara(j);if(sesudah)sesudah()}catch(er){toast(er.message,1);r.disabled=false}return}
+const b=e.target.closest('[data-s]');if(!b)return;
+const data={peran:g('peran'),aktif:g('aktif'),wajibpin:g('wajibpin')},hilang=diri&&(data.peran!=='admin'||data.aktif!=='ya');
+if(hilang&&!await tanya('Ubah akun Anda sendiri?','Anda akan kehilangan akses admin atau tidak bisa masuk lagi. Lanjutkan?','Ya, lanjutkan'))return;
+b.disabled=true;b.textContent='Menyimpan...';
+try{await api('simpanPengguna',{id:u.id,data});md.remove();toast('Perubahan tersimpan');
+if(hilang){document.querySelectorAll('.md').forEach(x=>x.remove());await segarPeran();viewPengaturan();return}
+if(diri)await segarPeran();if(sesudah)sesudah()}
+catch(er){toast(er.message,1);b.disabled=false;b.textContent='Simpan'}}}
+function tampilPinSementara(j){
+const md=document.createElement('div');md.className='md';md.style.zIndex=50;
+md.innerHTML=`<div class="sheet" style="max-width:420px"><h2>PIN sementara</h2><p class="sub" style="margin-bottom:10px;color:var(--ink)">Berikan PIN ini kepada <b>${esc(j.nama||j.id)}</b>. PIN hanya tampil sekali dan tidak bisa dilihat lagi setelah jendela ini ditutup. Saat masuk, guru diminta membuat PIN baru.</p><div style="font:800 34px/1.2 Nunito,sans-serif;letter-spacing:6px;text-align:center;padding:16px;border-radius:16px;background:#eef5ff;color:var(--navy)">${esc(j.pin)}</div><div class="act"><button class="btn gh" data-c type="button">Salin</button><button class="btn" data-x type="button">Sudah saya catat</button></div></div>`;
+document.body.appendChild(md);
+md.onclick=async e=>{if(e.target.closest('[data-x]'))return md.remove();if(e.target.closest('[data-c]')){try{await navigator.clipboard.writeText(j.pin);toast('PIN disalin')}catch(er){toast('Tidak bisa menyalin, catat manual',1)}}}}
+async function dialogLog(){
+const md=document.createElement('div');md.className='md';
+md.innerHTML=`<div class="sheet"><h2>📜 Log Akses</h2><p class="sub" style="margin-bottom:10px">Maksimal 5.000 catatan terakhir. Login gagal baru dicatat mulai percobaan ke-3.</p><div class="fd" style="margin-bottom:8px"><label>Tampilkan</label><select id="lgf"><option value="">Semua hasil</option><option value="ok">Berhasil (ok)</option><option value="gagal">Login gagal</option><option value="ditolak">Ditolak</option><option value="nonaktif">Akun nonaktif</option></select></div><div id="lgl">${muat()}</div><div class="act"><button class="btn gh" data-x type="button">Tutup</button></div></div>`;
+document.body.appendChild(md);
+md.onclick=e=>{if(e.target===md||e.target.closest('[data-x]'))md.remove()};
+let J2={rows:[],nama:{}};
+const gambar=()=>{const f=md.querySelector('#lgf').value,r=J2.rows.filter(x=>!f||x[3]===f),box=md.querySelector('#lgl');
+box.innerHTML=(r.slice(0,200).map(x=>{const nm=J2.nama[x[1]];return`<div style="padding:8px 0;border-top:1px solid var(--ln);font-size:13px"><b>${esc(nm?nm+' ('+x[1]+')':x[1])}</b> <span class="abg ${x[3]==='ok'?'hadir':x[3]==='nonaktif'||x[3]==='gagal'||x[3]==='ditolak'?'alpha':'sakit'}">${esc(x[3])}</span> ${esc(x[2])}<br><small class="sub">${esc(x[0])}${x[4]?' · '+esc(x[4]):''}</small></div>`}).join('')||'<div class="empty">Tidak ada catatan.</div>')+(r.length>200?`<p class="sub" style="font-size:12px;margin-top:8px">Menampilkan 200 dari ${r.length} catatan terbaru.</p>`:'')};
+md.querySelector('#lgf').onchange=gambar;
+try{const j=await api('logAkses');J2={rows:j.rows||[],nama:j.nama||{}};gambar()}catch(er){md.querySelector('#lgl').innerHTML=`<div class="empty">${esc(er.message)}</div>`}}
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 
 /* ---------- mulai ---------- */
