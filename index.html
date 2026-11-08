@@ -804,7 +804,7 @@ catch(er){toast(er.message,1);b.disabled=false;b.textContent='Simpan PIN'}}}
 /* ---------- kerangka ---------- */
 const SHORT=k=>J[k].no+'. '+J[k].n.replace('Jurnal ','').replace(' Guru dan Sekolah','');
 function shell(){S.mode='app';
-const aj=ngajar(),items=[['beranda','🏠','Dashboard'],...(aj?ORDER:['identitas']).map(k=>[k,J[k].ic,SHORT(k)]),...(aj?[['siswa','🧑‍🎓','Data Siswa'],['portofolio','👧','Portofolio Anak'],['laporan','📄','Laporan']]:[]),...(boleh('guru.lihat')?[['lihat','👁️','Lihat Guru']]:[]),['pengaturan','⚙️','Pengaturan']];
+const aj=ngajar(),items=[['beranda','🏠','Dashboard'],...(aj?ORDER:['identitas']).map(k=>[k,J[k].ic,SHORT(k)]),...(aj?[['siswa','🧑‍🎓','Data Siswa'],['portofolio','👧','Portofolio Anak'],['laporan','📄','Laporan']]:adminSek()?[['siswa','🧑‍🎓','Data Siswa']]:[]),...(boleh('guru.lihat')?[['lihat','👁️','Lihat Guru']]:[]),['pengaturan','⚙️','Pengaturan']];
 $('#app').innerHTML=`<header class="top"><div class="brand"><img class="lg" src="${logoSek()}" alt=""><div><b>Jurnal Guru</b><small>KB-RA AT TIBYAN</small></div></div><div class="cu" id="me"></div></header>
 <nav class="menu" id="nav">${items.map(([v,ic,l])=>`<button class="nv" data-v="${v}"><i class="ni">${ic}</i><span>${l}</span></button>`).join('')}<div class="sbx">${aj?'<button type="button" class="promo" data-v="harian"><b>Catat hari ini</b><small>Isi jurnal harian sebelum pulang agar tidak menumpuk.</small><i>→</i></button>':''}<button type="button" class="lo2" data-lo><i class="ni">🚪</i>Logout</button></div></nav>
 <div class="page"><h1 class="pt" id="pt"></h1><main id="main"></main></div>
@@ -813,7 +813,7 @@ $('#nav').onclick=e=>{if(e.target.closest('[data-lo]'))return keluar(true);const
 isiAkun();loadSiswa();go(S.view);segarPeran().then(b=>{if(b)shell()});if(ngajar()&&!String(S.guru.kelas||'').trim())pilihKelompok()}
 function isiAkun(){const g=S.guru;
 $('#me').innerHTML=`${av(g.foto,g.nama)}<span>${esc(g.nama)}</span><button class="btn y s" id="out">Logout</button>`;$('#out').onclick=()=>keluar(true)}
-function go(v){if(!ngajar()&&!VIEW_PIMPINAN.includes(v))v='beranda';S.view=v;document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.dataset.v===v));window.scrollTo(0,0);
+function go(v){if(!ngajar()&&!VIEW_PIMPINAN.includes(v)&&!(v==='siswa'&&adminSek()))v='beranda';S.view=v;document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.dataset.v===v));window.scrollTo(0,0);
 $('#pt').textContent=v==='laporan'?'Laporan':v==='siswa'?'Data siswa dan presensi':v==='portofolio'?'Portofolio perkembangan anak':v==='identitas'?J.identitas.n:v==='pengaturan'?'Pengaturan':v==='lihat'?'Lihat jurnal guru':'';
 $('#pt').style.display=['laporan','siswa','portofolio','identitas','pengaturan','lihat'].includes(v)?'':'none';
 if(v!=='identitas'&&v!=='laporan')segarAkad();
@@ -985,7 +985,7 @@ ${sek('🧑‍💼','E. Kepala sekolah','Nama, NIP, dan nomor HP kepala sekolah 
 <div class="card"><h3>🖼️ F. Identitas visual</h3><div class="fup"><img class="lgprev" id="lgp" src="${logoSek()}" alt=""><div><button class="btn o s" id="lgb" type="button">Unggah / Ganti Logo</button> <button class="btn gh s" id="lgh" type="button"${g.logo?'':' style="display:none"'}>Pakai logo bawaan</button><input type="file" id="lgi" accept="image/*" style="display:none"><p class="sub" style="font-size:12px;margin-top:6px">Logo sekolah. Tampil di pojok kiri atas dan kop laporan. Logo langsung tersimpan setelah dipilih, tanpa menunggu tombol Simpan Identitas.</p></div></div></div></div>
 <div class="act"><button class="btn y" id="sv">Simpan Identitas</button></div></div><div id="lap" class="hid"></div>`;
 const cards=[...$('#pf').children];cards.forEach((c,i)=>c.dataset.g=[0,1,2,3].includes(i)?'guru':'sekolah');
-if(!boleh('sekolah.ubah'))cards.filter(c=>c.dataset.g==='sekolah').forEach(c=>{c.querySelectorAll('input,select,textarea').forEach(x=>{x.disabled=true});c.querySelectorAll('#lgb,#lgh').forEach(x=>{x.style.display='none'});c.title='Hanya kepala sekolah atau admin yang dapat mengubah data sekolah'}); // tampilan saja; server tetap memeriksa izin 'sekolah.ubah'
+if(!boleh('sekolah.ubah'))cards.filter(c=>c.dataset.g==='sekolah').forEach(c=>{c.querySelectorAll('input,select,textarea').forEach(x=>{x.disabled=true});c.querySelectorAll('#lgb,#lgh').forEach(x=>{x.style.display='none'});c.title='Hanya Admin Sekolah yang dapat mengubah data sekolah'}); // tampilan saja; server tetap memeriksa izin 'sekolah.ubah'
 const fl=()=>{const j=nilai('dj')||'guru';cards.forEach(c=>c.style.display=(j==='semua'||c.dataset.g===j)?'':'none');const ak=$('#akc');if(ak)ak.style.display=j==='guru'?'none':''}; // Pengaturan Akademik milik sekolah: tampil di Data sekolah dan Data guru + sekolah
 const rl=()=>{fl();$('#lap').innerHTML=dataPaper(nilai('dj')||'guru')};rl();akordeon($('#pf'));$('#dj').onchange=rl;if(!AKAD)AKAD=cGet('akad'); // tampil langsung dari data terakhir di perangkat, lalu disegarkan diam-diam
 akadIsi();{const lm=JSON.stringify(AKAD);if(Date.now()-_akF>15000){_akF=Date.now();akadMuat().then(()=>{const b=$('#akd');if(b&&!b.dataset.t&&JSON.stringify(AKAD)!==lm)akadIsi()})}}$('#gp').onclick=()=>dialogPin(false);$('#fpb').onclick=()=>$('#fpi').click();
@@ -1885,7 +1885,8 @@ const b=$('#ins');if(b)b.onclick=async()=>{DIP.prompt();try{await DIP.userChoice
 /* ---------- peran dan izin: menu sesuai peran, Kelola Pengguna, Log Akses ---------- */
 /* Menu hanya disembunyikan di tampilan; backend tetap memeriksa izin pada setiap aksi. */
 const boleh=a=>!!(S.guru&&Array.isArray(S.guru.izin)&&S.guru.izin.includes(a));
-const ngajar=()=>String((S.guru||{}).mengajar||'').trim().toLowerCase()!=='tidak'; // kolom mengajar di sheet Guru: tidak = menu jurnal disembunyikan
+const ngajar=()=>String((S.guru||{}).mengajar||'').trim().toLowerCase()!=='tidak'&&(S.guru||{}).peran!=='kepsek'; // kepala sekolah hanya melihat; admin mengisi jurnal hanya jika kolom mengajar = ya
+const adminSek=()=>!!(S.guru&&S.guru.peran==='admin'); // admin selalu mengelola Data Siswa walau tidak mengajar // kolom mengajar di sheet Guru: tidak = menu jurnal disembunyikan
 const VIEW_PIMPINAN=['beranda','identitas','pengaturan','lihat'];
 const PERAN_L={guru:'Guru',kepsek:'Kepala Sekolah',admin:'Admin Sekolah'};
 function segarPeran(){return api('profil').then(j=>{const o=S.guru,g=j.guru;if(!o||!g)return false;const b=JSON.stringify([o.peran,o.izin,o.mengajar])!==JSON.stringify([g.peran,g.izin,g.mengajar]);o.peran=g.peran;o.izin=g.izin;o.mengajar=g.mengajar;simpanSesi();return b}).catch(()=>false)}
