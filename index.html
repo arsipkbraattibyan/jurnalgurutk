@@ -465,6 +465,9 @@ function bunyi(t='klik'){if(!SET.suara)return;try{ac=ac||new(window.AudioContext
 const f={klik:[620],ok:[520,780],err:[240,180],pin:[880]}[t];
 f.forEach((hz,i)=>{const o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+i*.09;o.frequency.value=hz;o.connect(g);g.connect(ac.destination);
 g.gain.setValueAtTime({1:.05,2:.12,3:.25}[SET.vol],s);g.gain.exponentialRampToValueAtTime(.001,s+.1);o.start(s);o.stop(s+.11)})}catch(e){}}
+// suara ucapan (bahasa Indonesia) lewat speechSynthesis peramban; mengikuti pengaturan Suara dan Volume
+function ucap(t){if(!SET.suara)return;try{const s=window.speechSynthesis;if(!s)return;s.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='id-ID';
+const v=(s.getVoices()||[]).find(x=>/^id([-_]|$)/i.test(x.lang));if(v)u.voice=v;u.volume={1:.45,2:.75,3:1}[SET.vol]||.75;u.rate=1;setTimeout(()=>s.speak(u),250)}catch(e){}}
 function toast(m,er){const e=$('#toast');e.textContent=m;e.className='show'+(er?' er':'');bunyi(er?'err':'ok');clearTimeout(tt);tt=setTimeout(()=>e.className='',2800)}
 document.addEventListener('click',e=>{const t=e.target;if(t.closest('button')||(t.closest('.op')&&t.tagName!=='INPUT'))bunyi()});
 document.addEventListener('change',e=>{const t=e.target;
@@ -1265,7 +1268,8 @@ const b=t.closest('[data-s]');b.disabled=true;b.textContent='Menyimpan...';
 if(k==='kehadiran'||k==='harian'){await (k==='harian'?JRmuat('harian'):KHmuat());const dx=cekDup();if(dx){toast('Tidak bisa disimpan: '+(k==='harian'?'Jurnal Harian ':'Jurnal Kehadiran ')+E('kelas').value+' tanggal '+tgl(E('tanggal').value)+' sudah ada.',1);b.disabled=false;b.textContent='Simpan';return}}
 try{if(FOTO[k]){if(list&&k==='perkembangan'){for(const x of list){const a=FA[x.nama];x.foto='';if(a){await kirimFoto(a,b);x.foto=a.lama.join(' ')}}}
 else{await kirimFoto(Fo,b);d.foto=Fo.lama.join(' ');if(list)list.forEach(x=>x.foto=d.foto)}}
-let kbE='';if(list){const sb=await simpanBanyak(k,list);kbE=(sb&&sb.kbcError)||''}else{const rs=await api('simpan',{jenis:k,data:d});kbE=rs.kbcError||''}md.remove();toast(kbE?'Jurnal tersimpan, tetapi KBC belum tersimpan: '+kbE:(list?`${list.length} catatan tersimpan`:'Jurnal tersimpan'),!!kbE);stale(k);viewJurnal(k)}
+let kbE='',antri=false;if(list){const sb=await simpanBanyak(k,list);kbE=(sb&&sb.kbcError)||'';antri=!!(sb&&sb.queued)}else{const rs=await api('simpan',{jenis:k,data:d});kbE=rs.kbcError||'';antri=!!rs.queued}md.remove();toast(kbE?'Jurnal tersimpan, tetapi KBC belum tersimpan: '+kbE:(list?`${list.length} catatan tersimpan`:'Jurnal tersimpan'),!!kbE);if(!kbE&&!antri)ucap('Catatan berhasil disimpan'); // saat offline, ucapan "tersimpan di perangkat" diberikan oleh offline.js
+stale(k);viewJurnal(k)}
 catch(er){toast(er.message,1);gFoto();b.disabled=false;b.textContent='Simpan'}}}}
 
 /* ---------- data siswa dan presensi ----------
@@ -1615,7 +1619,7 @@ const TM3=[['ceria','Ceria Biru','Desain bawaan: biru, kuning, dan hijau yang ce
 $('#main').innerHTML=`<div class="card"><h3>🎨 Ganti desain</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Pilih tampilan aplikasi. Pilihan tersimpan di perangkat ini.</p>
 <div class="tmg" id="tmg">${TM3.map(([v,n,k,c,bg])=>`<button type="button" class="tmc${SET.tema===v?' on':''}" data-tm="${v}"><div class="tmv" style="background:${bg}">${c.map((x,i)=>`<i style="background:${x};height:${[70,46,58,34][i]}%"></i>`).join('')}</div><b>${n}</b><small>${k}</small></button>`).join('')}</div></div>
 <div class="card"><h3>🔒 Keamanan akun</h3><p class="sub" style="font-size:13px;margin:-6px 0 12px">PIN dipakai untuk masuk. Ganti secara berkala dan jangan dibagikan ke orang lain.</p><button class="btn o s" id="gp" type="button">Ganti PIN</button></div>
-<div class="card"><h3>🔊 Suara</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Bunyi pendek saat menekan tombol dan saat data tersimpan atau gagal.</p>
+<div class="card"><h3>🔊 Suara</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Bunyi pendek saat menekan tombol dan saat data tersimpan atau gagal. Saat catatan jurnal berhasil disimpan, terdengar ucapan "Catatan berhasil disimpan".</p>
 <div class="fg" style="grid-template-columns:repeat(2,1fr);max-width:360px" id="sps"><label class="op"><input type="radio" name="su" value="1"${SET.suara?' checked':''}><span>Hidup</span></label><label class="op"><input type="radio" name="su" value="0"${SET.suara?'':' checked'}><span>Mati</span></label></div>
 <p class="sub" style="font-size:13px;margin:14px 0 6px">Volume</p>
 <div class="fg" style="grid-template-columns:repeat(3,1fr);max-width:460px" id="spv">${[[1,'Pelan'],[2,'Sedang'],[3,'Keras']].map(([v,l])=>`<label class="op"><input type="radio" name="vo" value="${v}"${SET.vol===v?' checked':''}><span>${l}</span></label>`).join('')}</div></div>
