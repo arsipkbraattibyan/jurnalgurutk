@@ -202,7 +202,7 @@ async function baca(action, p) {
 }
 
 /* ---------- tulis: kirim langsung, atau antre jika jaringan gagal ---------- */
-const pesanAntri = () => setTimeout(() => toast('📴 Tersimpan di perangkat. Akan dikirim otomatis saat internet tersedia.'), 350);
+const pesanAntri = () => setTimeout(() => { toast('📴 Tersimpan di perangkat. Akan dikirim otomatis saat internet tersedia.'); try { if (typeof ucap === 'function') ucap('Catatan tersimpan di perangkat'); } catch (e) {} }, 350);
 const picuSinkron = () => { statusBaru(); if (online()) setTimeout(sinkron, 800); };
 
 async function tulisSimpan(p) {
