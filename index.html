@@ -437,6 +437,35 @@ html[data-tema=belajar] .hero h1{font-size:20px}html[data-tema=ujian] .hero{padd
 .kbl{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:6px;font-size:13px}
 .kbl li{display:flex;align-items:center;gap:8px}.kbl i{width:10px;height:10px;border-radius:50%;flex:none}.kbl b{margin-left:auto;color:var(--navy)}
 .kbn{font-size:12px;color:var(--mut);margin-top:8px;line-height:1.5}
+
+/* ---------- halaman login baru ---------- */
+.lgx{min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:16px;box-sizing:border-box;background:linear-gradient(160deg,#dff0ff,#f4faff 60%,#fff6dc)}
+.lgx-card{width:100%;max-width:420px;background:#fff;border-radius:24px;box-shadow:0 14px 40px #1e88e540;overflow:hidden}
+.lgx-hd{background:linear-gradient(135deg,var(--blue),#4aa8f5);color:#fff;text-align:center;padding:24px 20px 20px}
+.lgx-logo{width:84px;height:84px;object-fit:contain;background:#fff;border-radius:50%;padding:8px;box-sizing:border-box;box-shadow:0 4px 14px #0003}
+.lgx-hd h1{margin:12px 0 2px;font-size:26px;line-height:1.15}
+.lgx-hd p{margin:0;font-size:15px;font-weight:600}
+.lgx-body{display:flex;flex-direction:column;justify-content:center}
+.lgx-fm{padding:20px 22px 6px;display:flex;flex-direction:column;gap:6px}
+.lgx-fm label{font-weight:700;font-size:14px;color:var(--ink);margin-top:8px}
+.lgx-fm select,.lgx-fm input{font:inherit;font-size:16px;height:50px;width:100%;box-sizing:border-box;border:2px solid var(--ln);border-radius:14px;padding:0 14px;background:#fff;color:var(--ink)}
+.lgx-fm select:focus,.lgx-fm input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px #1e88e533}
+.lgx-pw{position:relative}
+.lgx-pw input{padding-right:116px;letter-spacing:.25em}
+.lgx-pw input::placeholder{letter-spacing:.25em}
+.lgx-pw button{position:absolute;right:6px;top:6px;height:38px;border:0;border-radius:10px;padding:0 12px;background:#eaf4ff;color:var(--blued);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.lgx-er{background:#ffebee;color:#c62828;border-radius:12px;padding:10px 12px;font-size:14px;font-weight:600;margin-top:4px}
+.lgx-er[hidden]{display:none}
+.lgx-er button{font:inherit;font-weight:700;color:#c62828;background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
+.lgx-go{margin-top:14px;height:52px;border:0;border-radius:99px;background:var(--blue);color:#fff;font:inherit;font-size:17px;font-weight:700;box-shadow:0 4px 0 var(--blued);cursor:pointer}
+.lgx-go:disabled{opacity:.6;cursor:default}
+.lgx-ft{margin:0;padding:6px 22px 22px;text-align:center;font-size:13px;color:var(--mut)}
+.lgx-card.shake{animation:lgxs .4s}
+@keyframes lgxs{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+@media(min-width:600px){.lgx-card{max-width:460px}.lgx-fm{padding:26px 30px 6px}.lgx-ft{padding:6px 30px 26px}}
+@media(min-width:900px){.lgx-card{max-width:880px;display:grid;grid-template-columns:1fr 1fr}.lgx-hd{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:48px 32px}.lgx-logo{width:150px;height:150px;padding:12px}.lgx-hd h1{font-size:34px;margin-top:20px}.lgx-hd p{font-size:17px}.lgx-fm{padding:0 48px}.lgx-ft{padding:12px 48px 0}}
+@media(max-height:560px) and (max-width:899px){.lgx{place-items:start center}.lgx-hd{padding:14px}.lgx-logo{width:56px;height:56px}.lgx-hd h1{font-size:21px;margin-top:6px}}
+@media(prefers-reduced-motion:reduce){.lgx-card.shake{animation:none}}
 </style>
 </head>
 <body>
@@ -715,28 +744,46 @@ btn.textContent='Menyimpan...'}
 const devAmbil=id=>{try{return localStorage.getItem('jgdev_'+id)||''}catch(e){return''}};
 const devSimpan=(id,v)=>{try{localStorage.setItem('jgdev_'+id,v)}catch(e){}};
 let PIN='',busy=false,GID='';
-async function viewLogin(){S.mode='login';PIN='';GID='';
-$('#app').innerHTML=`<div class="lg"><span class="dc d1">☁️</span><span class="dc d2">☁️</span><span class="dc d3">⭐</span><span class="dc d4">🦋</span>
-<div class="lgbox"><div class="lhd"><span class="mas">🧸</span><div><h1>Jurnal <b>Guru</b></h1><p>Halo, Bu Guru! Yuk catat hari ini</p></div></div>
-<div class="lbd"><div class="stp2"><b>1</b>Pilih nama Anda</div><div class="opts lgo" id="gs"><span class="sub">Memuat daftar guru...</span></div>
-<div class="stp2"><b>2</b>Ketik PIN 6 angka</div><div class="dots" id="dots">${'<i></i>'.repeat(6)}</div>
-<div class="pad" id="pad">${['1','2','3','4','5','6','7','8','9','C','0','⌫'].map(k=>`<button data-k="${k}">${k}</button>`).join('')}</div></div></div>
-<div class="scn"><span>🌳</span><span>🏫</span><span>🚌</span><span>🌳</span></div></div>`;
-$('#pad').onclick=e=>{const b=e.target.closest('button');if(b)tekan(b.dataset.k)};
-try{const j=await api('daftarGuru');
-$('#gs').innerHTML=j.guru.map(g=>`<label class="op"><input type="radio" name="guru" value="${esc(g.id)}"><span>${esc(g.nama)}</span></label>`).join('')||'<span class="sub">Belum ada guru terdaftar.</span>';
-$('#gs').onchange=e=>{GID=e.target.value}}
-catch(e){$('#gs').innerHTML='<span class="sub">Gagal terhubung.</span>';toast(e.message,1)}}
-function tekan(k){if(busy)return;
-if(!GID)return toast('Pilih nama guru dulu',1);
-if(k==='C')PIN='';else if(k==='⌫')PIN=PIN.slice(0,-1);else if(/^\d$/.test(k)&&PIN.length<6)PIN+=k;
-document.querySelectorAll('#dots i').forEach((d,i)=>d.classList.toggle('on',i<PIN.length));
-if(PIN.length===6)masuk()}
-document.addEventListener('keydown',e=>{if(S.mode!=='login')return;if(/^\d$/.test(e.key))tekan(e.key);else if(e.key==='Backspace')tekan('⌫')});
-async function masuk(){busy=true;
-try{const j=await api('login',{id:GID,pin:PIN,dev:devAmbil(GID)}),lama=PIN;if(j.dev)devSimpan(GID,j.dev);S.token=j.token;S.guru=j.guru;simpanSesi();bunyi('ok');shell();if(j.lemah)dialogPin(true,lama,j.wajib?'admin':'')}
-catch(e){toast(e.message,1);PIN='';const d=$('#dots');d.classList.add('shake');setTimeout(()=>{d.classList.remove('shake');d.querySelectorAll('i').forEach(i=>i.classList.remove('on'))},400)}
-busy=false}
+const LAST_KEY='jg_last';
+async function viewLogin(){S.mode='login';GID='';PIN='';busy=false;
+$('#app').innerHTML=`<div class="lgx"><div class="lgx-card">
+<div class="lgx-hd"><img class="lgx-logo" id="lgxLogo" src="${LOGO}" alt="Logo sekolah"><h1>Jurnal Guru TK</h1><p id="lgxSek">KB-RA At Tibyan</p></div>
+<div class="lgx-body"><form class="lgx-fm" id="lgxF" novalidate>
+<label for="lgxU">Nama pengguna</label>
+<select id="lgxU" name="username" disabled><option value="">Memuat daftar nama...</option></select>
+<label for="lgxP">PIN (6 angka)</label>
+<div class="lgx-pw"><input id="lgxP" name="password" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="current-password" placeholder="••••••" aria-describedby="lgxE"><button type="button" id="lgxT" aria-label="Tampilkan PIN" aria-pressed="false">Tampilkan</button></div>
+<div class="lgx-er" id="lgxE" role="alert" aria-live="polite" hidden></div>
+<button class="lgx-go" id="lgxG" type="submit">Masuk</button></form>
+<p class="lgx-ft">Pilih nama Anda, lalu masukkan PIN pribadi.</p></div></div></div>`;
+const U=$('#lgxU'),P=$('#lgxP'),E=$('#lgxE');
+const salah=m=>{E.textContent=m;E.hidden=!m};
+P.oninput=()=>{P.value=P.value.replace(/\D/g,'').slice(0,6);salah('')};
+U.onchange=()=>{GID=U.value;salah('');if(GID)P.focus()};
+$('#lgxT').onclick=e=>{const b=e.currentTarget,t=P.type==='password';P.type=t?'text':'password';b.textContent=t?'Sembunyikan':'Tampilkan';b.setAttribute('aria-pressed',String(t));b.setAttribute('aria-label',t?'Sembunyikan PIN':'Tampilkan PIN');P.focus()};
+$('#lgxF').onsubmit=e=>{e.preventDefault();if(busy)return;
+if(!U.value)return salah('Pilih nama Anda dulu.');
+if(!/^\d{6}$/.test(P.value))return salah('PIN harus 6 angka.');
+GID=U.value;PIN=P.value;masuk()};
+muatGuruLogin()}
+async function muatGuruLogin(){const U=$('#lgxU'),E=$('#lgxE');if(!U)return;
+try{const j=await api('daftarGuru');if(S.mode!=='login'||!$('#lgxU'))return;
+const sk=j.sekolah||{};if(sk.nama)$('#lgxSek').textContent=sk.nama;
+if(/^data:image\/(png|jpeg);base64,/.test(sk.logo||''))$('#lgxLogo').src=sk.logo;
+const L=j.guru||[];let last='';try{last=localStorage.getItem(LAST_KEY)||''}catch(e){}
+E.hidden=true;
+if(!L.length){U.innerHTML='<option value="">Belum ada guru terdaftar</option>';return}
+U.innerHTML='<option value="">Pilih nama Anda</option>'+L.map(g=>`<option value="${esc(g.id)}">${esc(g.nama)}</option>`).join('');
+U.disabled=false;
+if(last&&L.some(g=>String(g.id)===last)){U.value=last;GID=last;$('#lgxP').focus()}}
+catch(e){if(S.mode!=='login'||!$('#lgxU'))return;U.innerHTML='<option value="">Daftar nama belum termuat</option>';
+E.innerHTML='Tidak bisa memuat daftar nama. Periksa koneksi internet. <button type="button" id="lgxR">Coba lagi</button>';E.hidden=false;
+$('#lgxR').onclick=()=>{E.hidden=true;muatGuruLogin()}}}
+async function masuk(){busy=true;const G=$('#lgxG'),P=$('#lgxP'),E=$('#lgxE');G.disabled=true;G.textContent='Memeriksa...';
+try{const j=await api('login',{id:GID,pin:PIN,dev:devAmbil(GID)}),lama=PIN;if(j.dev)devSimpan(GID,j.dev);try{localStorage.setItem(LAST_KEY,GID)}catch(e){}
+S.token=j.token;S.guru=j.guru;simpanSesi();PIN='';busy=false;bunyi('ok');shell();if(j.lemah)dialogPin(true,lama,j.wajib?'admin':'');return}
+catch(e){if(S.mode==='login'&&E){E.textContent=e.message||'PIN salah.';E.hidden=false;P.value='';PIN='';P.focus();const c=document.querySelector('.lgx-card');if(c){c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake')}bunyi('err')}}
+busy=false;G.disabled=false;G.textContent='Masuk'}
 function keluar(){KBD=null;KBDT=0;document.querySelectorAll('.md').forEach(x=>x.remove());cHapusSemua();S.token=null;S.guru=null;ROWS={};SISWA=null;Object.keys(FP).forEach(k=>delete FP[k]);LH.data=null;LH.id='';Object.keys(FL).forEach(k=>delete FL[k]);try{localStorage.removeItem('jg')}catch(e){}viewLogin()}
 
 /* ---------- ganti PIN (wajib jika PIN lemah / bawaan) ---------- */
