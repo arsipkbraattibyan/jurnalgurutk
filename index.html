@@ -466,6 +466,27 @@ html[data-tema=belajar] .hero h1{font-size:20px}html[data-tema=ujian] .hero{padd
 @media(min-width:900px){.lgx-card{max-width:880px;display:grid;grid-template-columns:1fr 1fr}.lgx-hd{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:48px 32px}.lgx-logo{width:150px;height:150px;padding:12px}.lgx-hd h1{font-size:34px;margin-top:20px}.lgx-hd p{font-size:17px}.lgx-fm{padding:0 48px}.lgx-ft{padding:12px 48px 0}}
 @media(max-height:560px) and (max-width:899px){.lgx{place-items:start center}.lgx-hd{padding:14px}.lgx-logo{width:56px;height:56px}.lgx-hd h1{font-size:21px;margin-top:6px}}
 @media(prefers-reduced-motion:reduce){.lgx-card.shake{animation:none}}
+/* daftar nama login: pilihan modern, latar putih */
+.dd{position:relative}
+.dd-b{font:inherit;font-size:16px;height:50px;width:100%;box-sizing:border-box;border:2px solid var(--ln);border-radius:14px;padding:0 44px 0 14px;background:#fff;color:var(--ink);text-align:left;cursor:pointer;position:relative;display:flex;align-items:center}
+.dd-b.ph .dd-t{color:var(--mut)}
+.dd-b:focus-visible,.dd.open .dd-b{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px #1e88e533}
+.dd-b:disabled{opacity:.6;cursor:default}
+.dd-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dd-c{position:absolute;right:18px;top:50%;width:8px;height:8px;border-right:2px solid var(--mut);border-bottom:2px solid var(--mut);transform:translateY(-70%) rotate(45deg);transition:transform .15s}
+.dd.open .dd-c{transform:translateY(-20%) rotate(225deg)}
+.dd-l{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:30;margin:0;padding:6px;list-style:none;background:#fff;border:1px solid var(--ln);border-radius:16px;box-shadow:0 12px 32px #0f2a4a2e;max-height:248px;overflow-y:auto;box-sizing:border-box}
+.dd-l[hidden]{display:none}
+.dd-l li{display:flex;align-items:center;gap:12px;padding:6px 10px;border-radius:12px;cursor:pointer;color:var(--ink);font-weight:600;min-height:46px;box-sizing:border-box;background:#fff}
+.dd-l li:hover,.dd-l li.hl{background:#f1f7ff}
+.dd-l li.on{background:#eaf4ff;color:var(--blued)}
+.dd-a{flex:none;width:32px;height:32px;border-radius:50%;background:#eaf4ff;color:var(--blued);display:grid;place-items:center;font-weight:800;font-size:14px}
+.dd-l li.on .dd-a{background:var(--blue);color:#fff}
+.dd-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dd-k{display:none;color:var(--blue);font-style:normal;font-weight:800}
+.dd-l li.on .dd-k{display:block}
+@media(prefers-reduced-motion:reduce){.dd-c{transition:none}}
+
 </style>
 </head>
 <body>
@@ -745,6 +766,30 @@ const devAmbil=id=>{try{return localStorage.getItem('jgdev_'+id)||''}catch(e){re
 const devSimpan=(id,v)=>{try{localStorage.setItem('jgdev_'+id,v)}catch(e){}};
 let PIN='',busy=false,GID='';
 const LAST_KEY='jg_last';
+/* daftar nama login modern: select asli tetap dipakai (nilai, onchange, disabled), hanya tampilannya diganti */
+function ddModern(U){
+const w=document.createElement('div');w.className='dd';
+w.innerHTML='<button type="button" class="dd-b" aria-haspopup="listbox" aria-expanded="false" aria-label="Nama pengguna"><span class="dd-t"></span><i class="dd-c" aria-hidden="true"></i></button><ul class="dd-l" role="listbox" hidden></ul>';
+U.style.display='none';U.parentNode.insertBefore(w,U.nextSibling);
+const b=w.firstChild,l=w.lastChild,t=b.querySelector('.dd-t');let ix=0;
+const opts=()=>[...U.options].filter(o=>o.value);
+const sync=()=>{const o=U.options[U.selectedIndex];t.textContent=o?o.text:'';b.disabled=U.disabled;b.classList.toggle('ph',!U.value);
+l.innerHTML=opts().map(o=>`<li role="option" data-v="${esc(o.value)}" aria-selected="${o.value===U.value}" class="${o.value===U.value?'on':''}"><span class="dd-a">${esc((o.text.trim()[0]||'?').toUpperCase())}</span><span class="dd-n">${esc(o.text)}</span><i class="dd-k">✓</i></li>`).join('')};
+const tandai=()=>{[...l.children].forEach((li,i)=>li.classList.toggle('hl',i===ix));const li=l.children[ix];if(li&&li.scrollIntoView)li.scrollIntoView({block:'nearest'})};
+const buka=()=>{if(b.disabled||!opts().length)return;l.hidden=false;w.classList.add('open');b.setAttribute('aria-expanded','true');ix=Math.max(0,opts().findIndex(o=>o.value===U.value));tandai()};
+const tutup=()=>{l.hidden=true;w.classList.remove('open');b.setAttribute('aria-expanded','false')};
+const pilih=v=>{U.value=v;U.dispatchEvent(new Event('change'));sync();tutup()};
+b.onclick=()=>l.hidden?buka():tutup();
+l.onclick=e=>{const li=e.target.closest('li');if(li)pilih(li.dataset.v)};
+b.onkeydown=e=>{const n=opts().length;
+if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(l.hidden)buka();else if(n){ix=(ix+(e.key==='ArrowDown'?1:-1)+n)%n;tandai()}}
+else if((e.key==='Enter'||e.key===' ')&&!l.hidden){e.preventDefault();const o=opts()[ix];if(o)pilih(o.value)}
+else if(e.key==='Escape'&&!l.hidden){e.preventDefault();tutup()}
+else if(e.key==='Tab')tutup()};
+const luar=e=>{if(!document.body.contains(w)){document.removeEventListener('pointerdown',luar);return}if(!w.contains(e.target))tutup()};
+document.addEventListener('pointerdown',luar);
+new MutationObserver(sync).observe(U,{childList:true,attributes:true,attributeFilter:['disabled']});
+sync()}
 async function viewLogin(){S.mode='login';GID='';PIN='';busy=false;
 $('#app').innerHTML=`<div class="lgx"><div class="lgx-card">
 <div class="lgx-hd"><img class="lgx-logo" id="lgxLogo" src="${LOGO}" alt="Logo sekolah"><h1>Jurnal Guru TK</h1><p id="lgxSek">KB-RA At Tibyan</p></div>
@@ -756,7 +801,7 @@ $('#app').innerHTML=`<div class="lgx"><div class="lgx-card">
 <div class="lgx-er" id="lgxE" role="alert" aria-live="polite" hidden></div>
 <button class="lgx-go" id="lgxG" type="submit">Masuk</button></form>
 <p class="lgx-ft">Pilih nama Anda, lalu masukkan PIN pribadi.</p></div></div></div>`;
-const U=$('#lgxU'),P=$('#lgxP'),E=$('#lgxE');
+const U=$('#lgxU'),P=$('#lgxP'),E=$('#lgxE');ddModern(U);
 const salah=m=>{E.textContent=m;E.hidden=!m};
 P.oninput=()=>{P.value=P.value.replace(/\D/g,'').slice(0,6);salah('')};
 U.onchange=()=>{GID=U.value;salah('');if(GID)P.focus()};
@@ -773,7 +818,7 @@ if(/^data:image\/(png|jpeg);base64,/.test(sk.logo||''))$('#lgxLogo').src=sk.logo
 const L=j.guru||[];let last='';try{last=localStorage.getItem(LAST_KEY)||''}catch(e){}
 E.hidden=true;
 if(!L.length){U.innerHTML='<option value="">Belum ada guru terdaftar</option>';return}
-U.innerHTML='<option value="">Pilih nama Anda</option>'+L.map(g=>`<option value="${esc(g.id)}">${esc(g.nama)}</option>`).join('');
+U.innerHTML='<option value="" disabled hidden selected>Pilih nama Anda</option>'+L.map(g=>`<option value="${esc(g.id)}">${esc(g.nama)}</option>`).join('');
 U.disabled=false;
 if(last&&L.some(g=>String(g.id)===last)){U.value=last;GID=last;$('#lgxP').focus()}}
 catch(e){if(S.mode!=='login'||!$('#lgxU'))return;U.innerHTML='<option value="">Daftar nama belum termuat</option>';
