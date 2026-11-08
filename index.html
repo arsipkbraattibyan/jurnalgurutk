@@ -784,7 +784,7 @@ try{const j=await api('login',{id:GID,pin:PIN,dev:devAmbil(GID)}),lama=PIN;if(j.
 S.token=j.token;S.guru=j.guru;simpanSesi();PIN='';busy=false;bunyi('ok');shell();if(j.lemah)dialogPin(true,lama,j.wajib?'admin':'');return}
 catch(e){if(S.mode==='login'&&E){E.textContent=e.message||'PIN salah.';E.hidden=false;P.value='';PIN='';P.focus();const c=document.querySelector('.lgx-card');if(c){c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake')}bunyi('err')}}
 busy=false;G.disabled=false;G.textContent='Masuk'}
-function keluar(){KBD=null;KBDT=0;document.querySelectorAll('.md').forEach(x=>x.remove());cHapusSemua();S.token=null;S.guru=null;ROWS={};SISWA=null;Object.keys(FP).forEach(k=>delete FP[k]);LH.data=null;LH.id='';Object.keys(FL).forEach(k=>delete FL[k]);try{localStorage.removeItem('jg')}catch(e){}viewLogin()}
+function keluar(manual){if(manual&&S.token){try{fetch(API_URL,{method:'POST',body:JSON.stringify({action:'logout',token:S.token}),keepalive:true}).catch(()=>{})}catch(e){}}KBD=null;KBDT=0;document.querySelectorAll('.md').forEach(x=>x.remove());cHapusSemua();S.token=null;S.guru=null;ROWS={};SISWA=null;Object.keys(FP).forEach(k=>delete FP[k]);LH.data=null;LH.id='';Object.keys(FL).forEach(k=>delete FL[k]);try{localStorage.removeItem('jg')}catch(e){}viewLogin()}
 
 /* ---------- ganti PIN (wajib jika PIN lemah / bawaan) ---------- */
 function dialogPin(wajib,lamaOtomatis,alasan){const md=document.createElement('div');md.className='md';
@@ -806,13 +806,13 @@ const SHORT=k=>J[k].no+'. '+J[k].n.replace('Jurnal ','').replace(' Guru dan Seko
 function shell(){S.mode='app';
 const aj=ngajar(),items=[['beranda','🏠','Dashboard'],...(aj?ORDER:['identitas']).map(k=>[k,J[k].ic,SHORT(k)]),...(aj?[['siswa','🧑‍🎓','Data Siswa'],['portofolio','👧','Portofolio Anak'],['laporan','📄','Laporan']]:[]),...(boleh('guru.lihat')?[['lihat','👁️','Lihat Guru']]:[]),['pengaturan','⚙️','Pengaturan']];
 $('#app').innerHTML=`<header class="top"><div class="brand"><img class="lg" src="${logoSek()}" alt=""><div><b>Jurnal Guru</b><small>KB-RA AT TIBYAN</small></div></div><div class="cu" id="me"></div></header>
-<nav class="menu" id="nav">${items.map(([v,ic,l])=>`<button class="nv" data-v="${v}"><i class="ni">${ic}</i><span>${l}</span></button>`).join('')}<div class="sbx">${aj?'<button type="button" class="promo" data-v="harian"><b>Catat hari ini</b><small>Isi jurnal harian sebelum pulang agar tidak menumpuk.</small><i>→</i></button>':''}<button type="button" class="lo2" data-lo><i class="ni">🚪</i>Keluar</button></div></nav>
+<nav class="menu" id="nav">${items.map(([v,ic,l])=>`<button class="nv" data-v="${v}"><i class="ni">${ic}</i><span>${l}</span></button>`).join('')}<div class="sbx">${aj?'<button type="button" class="promo" data-v="harian"><b>Catat hari ini</b><small>Isi jurnal harian sebelum pulang agar tidak menumpuk.</small><i>→</i></button>':''}<button type="button" class="lo2" data-lo><i class="ni">🚪</i>Logout</button></div></nav>
 <div class="page"><h1 class="pt" id="pt"></h1><main id="main"></main></div>
 <footer class="foot">⭐ Jurnal Guru TK: mencatat langkah kecil, mendukung mimpi besar ⭐</footer>`;
-$('#nav').onclick=e=>{if(e.target.closest('[data-lo]'))return keluar();const b=e.target.closest('[data-v]');if(b)go(b.dataset.v)};
+$('#nav').onclick=e=>{if(e.target.closest('[data-lo]'))return keluar(true);const b=e.target.closest('[data-v]');if(b)go(b.dataset.v)};
 isiAkun();loadSiswa();go(S.view);segarPeran().then(b=>{if(b)shell()});if(ngajar()&&!String(S.guru.kelas||'').trim())pilihKelompok()}
 function isiAkun(){const g=S.guru;
-$('#me').innerHTML=`${av(g.foto,g.nama)}<span>${esc(g.nama)}</span><button class="btn y s" id="out">Keluar</button>`;$('#out').onclick=keluar}
+$('#me').innerHTML=`${av(g.foto,g.nama)}<span>${esc(g.nama)}</span><button class="btn y s" id="out">Logout</button>`;$('#out').onclick=()=>keluar(true)}
 function go(v){if(!ngajar()&&!VIEW_PIMPINAN.includes(v))v='beranda';S.view=v;document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.dataset.v===v));window.scrollTo(0,0);
 $('#pt').textContent=v==='laporan'?'Laporan':v==='siswa'?'Data siswa dan presensi':v==='portofolio'?'Portofolio perkembangan anak':v==='identitas'?J.identitas.n:v==='pengaturan'?'Pengaturan':v==='lihat'?'Lihat jurnal guru':'';
 $('#pt').style.display=['laporan','siswa','portofolio','identitas','pengaturan','lihat'].includes(v)?'':'none';
@@ -1923,7 +1923,7 @@ document.body.appendChild(md);
 md.onclick=async e=>{if(e.target.closest('[data-x]'))return md.remove();if(e.target.closest('[data-c]')){try{await navigator.clipboard.writeText(j.pin);toast('PIN disalin')}catch(er){toast('Tidak bisa menyalin, catat manual',1)}}}}
 async function dialogLog(){
 const md=document.createElement('div');md.className='md';
-md.innerHTML=`<div class="sheet"><h2>📜 Log Akses</h2><p class="sub" style="margin-bottom:10px">Maksimal 5.000 catatan terakhir. Login gagal baru dicatat mulai percobaan ke-3.</p><div class="fd" style="margin-bottom:8px"><label>Tampilkan</label><select id="lgf"><option value="">Semua hasil</option><option value="ok">Berhasil (ok)</option><option value="gagal">Login gagal</option><option value="ditolak">Ditolak</option><option value="nonaktif">Akun nonaktif</option></select></div><div id="lgl">${muat()}</div><div class="act"><button class="btn gh" data-x type="button">Tutup</button></div></div>`;
+md.innerHTML=`<div class="sheet"><h2>📜 Log Akses</h2><p class="sub" style="margin-bottom:10px">Maksimal 5.000 catatan terakhir. Login gagal baru dicatat mulai percobaan ke-3. Simpan dan hapus jurnal juga dicatat, lengkap dengan nama pengguna.</p><div class="fd" style="margin-bottom:8px"><label>Tampilkan</label><select id="lgf"><option value="">Semua hasil</option><option value="ok">Berhasil (ok)</option><option value="gagal">Login gagal</option><option value="ditolak">Ditolak</option><option value="nonaktif">Akun nonaktif</option></select></div><div id="lgl">${muat()}</div><div class="act"><button class="btn gh" data-x type="button">Tutup</button></div></div>`;
 document.body.appendChild(md);
 md.onclick=e=>{if(e.target===md||e.target.closest('[data-x]'))md.remove()};
 let J2={rows:[],nama:{}};
