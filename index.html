@@ -1125,7 +1125,7 @@ return{nilai:[...b.querySelectorAll('input[name=kbcnilai]:checked')].map(c=>c.va
 function kpSeg(md){md.querySelectorAll('.kp').forEach(g=>{const ta=md.querySelector('#'+g.dataset.for);if(!ta)return;const it=ta.value.split(/\s*;\s*/);g.querySelectorAll('button').forEach(b=>b.classList.toggle('on',it.includes(b.dataset.v)))})}
 function kbcCek(kb){if(!kb.nilai.length&&(kb.tujuan||kb.aktivitas||kb.catatan))return'Pilih minimal satu nilai Panca Cinta (KBC)';
 if(kb.nilai.length&&!kb.aktivitas)return'Lengkapi dulu: Aktivitas implementasi KBC';return''}
-function bukaForm(k,row){const j=J[k],tb=(!row&&TB[k])||null,md=document.createElement('div');md.className='md';
+function bukaForm(k,row){const j=J[k],tb=((!row||k==='kehadiran')&&TB[k])||null,md=document.createElement('div');md.className='md';
 const rkBtn=k==='kehadiran'?`<div class="fd full" id="rkw"><button type="button" class="btn y s" data-rk>Isi otomatis dari Rekap Absen</button> <small class="sub">${klf()?'Pilih tanggal dulu.':'Pilih tanggal dan kelompok dulu.'}</small></div>`:'';
 md.innerHTML=`<div class="sheet frm"><h2>${row?'Ubah':'Tambah'} ${j.n}${klf()?`<span class="bdg">${klf()}</span>`:''}</h2><div class="fg"><div class="abn dup" id="dupw" style="display:none"></div>${k==='harian'&&!row?'<div class="fd full"><button type="button" class="btn y s" data-sl>📋 Salin dari kemarin</button> <small class="sub">Mengisi tema, subtema, sentra, dan metode dari jurnal terakhir.</small></div>':''}${rkBtn}${k==='perkembangan'?'<div class="fd full"><small class="sub" id="hhi">Tema, subtema, dan kegiatan terisi otomatis sesuai Jurnal Harian pada tanggal dan kelompok yang dipilih.</small></div>':''}${j.f.map(f=>f.k==='kelas'&&klf()?`<input type="hidden" name="kelas" value="${esc((row&&row.kelas)||klf())}">`:fld(f,row?row[f.k]:'')).join('')}${FOTO[k]?fotoBlok(k):''}${k==='harian'?kbcBlok():''}${k==='penilaian'?pcpBlok():''}</div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn" data-s>Simpan</button></div></div>`;
 document.body.appendChild(md);
@@ -1179,6 +1179,9 @@ tb.hide.forEach(n=>{E(n).closest('.fd').style.display=(aktif||SISWA===null)?'non
 const pT={...T},pFA={...FA};Object.keys(T).forEach(n=>delete T[n]);Object.keys(FA).forEach(n=>delete FA[n]);
 if(!aktif){box.innerHTML=`<small class="sub">${SISWA===null?'Memuat daftar anak...':'Pilih kelompok untuk menampilkan daftar anak. Jika daftar tidak muncul, isi kolom secara manual.'}</small>`;return}
 if(tb.def)names.forEach(n=>T[n]=tb.def);
+if(row&&k==='kehadiran'&&String(row.tanggal).slice(0,10)===E('tanggal').value&&kelNorm(row.kelas)===kelNorm(E('kelas').value)){ // Ubah: tampilkan status yang tersimpan (jurnal + perubahan manual)
+const ab=absenDari(row),mn=parseManual(row.manual),mk={};Object.keys(mn).forEach(x=>mk[kunci(x)]=mn[x]);
+names.forEach(n=>{const v=mk[kunci(n)]||ab[n.trim().toLowerCase()];if(v)T[n]=v});if(!auto)auto=String(row.catatan||'')}
 const AB=absenHari(),sb=n=>AB.m[n.trim().toLowerCase()]||'';
 if(!tb.def)names.forEach(n=>{if(!sb(n)){if(pT[n])T[n]=pT[n];if(pFA[n])FA[n]=pFA[n]}});
 const ord=names.map((n,ix)=>({n,ix})).sort((a,b)=>!!sb(a.n)-!!sb(b.n)||a.ix-b.ix),abN=ord.filter(o=>sb(o.n)).length,fa=ord.findIndex(o=>sb(o.n));
