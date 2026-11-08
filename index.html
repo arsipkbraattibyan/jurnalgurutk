@@ -197,6 +197,8 @@ select{width:100%;font:inherit;height:48px;padding:0 12px;border:2px solid var(-
 .fth button{position:absolute;top:-8px;right:-8px;width:28px;height:28px;border-radius:50%;border:0;background:#c2185b;color:#fff;font:800 16px/1 Nunito,sans-serif;padding:0}
 .ft{width:96px;height:96px;object-fit:cover;border-radius:14px;border:2px solid var(--ln);background:#eaf6ff;cursor:zoom-in;display:block}
 .gal{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.gl{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}.gl figure{margin:0;border:2px solid var(--ln);border-radius:16px;overflow:hidden;background:#fff;cursor:pointer}.gl img{width:100%;height:170px;object-fit:cover;display:block}.gl figcaption{padding:8px 10px;font-size:13px;line-height:1.35}.gl figcaption .btn{margin-top:6px}
+.dok .pk{display:none!important}.dkc .ft{width:84px;height:84px;object-fit:cover}.dkc summary{cursor:pointer;font-weight:800;font-size:13px;color:var(--navy)}
 .gal figure{margin:0;border:1px solid #333;padding:4px;break-inside:avoid}
 .gal img{display:block;width:100%;height:auto;background:#eee}
 .gal figcaption{font-size:10px;text-align:center;line-height:1.3;padding-top:3px}
@@ -679,6 +681,16 @@ await Promise.all(ims.map(im=>fotoSrc(im.dataset.fid).then(s=>{im.src=s;im.datas
 const fotoHtml=r=>{const a=String(r.foto||'').split(/\s+/).filter(Boolean);
 return a.length?`<div class="fts">${a.map(id=>`<img class="ft" data-fid="${esc(id)}" src="${BLANK}" alt="Foto">`).join('')}</div>`:''};
 const fotoBlok=k=>`<details class="fd full"><summary class="ah"><span>📷 Foto bukti (opsional, maks. ${MAXF})</span><em>›</em></summary><p class="sub" style="font-size:12px;margin:-2px 0 8px">${FOTO[k]}</p><div class="fup"><button type="button" class="btn o s" data-fp>📷 Tambah foto</button><input type="file" id="fin" accept="image/*" multiple style="display:none"><small class="sub" id="fotn"></small></div><div class="fts" id="fot" style="margin-top:10px"></div></details>`;
+/* ---------- dokumentasi foto Perkembangan dan Penilaian ----------
+   Foto tetap disimpan sebagai ID Drive di kolom "foto" (satu berkas di Drive, boleh dipakai banyak catatan dan banyak anak).
+   Kolom "fotoinfo" (otomatis dibuat Code.gs saat pertama disimpan) berisi JSON sejajar urutan foto: [{t:tanggal,k:keterangan,a:[nama anak]}].
+   Tanpa kolom baru di backend dan tanpa aksi baru, jadi antrean offline dan sinkron yang ada tetap dipakai. */
+const DOKK=['perkembangan','penilaian'],MAXD=6;
+const fiAmbil=r=>{try{const a=JSON.parse(r.fotoinfo||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}};
+function fiDaftar(r){const ids=String(r.foto||'').split(/\s+/).filter(Boolean),inf=fiAmbil(r),ok=inf.length===ids.length; // jumlah tidak sama (foto lokal hilang) = metadata diabaikan
+return ids.map((id,i)=>{const m=(ok&&inf[i])||{};return{id,t:m.t||String(r.tanggal||'').slice(0,10),k:m.k||'',a:Array.isArray(m.a)&&m.a.length?m.a.map(String):(r.nama?[r.nama]:[])}})}
+const fiMeta=(r,id)=>fiDaftar(r).find(x=>x.id===id);
+const dokBlok=k=>`<details class="fd full" id="dokb"><summary class="ah"><span>📷 Dokumentasi foto (opsional, maks. ${MAXD})</span><em>›</em></summary><p class="sub" style="font-size:12px;margin:-2px 0 8px">${FOTO[k]} Satu foto bisa dipakai untuk beberapa anak tanpa diunggah ulang.</p><div class="fup"><button type="button" class="btn o s" data-dk="add">📷 Tambah foto</button><button type="button" class="btn gh s" data-dk="pick">🖼️ Pakai foto yang sudah ada</button><input type="file" id="dkin" accept="image/*" multiple style="display:none"><small class="sub" id="dkn"></small></div><div id="dkl" style="margin-top:10px;display:grid;gap:10px"></div></details>`;
 function lihatFoto(src){const md=document.createElement('div');md.className='md';
 md.innerHTML=`<div class="sheet" style="max-width:900px;text-align:center"><img src="${src}" alt="Foto" style="max-width:100%;max-height:75vh;border-radius:16px"><div class="act" style="justify-content:center"><button class="btn gh" data-x>Tutup</button></div></div>`;
 document.body.appendChild(md);md.onclick=e=>{if(e.target.closest('[data-x]'))md.remove()}}
@@ -686,12 +698,13 @@ document.body.appendChild(md);md.onclick=e=>{if(e.target.closest('[data-x]'))md.
 async function kecil(file,mx,persegi){if(!/^image\//.test(file.type))throw new Error('bukan gambar');
 const url=URL.createObjectURL(file);
 try{const im=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=()=>no(new Error('bukan gambar'));i.src=url});
-for(const[m,q]of[[mx,.75],[Math.round(mx*.8),.62],[Math.round(mx*.6),.5]]){
+let last='';for(const[m,q]of[[mx,.72],[Math.round(mx*.85),.6],[Math.round(mx*.7),.5],[Math.round(mx*.55),.42]]){
 let sx=0,sy=0,sw=im.naturalWidth,sh=im.naturalHeight;
 if(persegi){const s=Math.min(sw,sh);sx=(sw-s)/2;sy=(sh-s)/2;sw=sh=s}
 const sc=Math.min(1,m/Math.max(sw,sh)),cw=Math.round(sw*sc),ch=Math.round(sh*sc);
 const c=document.createElement('canvas');c.width=cw;c.height=ch;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,cw,ch);x.drawImage(im,sx,sy,sw,sh,0,0,cw,ch);
-const d=c.toDataURL('image/jpeg',q);if(d.length<390000)return d}
+const d=c.toDataURL('image/jpeg',q);last=d;if(d.length<220000)return d} // target sekitar 160 KB per foto
+if(last.length<390000)return last;
 throw new Error('Foto terlalu besar')}
 finally{URL.revokeObjectURL(url)}}
 async function kirimFoto(Fo,btn){const n=Fo.baru.length;
@@ -1189,7 +1202,7 @@ function kbcCek(kb){if(!kb.nilai.length&&(kb.tujuan||kb.aktivitas||kb.catatan))r
 if(kb.nilai.length&&!kb.aktivitas)return'Lengkapi dulu: Aktivitas implementasi KBC';return''}
 function bukaForm(k,row){const j=J[k],tb=((!row||k==='kehadiran')&&TB[k])||null,md=document.createElement('div');md.className='md';
 const rkBtn=k==='kehadiran'?`<div class="fd full" id="rkw"><button type="button" class="btn y s" data-rk>Isi otomatis dari Rekap Absen</button> <small class="sub">${klf()?'Pilih tanggal dulu.':'Pilih tanggal dan kelompok dulu.'}</small></div>`:'';
-md.innerHTML=`<div class="sheet frm"><h2>${row?'Ubah':'Tambah'} ${j.n}${klf()?`<span class="bdg">${klf()}</span>`:''}</h2><div class="fg"><div class="abn dup" id="dupw" style="display:none"></div>${k==='harian'&&!row?'<div class="fd full"><button type="button" class="btn y s" data-sl>📋 Salin dari kemarin</button> <small class="sub">Mengisi tema, subtema, sentra, dan metode dari jurnal terakhir.</small></div>':''}${rkBtn}${k==='perkembangan'?'<div class="fd full"><small class="sub" id="hhi">Tema, subtema, dan kegiatan terisi otomatis sesuai Jurnal Harian pada tanggal dan kelompok yang dipilih.</small></div>':''}${j.f.map(f=>f.k==='kelas'&&klf()?`<input type="hidden" name="kelas" value="${esc((row&&row.kelas)||klf())}">`:fld(f,row?row[f.k]:'')).join('')}${FOTO[k]?fotoBlok(k):''}${k==='harian'?kbcBlok():''}${k==='penilaian'?pcpBlok():''}</div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn" data-s>Simpan</button></div></div>`;
+md.innerHTML=`<div class="sheet frm${DOKK.includes(k)?' dok':''}"><h2>${row?'Ubah':'Tambah'} ${j.n}${klf()?`<span class="bdg">${klf()}</span>`:''}</h2><div class="fg"><div class="abn dup" id="dupw" style="display:none"></div>${k==='harian'&&!row?'<div class="fd full"><button type="button" class="btn y s" data-sl>📋 Salin dari kemarin</button> <small class="sub">Mengisi tema, subtema, sentra, dan metode dari jurnal terakhir.</small></div>':''}${rkBtn}${k==='perkembangan'?'<div class="fd full"><small class="sub" id="hhi">Tema, subtema, dan kegiatan terisi otomatis sesuai Jurnal Harian pada tanggal dan kelompok yang dipilih.</small></div>':''}${j.f.map(f=>f.k==='kelas'&&klf()?`<input type="hidden" name="kelas" value="${esc((row&&row.kelas)||klf())}">`:fld(f,row?row[f.k]:'')).join('')}${FOTO[k]?(DOKK.includes(k)?dokBlok(k):fotoBlok(k)):''}${k==='harian'?kbcBlok():''}${k==='penilaian'?pcpBlok():''}</div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn" data-s>Simpan</button></div></div>`;
 document.body.appendChild(md);
 const E=n=>md.querySelector(`[name=${n}]`),T={},FA={};let FN='';let aktif=false,auto='';
 const Fo={lama:row&&row.foto?String(row.foto).split(/\s+/).filter(Boolean):[],baru:[]};
@@ -1270,6 +1283,57 @@ else if(t.id==='fin'){const fs=[...t.files];t.value='';
 (async()=>{for(const f of fs){if(Fo.lama.length+Fo.baru.length>=MAXF){toast('Maksimal '+MAXF+' foto',1);break}
 try{Fo.baru.push(await kecil(f,1000))}catch(er){toast(er.message==='bukan gambar'?'Berkas bukan gambar yang valid':er.message,1)}}
 gFoto()})()}});
+if(DOKK.includes(k)){
+const ed=k==='perkembangan'&&!!row,PH=[];
+if(row)fiDaftar(row).forEach(p=>PH.push({...p,pre:p.a.slice()}));
+const nmKetik=()=>E('nama')&&E('nama').value?E('nama').value.trim():'';
+const dasar=()=>{let x=ed?[row.nama]:Object.keys(T).filter(n=>T[n]);if(!x.length&&k==='perkembangan'&&nmKetik())x=[nmKetik()];return x.length===1?x:[]};
+const kand=()=>{if(ed)return[row.nama];const n=daftar();return n.length?n:(k==='perkembangan'&&nmKetik()?[nmKetik()]:[])};
+const gDok=()=>{const c=md.querySelector('#dkl');if(!c)return;const kd=kand();
+c.innerHTML=PH.map((p,i)=>`<div class="dkc" data-i="${i}" style="border:2px solid var(--ln);border-radius:16px;padding:10px;display:grid;gap:8px"><div style="display:flex;gap:10px;align-items:flex-start"><div class="fth"><img class="ft" ${p.b64?`data-loaded="1" src="${p.b64}"`:`data-fid="${esc(p.id)}" src="${BLANK}"`} alt="Foto"></div><div style="flex:1;display:grid;gap:8px;min-width:0"><input type="date" data-dk-t value="${esc(p.t)}" aria-label="Tanggal foto"><input data-dk-k maxlength="120" placeholder="Keterangan foto (opsional)" value="${esc(p.k)}" autocomplete="off"></div><button type="button" class="btn rd s" data-dk-x="${i}" aria-label="Hapus foto">×</button></div>${ed?`<small class="sub">Anak dalam foto: ${esc(p.a.join(', ')||row.nama)}</small>`:`<details${p.a.length?'':' open'}><summary>Anak dalam foto: <span data-dkc>${p.a.length}</span> anak</summary>${kd.length?`<div style="margin:8px 0"><button type="button" class="btn gh s" data-dk-all="${i}">Semua yang dinilai</button> <button type="button" class="btn gh s" data-dk-none="${i}">Kosongkan</button></div><div class="opts">${kd.map(n=>`<label class="op"><input type="checkbox" data-dk-a="${i}" value="${esc(n)}"${p.a.includes(n)?' checked':''}><span>${esc(n)}</span></label>`).join('')}</div>`:'<small class="sub">Pilih kelompok dulu agar daftar anak muncul.</small>'}</details>`}</div>`).join('');
+isiFoto(c);const n=md.querySelector('#dkn');if(n)n.textContent=PH.length+' dari '+MAXD+' foto'};
+const sinKartu=i=>{const c=md.querySelector('.dkc[data-i="'+i+'"]');if(!c)return;const p=PH[i];c.querySelectorAll('[data-dk-a]').forEach(x=>{x.checked=p.a.includes(x.value)});const s=c.querySelector('[data-dkc]');if(s)s.textContent=p.a.length};
+const tambah=async fs=>{for(const f of fs){if(PH.length>=MAXD){toast('Maksimal '+MAXD+' foto',1);break}
+try{PH.push({b64:await kecil(f,1000),t:(E('tanggal')&&E('tanggal').value)||hari(),k:'',a:dasar(),pre:[]})}catch(er){toast(er.message==='bukan gambar'?'Berkas bukan gambar yang valid':er.message,1)}}gDok()};
+// pakai foto yang sudah ada (dari catatan lain): tidak diunggah ulang, hanya ID-nya yang dipakai lagi
+const pilih=async()=>{for(const j of DOKK)if(!ROWS[j])await JRmuat(j);
+const kl=kelNorm(E('kelas')?E('kelas').value:''),m=new Map();
+DOKK.forEach(j=>(ROWS[j]||[]).forEach(r=>{if(row&&j===k&&r.ID===row.ID)return;if(kl&&kelNorm(r.kelas)&&kelNorm(r.kelas)!==kl)return;
+fiDaftar(r).forEach(p=>{const o=m.get(p.id)||{id:p.id,t:p.t,k:'',a:new Set()};if(!o.k&&p.k)o.k=p.k;if(p.t>o.t)o.t=p.t;p.a.forEach(n=>o.a.add(n));m.set(p.id,o)})}));
+const L=[...m.values()].filter(o=>!PH.some(p=>p.id===o.id)).sort((a,b)=>String(b.t).localeCompare(String(a.t))).slice(0,48);
+const mm=document.createElement('div');mm.className='md';
+mm.innerHTML=`<div class="sheet"><h2>🖼️ Pakai foto yang sudah ada</h2><p class="sub" style="font-size:13px;margin-bottom:10px">Ketuk foto untuk memakainya lagi di catatan ini. Foto tidak diunggah ulang.</p>${L.length?`<div class="gl">${L.map((o,i)=>`<figure data-pi="${i}"><img data-fid="${esc(o.id)}" src="${BLANK}" alt="Foto"><figcaption><b>${tgl(o.t)}</b>${o.k?'<br>'+esc(o.k):''}<br><small>${esc([...o.a].slice(0,3).join(', '))}${o.a.size>3?' +'+(o.a.size-3):''}</small></figcaption></figure>`).join('')}</div>`:'<div class="empty">Belum ada foto dokumentasi di kelompok ini.</div>'}<div class="act"><button class="btn gh" data-x>Tutup</button></div></div>`;
+document.body.appendChild(mm);isiFoto(mm);
+mm.onclick=e=>{if(e.target===mm||e.target.closest('[data-x]'))return mm.remove();const f=e.target.closest('[data-pi]');if(!f)return;
+if(PH.length>=MAXD)return toast('Maksimal '+MAXD+' foto',1);const o=L[+f.dataset.pi],pre=[...o.a];
+PH.push({id:o.id,t:o.t,k:o.k,a:[...new Set(pre.concat(ed?[row.nama]:dasar()))],pre});mm.remove();gDok();toast('Foto ditambahkan ke catatan ini')}};
+md.addEventListener('click',e=>{const t=e.target;
+const x=t.closest('[data-dk-x]');if(x){PH.splice(+x.dataset.dkX,1);gDok();return}
+const b=t.closest('[data-dk]');if(b){if(b.dataset.dk==='add'){if(PH.length>=MAXD)return toast('Maksimal '+MAXD+' foto',1);md.querySelector('#dkin').click()}else pilih();return}
+const al=t.closest('[data-dk-all]'),no=t.closest('[data-dk-none]');
+if(al){const p=PH[+al.dataset.dkAll],kd=kand();p.a=[...new Set(p.a.filter(n=>!kd.includes(n)).concat(Object.keys(T).filter(n=>T[n]&&kd.includes(n))))];sinKartu(+al.dataset.dkAll)}
+if(no){const p=PH[+no.dataset.dkNone],kd=kand();p.a=p.a.filter(n=>!kd.includes(n));sinKartu(+no.dataset.dkNone)}});
+md.addEventListener('input',e=>{const c=e.target.closest('.dkc');if(c&&e.target.matches('[data-dk-k]'))PH[+c.dataset.i].k=e.target.value});
+md.addEventListener('change',e=>{const t=e.target;
+if(t.id==='dkin'){const fs=[...t.files];t.value='';tambah(fs);return}
+const c=t.closest('.dkc');if(c){const p=PH[+c.dataset.i];
+if(t.matches('[data-dk-t]'))p.t=t.value||p.t;
+else if(t.matches('[data-dk-a]')){p.a=t.checked?[...new Set(p.a.concat(t.value))]:p.a.filter(n=>n!==t.value);sinKartu(+c.dataset.i)}return}
+if(t.name==='kelas'||t.name==='nama')setTimeout(gDok,0)});
+// simpan: unggah foto baru SEKALI, lalu pasang ID dan metadata ke setiap catatan yang terkait
+md._dokSimpan=async(b,list,d)=>{
+for(const p of PH)if(!p.a.length)throw new Error('Pilih minimal satu anak pada setiap foto dokumentasi');
+if(list&&k==='perkembangan'){const dn=new Set(list.map(x=>x.nama));for(const p of PH){const luar=p.a.filter(n=>!dn.has(n)&&!(p.pre||[]).includes(n));if(luar.length)throw new Error('Pilih tingkat capaian untuk '+luar.join(', ')+' agar fotonya ikut tersimpan')}}
+const baru=PH.filter(p=>p.b64);let i=0;
+for(const p of baru){i++;b.textContent=`Mengunggah foto ${i}/${baru.length}...`;const j=await api('unggahLampiran',{b64:p.b64.split(',')[1]});p.id=j.id;delete p.b64}
+b.textContent='Menyimpan...';
+const paket=ps=>({foto:ps.map(p=>p.id).join(' '),info:ps.length?JSON.stringify(ps.map(p=>({t:p.t,k:p.k,a:p.a}))):''});
+if(list&&k==='perkembangan')list.forEach(x=>{const q=paket(PH.filter(p=>p.a.includes(x.nama)));x.foto=q.foto;if(q.info)x.fotoinfo=q.info});
+else{const nm=k==='perkembangan'?String(d.nama||(row&&row.nama)||'').trim():'';
+const ps=k==='perkembangan'?PH.map(p=>({...p,a:p.a.includes(nm)?p.a:p.a.concat(nm)})):PH,q=paket(ps);
+d.foto=q.foto;if(q.info||(row&&row.fotoinfo))d.fotoinfo=q.info}};
+if(DOKK.includes(k))loadSiswa().then(gDok);
+gDok()}
 gambar();
 if(tb||k==='perkembangan')loadSiswa().then(()=>{isiNama();gambar();hitung()});
 cekDup();
@@ -1347,7 +1411,7 @@ if(k==='penilaian'){if(md._pcpPending&&md._pcpPending()){const pb=md.querySelect
 const b=t.closest('[data-s]');b.disabled=true;b.textContent='Menyimpan...';
 if(k==='perkembangan'){await JRmuat('perkembangan');const dp=cekDup();if(dp){toast('Tidak bisa disimpan: pengamatan '+dp.join(', ')+' tanggal '+tgl(E('tanggal').value)+' sudah ada.',1);b.disabled=false;b.textContent='Simpan';return}}
 if(k==='kehadiran'||k==='harian'){await (md._mu||(k==='harian'?JRmuat('harian'):KHmuat()));const dx=cekDup();if(dx){toast('Tidak bisa disimpan: '+(k==='harian'?'Jurnal Harian ':'Jurnal Kehadiran ')+E('kelas').value+' tanggal '+tgl(E('tanggal').value)+' sudah ada.',1);b.disabled=false;b.textContent='Simpan';return}}
-try{if(FOTO[k]){if(list&&k==='perkembangan'){for(const x of list){const a=FA[x.nama];x.foto='';if(a){await kirimFoto(a,b);x.foto=a.lama.join(' ')}}}
+try{if(DOKK.includes(k)&&md._dokSimpan){await md._dokSimpan(b,list,d)}else if(FOTO[k]){if(list&&k==='perkembangan'){for(const x of list){const a=FA[x.nama];x.foto='';if(a){await kirimFoto(a,b);x.foto=a.lama.join(' ')}}}
 else{await kirimFoto(Fo,b);d.foto=Fo.lama.join(' ');if(list)list.forEach(x=>x.foto=d.foto)}}
 let kbE='',antri=false;if(list){const sb=await simpanBanyak(k,list);kbE=(sb&&sb.kbcError)||'';antri=!!(sb&&sb.queued)}else{const rs=await api('simpan',{jenis:k,data:d});kbE=rs.kbcError||'';antri=!!rs.queued}md.remove();toast(kbE?'Jurnal tersimpan, tetapi KBC belum tersimpan: '+kbE:(row?'Catatan berhasil diubah':(list?`${list.length} catatan tersimpan`:'Jurnal tersimpan')),!!kbE);if(!kbE&&!antri)ucap(row?'Catatan berhasil diubah':'Catatan berhasil disimpan'); // saat offline, ucapan "tersimpan di perangkat" diberikan oleh offline.js
 stale(k);if(k==='kehadiran')presSegar();viewJurnal(k)}
@@ -1416,7 +1480,7 @@ sr.innerHTML=rs.length?presTabel({...j,rows:rs},'ap'):'<div class="empty" style=
 function tabSiswa(){document.querySelectorAll('#stb button').forEach(b=>b.classList.toggle('on',b.dataset.t===SISTAB));const sr=$('#sr');sr.onclick=null;
 if(SISTAB==='data'){$('#sfil').innerHTML=`<div class="filt"><div class="fd"><label for="sq">Cari nama</label><input id="sq" placeholder="Ketik nama anak" style="width:260px" autocomplete="off"></div><div class="fd" style="display:flex;gap:8px"><button type="button" class="btn y" id="qc">Cari</button><button type="button" class="btn gh" id="qx">Reset</button></div><small class="sub">Daftar anak dari spreadsheet absensi, data lengkap diisi di sini (tombol Ubah)</small></div>`;
 $('#sq').oninput=renderDataSiswa;$('#qc').onclick=renderDataSiswa;$('#qx').onclick=()=>{$('#sq').value='';renderDataSiswa()};sr.onclick=e=>{const t=e.target.closest('tr[data-i]');if(t)sdDetail(+t.dataset.i)};muatDataSiswa()}
-else{$('#sfil').innerHTML=`<div class="filt"><div class="fd"><label for="sb">Bulan dan tahun</label><input type="month" id="sb" value="${hari().slice(0,7)}" style="width:210px"></div><div class="fd"><label for="sd">Dari tanggal</label><input type="date" id="sd" style="width:210px"></div><div class="fd"><label for="ss">Sampai tanggal</label><input type="date" id="ss" style="width:210px"></div><div class="fd"><label for="sn">Nama anak</label><input id="sn" list="dl_sn" placeholder="Ketik atau pilih nama anak" autocomplete="off" style="width:210px"><datalist id="dl_sn"></datalist></div><div class="fd"><label for="st">Status presensi</label><select id="st" style="width:210px"><option value="">Semua</option><option value="sakit">Pernah sakit</option><option value="izin">Pernah izin</option><option value="alpha">Pernah tanpa keterangan</option><option value="hadir">Selalu hadir</option></select></div><div class="fd" style="display:flex;gap:8px"><button type="button" class="btn y" id="sc">Cari</button><button type="button" class="btn gh" id="sx">Reset</button></div><small class="sub" style="flex-basis:100%">Rentang tanggal menggantikan bulan. Sumber: Rekap Absen, hanya pada tanggal yang Jurnal Kehadirannya sudah diisi</small></div>`;
+else if(SISTAB==='pres'){$('#sfil').innerHTML=`<div class="filt"><div class="fd"><label for="sb">Bulan dan tahun</label><input type="month" id="sb" value="${hari().slice(0,7)}" style="width:210px"></div><div class="fd"><label for="sd">Dari tanggal</label><input type="date" id="sd" style="width:210px"></div><div class="fd"><label for="ss">Sampai tanggal</label><input type="date" id="ss" style="width:210px"></div><div class="fd"><label for="sn">Nama anak</label><input id="sn" list="dl_sn" placeholder="Ketik atau pilih nama anak" autocomplete="off" style="width:210px"><datalist id="dl_sn"></datalist></div><div class="fd"><label for="st">Status presensi</label><select id="st" style="width:210px"><option value="">Semua</option><option value="sakit">Pernah sakit</option><option value="izin">Pernah izin</option><option value="alpha">Pernah tanpa keterangan</option><option value="hadir">Selalu hadir</option></select></div><div class="fd" style="display:flex;gap:8px"><button type="button" class="btn y" id="sc">Cari</button><button type="button" class="btn gh" id="sx">Reset</button></div><small class="sub" style="flex-basis:100%">Rentang tanggal menggantikan bulan. Sumber: Rekap Absen, hanya pada tanggal yang Jurnal Kehadirannya sudah diisi</small></div>`;
 PJ=null;const sb=$('#sb'),sd=$('#sd'),ss=$('#ss'),kl=()=>klf()||nilai('sk')||'';
 const rg=()=>!!(sd.value||ss.value),kc=()=>rg()?'pr_r'+sd.value+'_'+ss.value+'_'+kl():'pr_'+sb.value+'_'+kl();
 const prm=()=>rg()?{dari:sd.value,sampai:ss.value,kelas:kl()}:{bulan:sb.value,kelas:kl()};
@@ -1429,7 +1493,7 @@ sb.onchange=()=>{sd.value='';ss.value='';ld()};
 sd.onchange=ss.onchange=()=>{if(rg())sb.value='';ld()};
 $('#sn').oninput=presTampil;$('#st').onchange=presTampil;$('#sc').onclick=ld;
 $('#sx').onclick=()=>{sb.value=hari().slice(0,7);sd.value=ss.value='';$('#sn').value='';$('#st').value='';ld()};
-ld()}}
+ld()}else galeriSiswa()}
 /* ===== Kehadiran otomatis + manual =====
    Status anak diubah lewat tombol Ubah pada Jurnal Kehadiran. Yang berbeda dari Rekap Absen disimpan di kolom "manual"
    (aksi 'simpan' biasa, jadi offline + sinkron otomatis tetap berlaku). Tab Presensi hanya menampilkan rekap. */
@@ -1439,8 +1503,31 @@ async function manualKehadiran(tg,kl,T,row){let auto=null;
 try{const a=await api('absen',{tanggal:tg,kelas:kl});auto={};if(a&&a.tercatat)[['izinNama','izin'],['sakitNama','sakit'],['alphaNama','alpha']].forEach(([f,c])=>(a[f]||[]).forEach(n=>auto[kunci(n)]=c))}catch(e){}
 const lama=parseManual(row&&row.manual);
 return Object.keys(T).filter(n=>{const v=T[n];if(!v)return false;return auto?v!==(auto[kunci(n)]||'hadir'):(v!=='hadir'||n in lama)}).map(n=>n.replace(/[|:]/g,' ')+':'+T[n]).join('|')}
+/* ---------- galeri dokumentasi foto per anak (dari catatan Perkembangan dan Penilaian yang sudah ada, termasuk dari cache offline) ---------- */
+function fiPeta(){const m=new Map(),add=(n,o)=>{const q=kunci(n);if(!q)return;let e=m.get(q);if(!e){e={nama:n,it:[]};m.set(q,e)}e.it.push(o)};
+(ROWS.perkembangan||[]).forEach(r=>{if(kunci(r.nama))fiDaftar(r).forEach(p=>add(r.nama,{...p,j:'perkembangan',r}))});
+(ROWS.penilaian||[]).forEach(r=>fiDaftar(r).forEach(p=>[...new Set(p.a)].forEach(n=>add(n,{...p,j:'penilaian',r}))));return m}
+async function galeriSiswa(){const sr=$('#sr');sr.onclick=null;
+$('#sfil').innerHTML=`<div class="filt"><div class="fd"><label for="gn">Nama anak</label><select id="gn" style="width:260px"><option value="">Memuat...</option></select></div><div class="fd"><label for="gj">Jurnal</label><select id="gj" style="width:210px"><option value="">Semua jurnal</option><option value="perkembangan">Perkembangan</option><option value="penilaian">Penilaian</option></select></div><div class="fd"><label for="gd">Dari tanggal</label><input type="date" id="gd" style="width:210px"></div><div class="fd"><label for="gs">Sampai tanggal</label><input type="date" id="gs" style="width:210px"></div><div class="fd" style="display:flex;gap:8px"><button type="button" class="btn y" id="gc">Cari</button><button type="button" class="btn gh" id="gx">Reset</button></div><small class="sub" style="flex-basis:100%">Foto yang sama untuk beberapa anak muncul di galeri masing-masing anak. Setiap foto punya catatan jurnalnya sendiri.</small></div>`;
+const cc=cGet('semua');DOKK.forEach(k=>{if(!ROWS[k]&&cc&&Array.isArray(cc[k]))ROWS[k]=urut(cc[k].slice())});
+let cur=[];
+const gbr=()=>{if(S.view!=='siswa'||SISTAB!=='gal'||!$('#gn'))return;const kl=klf()||nilai('sk')||'',pm=fiPeta(),sel=$('#gn'),pk=sel.value;
+const dn=[...pm.values()].filter(e=>!kl||e.it.some(x=>kelNorm(x.r.kelas)===kl)).sort((a,b)=>a.nama.localeCompare(b.nama,'id'));
+sel.innerHTML=`<option value="">${dn.length?'Pilih nama anak...':'Belum ada foto'}</option>`+dn.map(e=>`<option value="${esc(kunci(e.nama))}"${kunci(e.nama)===pk?' selected':''}>${esc(e.nama)} (${e.it.length})</option>`).join('');
+const e=pm.get(sel.value),j=$('#gj').value,d1=$('#gd').value,d2=$('#gs').value;
+if(!e){cur=[];sr.innerHTML=`<div class="empty">${dn.length?'Pilih nama anak untuk melihat dokumentasi fotonya.':'Belum ada foto dokumentasi. Tambahkan lewat Jurnal Perkembangan atau Jurnal Penilaian (tombol Dokumentasi foto).'}</div>`;return}
+cur=e.it.filter(x=>(!j||x.j===j)&&(!d1||x.t>=d1)&&(!d2||x.t<=d2)).sort((a,b)=>String(b.t).localeCompare(String(a.t)));
+sr.innerHTML=cur.length?`<p style="margin:0 0 8px"><b>${esc(e.nama)}</b>: ${cur.length} foto</p><div class="gl">${cur.map((x,i)=>{const lain=x.a.filter(n=>kunci(n)!==kunci(e.nama));return`<figure><img class="ft" data-fid="${esc(x.id)}" src="${BLANK}" alt="Foto"><figcaption><b>${tgl(x.t)}</b> <span class="bdg">${x.j==='perkembangan'?'Perkembangan':'Penilaian'}</span>${x.k?'<br>'+esc(x.k):''}<br><small>${esc((x.j==='perkembangan'?[x.r.aspek,x.r.tingkat]:[x.r.jenis,x.r.aspek]).filter(Boolean).join(' - '))}</small>${lain.length?`<br><small>Bersama: ${esc(lain.slice(0,4).join(', '))}${lain.length>4?' +'+(lain.length-4):''}</small>`:''}<br><button type="button" class="btn gh s" data-bk="${i}">Buka catatan</button></figcaption></figure>`}).join('')}</div>`:'<div class="empty">Data tidak ditemukan</div>';
+isiFoto(sr)};
+sr.innerHTML=muat();
+sr.onclick=e=>{const im=e.target.closest('img.ft');if(im&&im.dataset.loaded)return lihatFoto(im.src);const b=e.target.closest('[data-bk]');if(b){const x=cur[+b.dataset.bk];if(x){go(x.j);bukaForm(x.j,x.r)}}};
+$('#gn').onchange=$('#gj').onchange=$('#gd').onchange=$('#gs').onchange=gbr;$('#gc').onclick=gbr;
+$('#gx').onclick=()=>{$('#gj').value='';$('#gd').value='';$('#gs').value='';gbr()};
+gbr();
+try{await Promise.all([loadSiswa(),...DOKK.map(async k=>{try{const r=await api('list',{jenis:k});ROWS[k]=urut(r.rows)}catch(e){}})])}catch(e){}
+gbr()}
 function viewSiswa(){const m=$('#main'),kf=klf();
-m.innerHTML=`<div class="card"><div class="tabs" id="stb"><button data-t="data">🧑‍🎓 Data Siswa</button><button data-t="pres">📅 Presensi</button></div>${kf?`<p><b>Kelompok</b><span class="bdg">${kf}</span></p>`:`<div class="fd"><label>Kelompok</label>${radioGrup('sk',[['','Semua'],...KELAS.map(x=>[x,x])],'','sk')}</div>`}<div id="sfil" style="margin-top:14px"></div></div><div class="card" id="sr"></div>`;
+m.innerHTML=`<div class="card"><div class="tabs" id="stb"><button data-t="data">🧑‍🎓 Data Siswa</button><button data-t="pres">📅 Presensi</button><button data-t="gal">🖼️ Galeri Foto</button></div>${kf?`<p><b>Kelompok</b><span class="bdg">${kf}</span></p>`:`<div class="fd"><label>Kelompok</label>${radioGrup('sk',[['','Semua'],...KELAS.map(x=>[x,x])],'','sk')}</div>`}<div id="sfil" style="margin-top:14px"></div></div><div class="card" id="sr"></div>`;
 $('#stb').onclick=e=>{const b=e.target.closest('[data-t]');if(b){SISTAB=b.dataset.t;tabSiswa()}};
 if(!kf)$('#sk').onchange=tabSiswa;
 tabSiswa()}
@@ -1627,7 +1714,7 @@ const L=[...m.values()].sort((a,b)=>String(a.t).localeCompare(String(b.t))),MX=6
 const cap=o=>{const j=J[o.k];let s=`<b>${esc(j.n.replace('Jurnal ',''))}</b><br>${tgl(o.t)}`;
 const nm=[...new Set(o.rs.map(r=>r.nama).filter(Boolean))];
 if(nm.length)s+=`<br>${esc(nm.slice(0,4).join(', '))}${nm.length>4?' dan '+(nm.length-4)+' anak lain':''}`;
-else s+=`<br>${esc(j.t(o.rs[0]))}`;return s};
+else s+=`<br>${esc(j.t(o.rs[0]))}`;const kt=o.rs.map(r=>(fiMeta(r,o.id)||{}).k).find(Boolean);if(kt)s+=`<br><i>${esc(kt)}</i>`;return s};
 return`<h3>E. Lampiran dokumentasi foto</h3>${sh.length?`<div class="gal">${sh.map(o=>`<figure><img data-fid="${esc(o.id)}" src="${BLANK}" alt="Foto"><figcaption>${cap(o)}</figcaption></figure>`).join('')}</div>${L.length>MX?`<p style="font-size:12px">Menampilkan ${MX} dari ${L.length} foto pada periode ini. Persempit periode laporan untuk melihat sisanya.</p>`:''}`:'<p style="font-size:12px">Tidak ada foto pada periode ini.</p>'}`}
 const opsi=(k,f)=>J[k].f.find(x=>x.k===f).o;
 function dist(jd,rs,key,ops){const t=rs.length;
