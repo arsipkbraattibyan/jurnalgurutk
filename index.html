@@ -511,19 +511,23 @@ return foto?`<img class="av" src="${esc(fu(foto))}" alt="" referrerpolicy="no-re
 
 /* ---------- definisi jurnal (versi TK) ---------- */
 const KELAS=['Kelompok A','Kelompok B'];
-const TEMA=['Diriku','Lingkunganku','Kebutuhanku','Binatang','Tanaman','Alam semesta','Pekerjaan','Rekreasi','Transportasi','Komunikasi','Kebangsaanku'];
+const TEMA=['Diriku','Keluargaku','Lingkunganku','Kebutuhanku','Binatang','Tanaman','Alam semesta','Air, udara, dan api','Pekerjaan','Rekreasi','Transportasi','Komunikasi','Kebangsaanku','Budayaku','Pengalaman dan peristiwa'];
 const SUBTEMA={
-'Diriku':['Anggota tubuh','Panca indraku','Kebersihan','Kesukaanku','Perasaanku'],
-'Lingkunganku':['Keluargaku','Rumahku','Sekolahku','Tetanggaku','Tempat ibadah'],
-'Kebutuhanku':['Makanan sehat','Minuman sehat','Pakaianku','Kesehatanku'],
-'Binatang':['Hewan peliharaan','Hewan darat','Hewan air','Hewan udara'],
-'Tanaman':['Kebun sekolah','Buah-buahan','Sayuran','Bunga','Pohon'],
-'Alam semesta':['Matahari dan bulan','Siang dan malam','Cuaca','Air dan udara','Bumi'],
-'Pekerjaan':['Profesi di sekitarku','Pekerjaan di sekolah','Pekerjaan di pasar','Pekerjaan di rumah sakit'],
-'Rekreasi':['Taman bermain','Kebun binatang','Pantai','Berkemah'],
-'Transportasi':['Kendaraan darat','Kendaraan air','Kendaraan udara','Rambu lalu lintas'],
-'Komunikasi':['Telepon dan gawai','Surat dan pos','Televisi dan radio','Koran dan buku'],
-'Kebangsaanku':['Bendera merah putih','Lagu kebangsaan','Pakaian adat','Rumah adat','Hari kemerdekaan']};
+'Diriku':['Anggota tubuh','Panca indraku','Kebersihan','Kesukaanku','Perasaanku','Identitas diri','Kesehatan dan keselamatan diri'],
+'Keluargaku':['Anggota keluarga','Peran anggota keluarga','Kasih sayang dalam keluarga','Rumahku'],
+'Lingkunganku':['Keluargaku','Rumahku','Sekolahku','Tetanggaku','Tempat ibadah','Tempat umum','Menjaga kebersihan lingkungan'],
+'Kebutuhanku':['Makanan sehat','Minuman sehat','Pakaianku','Kesehatanku','Tempat tinggal','Kebiasaan hidup sehat'],
+'Binatang':['Hewan peliharaan','Hewan darat','Hewan air','Hewan udara','Binatang ternak','Binatang liar','Habitat dan makanan binatang'],
+'Tanaman':['Kebun sekolah','Buah-buahan','Sayuran','Bunga','Pohon','Bagian-bagian tanaman','Manfaat tanaman','Merawat tanaman'],
+'Alam semesta':['Matahari dan bulan','Siang dan malam','Cuaca','Air dan udara','Bumi','Gejala alam'],
+'Air, udara, dan api':['Manfaat air','Manfaat udara','Manfaat api','Sifat dan kegunaan air','Keselamatan terhadap api'],
+'Pekerjaan':['Profesi di sekitarku','Pekerjaan di sekolah','Pekerjaan di pasar','Pekerjaan di rumah sakit','Pekerjaan di bidang pertanian'],
+'Rekreasi':['Taman bermain','Kebun binatang','Pantai','Berkemah','Wisata alam','Wisata buatan','Pengalaman perjalanan','Keselamatan saat rekreasi'],
+'Transportasi':['Kendaraan darat','Kendaraan air','Kendaraan udara','Rambu lalu lintas','Fungsi dan manfaat kendaraan','Keselamatan berkendara'],
+'Komunikasi':['Telepon dan gawai','Surat dan pos','Televisi dan radio','Koran dan buku','Alat komunikasi tradisional','Cara berkomunikasi','Manfaat dan penggunaan teknologi'],
+'Kebangsaanku':['Bendera merah putih','Lagu kebangsaan','Pakaian adat','Rumah adat','Hari kemerdekaan','Lambang negara','Pancasila','Pahlawan nasional','Cinta tanah air'],
+'Budayaku':['Pakaian adat','Rumah adat','Makanan tradisional','Tarian dan lagu daerah','Permainan tradisional'],
+'Pengalaman dan peristiwa':['Ulang tahun','Hari besar keagamaan','Hari kemerdekaan','Pengalaman menyenangkan','Kegiatan bersama']};
 const SUBTEMA_SEMUA=[...new Set(Object.values(SUBTEMA).flat())];
 const ASPEK=['Nilai agama dan budi pekerti','Jati diri','Literasi','Matematika dan sains','Teknologi dan rekayasa','Seni','Fisik motorik']; // lama, dipakai Jurnal Penilaian dan data lama
 /* Tiga elemen CP Fase Fondasi (disimpan di kolom "aspek" Jurnal Perkembangan) */
