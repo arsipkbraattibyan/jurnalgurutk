@@ -114,8 +114,8 @@ input:focus,textarea:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 4
 .sheet{background:#fff;border-radius:30px;padding:22px;width:100%;max-width:720px;max-height:92vh;overflow:auto}
 .sheet h2{font-size:21px;color:var(--navy);margin-bottom:14px}
 .empty{text-align:center;color:var(--mut);padding:30px;font-weight:700}
-#toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,90px);background:var(--navy);color:#fff;padding:11px 20px;border-radius:99px;transition:.25s;z-index:30;max-width:90%;font-weight:700}
-#toast.show{transform:translate(-50%,0)}#toast.er{background:#d23a62}
+#toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,calc(100% + 40px));opacity:0;visibility:hidden;pointer-events:none;background:var(--navy);color:#fff;padding:11px 20px;border-radius:18px;text-align:center;width:max-content;transition:transform .25s,opacity .25s,visibility .25s;z-index:30;max-width:90%;font-weight:700}
+#toast.show{transform:translate(-50%,0);opacity:1;visibility:visible}#toast.er{background:#d23a62}
 .lg{height:100vh;height:100dvh;display:grid;place-items:center;padding:10px;position:relative;overflow:hidden;background:linear-gradient(#8fd0ff,#cfeaff 55%,#eaf6ff)}
 .lg::after{content:"";position:absolute;left:-15%;right:-15%;bottom:-120px;height:230px;border-radius:50%;background:#8fd14f;z-index:0}
 .dc{position:absolute;z-index:0;animation:fl 6s ease-in-out infinite}
@@ -468,7 +468,7 @@ g.gain.setValueAtTime({1:.05,2:.12,3:.25}[SET.vol],s);g.gain.exponentialRampToVa
 // suara ucapan (bahasa Indonesia) lewat speechSynthesis peramban; mengikuti pengaturan Suara dan Volume
 function ucap(t){if(!SET.suara)return;try{const s=window.speechSynthesis;if(!s)return;s.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='id-ID';
 const v=(s.getVoices()||[]).find(x=>/^id([-_]|$)/i.test(x.lang));if(v)u.voice=v;u.volume={1:.45,2:.75,3:1}[SET.vol]||.75;u.rate=1;setTimeout(()=>s.speak(u),250)}catch(e){}}
-function toast(m,er){const e=$('#toast');e.textContent=m;e.className='show'+(er?' er':'');bunyi(er?'err':'ok');clearTimeout(tt);tt=setTimeout(()=>e.className='',2800)}
+function toast(m,er){const e=$('#toast');e.textContent=m;e.className='show'+(er?' er':'');bunyi(er?'err':'ok');clearTimeout(tt);tt=setTimeout(()=>e.className='',m.length>60?4000:2800)}
 document.addEventListener('click',e=>{const t=e.target;if(t.closest('button')||(t.closest('.op')&&t.tagName!=='INPUT'))bunyi()});
 document.addEventListener('change',e=>{const t=e.target;
 if(t.matches('input[type=date],input[type=month]'))bunyi('pin');
@@ -1153,7 +1153,7 @@ const setArea=(n,txt)=>{const fd=E(n).closest('.fd');fd.querySelector('.ex').val
 const cekDup=aw=>{if(k!=='kehadiran'&&k!=='harian')return null;const nj=k==='harian'?'Jurnal Harian':'Jurnal Kehadiran',tg=E('tanggal').value,kl=E('kelas').value,w=md.querySelector('#dupw');
 if(row&&String(row.tanggal).slice(0,10)===tg&&kelNorm(row.kelas)===kelNorm(kl)){w.style.display='none';return null} // mengubah catatan lama tanpa ganti tanggal/kelompok
 const x=(ROWS[k]||[]).find(r=>String(r.tanggal).slice(0,10)===tg&&kelNorm(r.kelas)===kelNorm(kl)&&(!row||r.ID!==row.ID));
-w.style.display=x?'':'none';if(x){w.innerHTML=`⚠️ ${nj} ${esc(kl)} tanggal ${tgl(tg)} sudah ada, jadi tidak bisa disimpan lagi. <button type="button" class="btn gh s" data-ed="${x.ID}">Ubah yang sudah ada</button>`;if(aw)toast(nj+' '+kl+' tanggal '+tgl(tg)+' sudah ada. Tidak bisa disimpan dua kali.',1)}return x};
+w.style.display=x?'':'none';if(x){w.innerHTML=`⚠️ ${nj} ${esc(kl)} tanggal ${tgl(tg)} sudah ada, jadi tidak bisa disimpan lagi. <button type="button" class="btn gh s" data-ed="${x.ID}">Ubah yang sudah ada</button>`;if(aw)toast('Sudah ada. Ubah catatan yang ada.',1)}return x};
 const absenHari=()=>{if(tb.cls!=='nl')return{m:{},ada:true};const tg=E('tanggal').value,kl=kelNorm(E('kelas').value),rs=(ROWS.kehadiran||[]).filter(r=>String(r.tanggal).slice(0,10)===tg&&kelNorm(r.kelas)===kl),m={};rs.forEach(r=>Object.assign(m,absenDari(r)));return{m,ada:rs.length>0}};
 const daftar=()=>(SISWA||[]).filter(s=>s.kelas===E('kelas').value).map(s=>s.nama);
 const warna=()=>md.querySelectorAll('.tr').forEach(r=>r.querySelectorAll('input[type=radio]').forEach(x=>x.checked=x.value===T[r.dataset.n]));
