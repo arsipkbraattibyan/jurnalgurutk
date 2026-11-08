@@ -798,15 +798,15 @@ function kbdHitung(D,gid){
 function kbdGambar(){
   const el=$('#kbd');if(!el)return;
   if(!KBD){el.innerHTML=KBDE?`<div class="card"><div class="empty">${esc(KBDE)}<br><button class="btn s" data-kbr="1" style="margin-top:10px">Coba lagi</button></div></div>`:'<div class="card"><div class="empty">Memuat statistik KBC...</div></div>';return}
-  const D=KBD,me=S.guru&&S.guru.id,H=kbdHitung(D,KBDF==='saya'?me:''),A=kbdHitung(D,''),nl=D.nilai||[],bi=hari().slice(0,7);
+  const D=KBD,me=S.guru&&S.guru.id,semua=boleh('kbc.rekapSemua'),H=kbdHitung(D,semua&&KBDF!=='saya'?'':me),A=kbdHitung(D,''),nl=D.nilai||[],bi=hari().slice(0,7);
   const nm=n=>(KBD_P[n.ID]||[n.nama])[0];
   const chip=(v,t)=>`<button class="btn s${KBDF===v?'':' gh'}" data-kbf="${v}">${t}</button>`;
   const bulan=b=>{try{return new Date(b+'-01T00:00').toLocaleDateString('id-ID',{month:'short',year:'numeric'})}catch(e){return b}};
   const sel=v=>v?v:'<span class="z">0</span>';
-  const head=`<div class="kbf">${chip('semua','Semua guru')}${chip('saya','Hanya saya')}</div>`;
+  const head=semua?`<div class="kbf">${chip('semua','Semua guru')}${chip('saya','Hanya saya')}</div>`:'';
   const strip=`<div class="strip"><div class="sti"><i style="background:#e3f2fd">🌟</i><div><b>${H.keg}</b><small>Jumlah kegiatan KBC</small></div></div><div class="sti"><i style="background:#fff3d6">📅</i><div><b>${(H.bln[bi]||{k:0}).k}</b><small>Kegiatan bulan ini</small></div></div><div class="sti"><i style="background:#fde4ee">📝</i><div><b>${H.cat}</b><small>Jumlah catatan</small></div></div></div>`;
   let isi;
-  if(!H.keg){isi=`<div class="card"><div class="empty">${KBDF==='saya'?'Anda belum punya catatan KBC.':'Belum ada catatan KBC.'} Isi bagian Penguatan KBC pada Jurnal Harian, Perkembangan, Penilaian, Kokurikuler, atau Refleksi.</div></div>`}
+  if(!H.keg){isi=`<div class="card"><div class="empty">${KBDF==='saya'||!semua?'Anda belum punya catatan KBC.':'Belum ada catatan KBC.'} Isi bagian Penguatan KBC pada Jurnal Harian, Perkembangan, Penilaian, Kokurikuler, atau Refleksi.</div></div>`}
   else{
     const mx=Math.max(1,...nl.map(n=>H.nil[n.ID]||0));
     const bars=nl.map((n,i)=>{const v=H.nil[n.ID]||0;return`<div title="${esc(n.nama)}"><span>${v}</span><i style="height:${Math.round(v/mx*100)}px;background:${WARNA[i%WARNA.length]}"></i>${esc(nm(n))}</div>`}).join('');
@@ -817,7 +817,7 @@ function kbdGambar(){
     const gl=gs.map(x=>`<tr><td>${esc(x.g.nama)}${x.g.id===me?' (Anda)':''}</td><td><b>${x.v.k}</b></td>${nl.map(n=>`<td>${sel(x.v.n[n.ID]||0)}</td>`).join('')}</tr>`).join('');
     isi=`<div class="two"><div class="card"><h3>Rekap per nilai Panca Cinta</h3><div class="bars">${bars}</div><ul class="kbl">${leg}</ul></div>
 <div class="card"><h3>Rekap per bulan</h3><div class="kbo"><table class="kbt"><thead><tr><th>Bulan</th><th>Kegiatan</th>${th}</tr></thead><tbody>${bl}<tr class="tt"><td>Total</td><td>${H.keg}</td>${nl.map(n=>`<td>${H.nil[n.ID]||0}</td>`).join('')}</tr></tbody></table></div></div></div>
-<div class="card"><h3>Rekap per guru</h3><div class="kbo"><table class="kbt g"><thead><tr><th>Guru</th><th>Kegiatan</th>${th}</tr></thead><tbody>${gl}</tbody></table></div><div class="kbn">Tabel ini selalu memuat semua guru (hanya angka, isi catatan tidak ditampilkan).</div></div>`;
+${semua?`<div class="card"><h3>Rekap per guru</h3><div class="kbo"><table class="kbt g"><thead><tr><th>Guru</th><th>Kegiatan</th>${th}</tr></thead><tbody>${gl}</tbody></table></div><div class="kbn">Tabel ini selalu memuat semua guru (hanya angka, isi catatan tidak ditampilkan).</div></div>`:''}`;
   }
   el.innerHTML=head+strip+isi+`<div class="kbn">Kegiatan = satu jurnal yang memuat catatan KBC. Satu kegiatan boleh memuat beberapa nilai, sehingga jumlah per nilai bisa lebih besar dari jumlah kegiatan. Catatan = jumlah baris KBC (penilaian untuk 5 anak = 5 catatan).</div>`;
 }
@@ -1897,17 +1897,31 @@ catch(er){const s=$('#lgs');if(s)s.innerHTML='<option value="">'+esc(er.message)
 async function lihatMuat(id,label){
 const box=$('#lhs');box.innerHTML='<div class="card empty">Memuat jurnal...</div>';LH.id=id;LH.data=null;Object.keys(FL).forEach(k=>delete FL[k]);FLQ.length=0;
 try{const j=await api('lihatSemua',{guruId:id});if(LH.id!==id||S.view!=='lihat')return;
-LH.data=j.data||{};LH.ring=j.ringkasan||{};LH.nama=(j.guru&&j.guru.nama)||label;
-box.innerHTML=`<div class="card"><h3>${esc(LH.nama)}</h3><div class="kv">${KEYS.map(k=>{const r=LH.ring[k]||{};return`<div><small>${J[k].ic} ${esc(SHORT(k))}</small>${r.total||0} catatan · bulan ini ${r.bulan||0}</div>`}).join('')}</div></div><div class="card"><div class="filt"><div class="fd" style="flex:1 1 240px"><label for="lhj">Jurnal</label><select id="lhj">${KEYS.map(k=>`<option value="${k}">${esc(SHORT(k))} (${(LH.data[k]||[]).length})</option>`).join('')}</select></div><div class="fd"><label for="lhb">Bulan</label><input type="month" id="lhb" style="width:190px"></div></div><small class="sub">Bulan boleh dikosongkan untuk melihat semua catatan.</small></div><div id="lhl"></div>`;
+LH.data=j.data||{};LH.ring=j.ringkasan||{};LH.kbc=j.kbc||[];LH.nama=(j.guru&&j.guru.nama)||label;
+box.innerHTML=`<div class="card"><h3>${esc(LH.nama)}</h3><div class="kv">${KEYS.map(k=>{const r=LH.ring[k]||{};return`<div><small>${J[k].ic} ${esc(SHORT(k))}</small>${r.total||0} catatan · bulan ini ${r.bulan||0}</div>`}).join('')}</div></div><div class="card"><div class="filt"><div class="fd" style="flex:1 1 240px"><label for="lhj">Jurnal</label><select id="lhj">${KEYS.map(k=>`<option value="${k}">${esc(SHORT(k))} (${(LH.data[k]||[]).length})</option>`).join('')}<option value="kbc">Penguatan KBC Jurnal Harian (${LH.kbc.length})</option><option value="pres">Presensi per anak</option></select></div><div class="fd"><label for="lhb">Bulan</label><input type="month" id="lhb" style="width:190px"></div></div><small class="sub">Bulan boleh dikosongkan untuk melihat semua catatan.</small></div><div id="lhl"></div>`;
 $('#lhj').onchange=lihatGambar;$('#lhb').onchange=lihatGambar;
 $('#lhl').onclick=e=>{const bf=e.target.closest('img.ft');if(bf&&bf.dataset.loaded)lihatFoto(bf.src)};
 lihatGambar()}
 catch(er){if(LH.id===id)box.innerHTML=`<div class="card empty">${esc(er.message)}</div>`}}
 function lihatGambar(){
-const k=($('#lhj')||{}).value,b=($('#lhb')||{}).value,j=J[k],el=$('#lhl');if(!j||!el||!LH.data)return;
+const k=($('#lhj')||{}).value,b=($('#lhb')||{}).value,j=J[k],el=$('#lhl');
+if(k==='kbc'&&el&&LH.data)return lihatKbc(el,b);
+if(k==='pres'&&el&&LH.data)return lihatPres(el,b);
+if(!j||!el||!LH.data)return;
 const rs=urut((LH.data[k]||[]).slice()).filter(r=>!b||String(r.tanggal).slice(0,7)===b);
 el.innerHTML=rs.length?rs.slice(0,150).map(r=>`<div class="card row"><small>${fmt(r.tanggal)}</small><h3>${esc(j.t(r))}</h3><div class="kv">${j.f.filter(f=>f.k!=='tanggal'&&r[f.k]!==''&&r[f.k]!==undefined).map(f=>`<div><small>${f.l}</small>${esc(fv(f,r))}</div>`).join('')}</div>${fotoHtml(r)}</div>`).join('')+(rs.length>150?`<p class="sub" style="font-size:12px;margin:8px 0">Menampilkan 150 dari ${rs.length} catatan terbaru. Pilih bulan untuk mempersempit.</p>`:''):'<div class="card empty">Tidak ada catatan.</div>';
 isiFotoLihat(el)}
+const PCN=id=>(KBD_P[id]||[id,id])[1];
+function lihatKbc(el,b){
+const rs=(LH.kbc||[]).filter(r=>!r.anakid&&(!b||String(r.tanggal).slice(0,7)===b)).sort((x,y)=>String(y.tanggal).localeCompare(String(x.tanggal)));
+el.innerHTML=rs.length?rs.slice(0,150).map(r=>{const n=[r.nilaiid].concat(String(r.nilailain||'').split(',')).filter(Boolean).map(PCN).join(', ');
+return`<div class="card row"><small>${fmt(r.tanggal)}${r.kelas?' · '+esc(r.kelas):''}</small><h3>${esc(n)}</h3><div class="kv">${[['Tujuan',r.tujuan],['Aktivitas implementasi',r.aktivitas],['Catatan penerapan',r.hasil]].filter(x=>x[1]).map(x=>`<div><small>${x[0]}</small>${esc(x[1])}</div>`).join('')}</div></div>`}).join('')+(rs.length>150?`<p class="sub" style="font-size:12px;margin:8px 0">Menampilkan 150 dari ${rs.length} catatan terbaru. Pilih bulan untuk mempersempit.</p>`:''):'<div class="card empty">Tidak ada catatan KBC pada Jurnal Harian.</div>'}
+async function lihatPres(el,b){
+const id=LH.id;el.innerHTML='<div class="card empty">Memuat presensi...</div>';
+try{const j=await api('lihatPresensi',{guruId:id,dari:b?b+'-01':'',sampai:b?b+'-31':''});
+if(LH.id!==id||($('#lhj')||{}).value!=='pres'||($('#lhb')||{}).value!==b)return;
+el.innerHTML=j.hari?`<div class="card">${presTabel(j)}<p class="sub" style="font-size:12px;margin:8px 0 0">Hanya tanggal yang Jurnal Kehadirannya sudah diisi guru ini.</p></div>`:'<div class="card empty">Guru ini belum mengisi Jurnal Kehadiran pada periode ini, sehingga presensi per anak belum ada.</div>'}
+catch(er){if(LH.id===id)el.innerHTML=`<div class="card empty">${esc(er.message)}</div>`}}
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 
 /* ---------- mulai ---------- */
