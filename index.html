@@ -795,7 +795,7 @@ $('#app').innerHTML=`<div class="lgx"><div class="lgx-card">
 <div class="lgx-hd"><img class="lgx-logo" id="lgxLogo" src="${LOGO}" alt="Logo sekolah"><h1>Jurnal Guru TK</h1><p id="lgxSek">KB-RA At Tibyan</p></div>
 <div class="lgx-body"><form class="lgx-fm" id="lgxF" novalidate>
 <label for="lgxU">Nama pengguna</label>
-<select id="lgxU" name="username" disabled><option value="">Memuat daftar nama...</option></select>
+<select id="lgxU" name="username" autocomplete="off" disabled><option value="">Memuat daftar nama...</option></select>
 <label for="lgxP">PIN (6 angka)</label>
 <div class="lgx-pw"><input id="lgxP" name="password" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="current-password" placeholder="••••••" aria-describedby="lgxE"><button type="button" id="lgxT" aria-label="Tampilkan PIN" aria-pressed="false">Tampilkan</button></div>
 <div class="lgx-er" id="lgxE" role="alert" aria-live="polite" hidden></div>
@@ -812,20 +812,20 @@ if(!/^\d{6}$/.test(P.value))return salah('PIN harus 6 angka.');
 GID=U.value;PIN=P.value;masuk()};
 muatGuruLogin()}
 async function muatGuruLogin(){const U=$('#lgxU'),E=$('#lgxE');if(!U)return;
+try{localStorage.removeItem(LAST_KEY)}catch(e){} // tidak ada nama yang terpilih otomatis saat aplikasi dibuka
 try{const j=await api('daftarGuru');if(S.mode!=='login'||!$('#lgxU'))return;
 const sk=j.sekolah||{};if(sk.nama)$('#lgxSek').textContent=sk.nama;
 if(/^data:image\/(png|jpeg);base64,/.test(sk.logo||''))$('#lgxLogo').src=sk.logo;
-const L=j.guru||[];let last='';try{last=localStorage.getItem(LAST_KEY)||''}catch(e){}
+const L=j.guru||[];
 E.hidden=true;
 if(!L.length){U.innerHTML='<option value="">Belum ada guru terdaftar</option>';return}
 U.innerHTML='<option value="" disabled hidden selected>Pilih nama Anda</option>'+L.map(g=>`<option value="${esc(g.id)}">${esc(g.nama)}</option>`).join('');
-U.disabled=false;
-if(last&&L.some(g=>String(g.id)===last)){U.value=last;GID=last;$('#lgxP').focus()}}
+U.disabled=false;U.value=''}
 catch(e){if(S.mode!=='login'||!$('#lgxU'))return;U.innerHTML='<option value="">Daftar nama belum termuat</option>';
 E.innerHTML='Tidak bisa memuat daftar nama. Periksa koneksi internet. <button type="button" id="lgxR">Coba lagi</button>';E.hidden=false;
 $('#lgxR').onclick=()=>{E.hidden=true;muatGuruLogin()}}}
 async function masuk(){busy=true;const G=$('#lgxG'),P=$('#lgxP'),E=$('#lgxE');G.disabled=true;G.textContent='Memeriksa...';
-try{const j=await api('login',{id:GID,pin:PIN,dev:devAmbil(GID)}),lama=PIN;if(j.dev)devSimpan(GID,j.dev);try{localStorage.setItem(LAST_KEY,GID)}catch(e){}
+try{const j=await api('login',{id:GID,pin:PIN,dev:devAmbil(GID)}),lama=PIN;if(j.dev)devSimpan(GID,j.dev);
 S.token=j.token;S.guru=j.guru;simpanSesi();PIN='';busy=false;bunyi('ok');shell();if(j.lemah)dialogPin(true,lama,j.wajib?'admin':'');return}
 catch(e){if(S.mode==='login'&&E){E.textContent=e.message||'PIN salah.';E.hidden=false;P.value='';PIN='';P.focus();const c=document.querySelector('.lgx-card');if(c){c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake')}bunyi('err')}}
 busy=false;G.disabled=false;G.textContent='Masuk'}
@@ -1948,7 +1948,7 @@ muatUlang()}
 function dialogUbahPengguna(u,sesudah){
 const md=document.createElement('div');md.className='md';md.style.zIndex=40;
 const sel=(n,o,v)=>`<select name="${n}">${o.map(([k,l])=>`<option value="${k}"${k===v?' selected':''}>${l}</option>`).join('')}</select>`;
-md.innerHTML=`<div class="sheet" style="max-width:460px"><h2>${esc(u.nama||u.id)}</h2><p class="sub" style="margin-bottom:10px">ID ${esc(u.id)}</p><div class="fg"><div class="fd"><label>Nama pengguna</label><input type="text" name="nama" maxlength="60" value="${esc(u.nama||'')}" autocomplete="off"></div><div class="fd"><label>Peran</label>${sel('peran',[['guru','Guru'],['kepsek','Kepala Sekolah'],['admin','Admin Sekolah']],u.peran)}</div><div class="fd"><label>Status akun</label>${sel('aktif',[['ya','Aktif'],['tidak','Nonaktif']],u.aktif)}</div><div class="fd"><label>Wajib ganti PIN saat masuk berikutnya</label>${sel('wajibpin',[['tidak','Tidak'],['ya','Ya']],u.wajibpin)}</div></div><div class="act" style="flex-wrap:wrap"><button class="btn rd s" data-r type="button">Reset PIN</button><button class="btn rd s" data-d type="button"${u.id===S.guru.id?' disabled':''}>Hapus akun</button><button class="btn gh" data-x type="button">Batal</button><button class="btn" data-s type="button">Simpan</button></div></div>`;
+md.innerHTML=`<div class="sheet" style="max-width:460px"><h2>${esc(u.nama||u.id)}</h2><p class="sub" style="margin-bottom:10px">ID ${esc(u.id)}</p><div class="fg"><div class="fd"><label>Nama lengkap</label><input type="text" name="nama" maxlength="60" value="${esc(u.nama||'')}" autocomplete="off"></div><div class="fd"><label>Peran</label>${sel('peran',[['guru','Guru'],['kepsek','Kepala Sekolah'],['admin','Admin Sekolah']],u.peran)}</div><div class="fd"><label>Status akun</label>${sel('aktif',[['ya','Aktif'],['tidak','Nonaktif']],u.aktif)}</div><div class="fd"><label>Wajib ganti PIN saat masuk berikutnya</label>${sel('wajibpin',[['tidak','Tidak'],['ya','Ya']],u.wajibpin)}</div></div><div class="act" style="flex-wrap:wrap"><button class="btn rd s" data-r type="button">Reset PIN</button><button class="btn rd s" data-d type="button"${u.id===S.guru.id?' disabled':''}>Hapus akun</button><button class="btn gh" data-x type="button">Batal</button><button class="btn" data-s type="button">Simpan</button></div></div>`;
 document.body.appendChild(md);
 const diri=u.id===S.guru.id,g=n=>md.querySelector(`[name=${n}]`).value;
 md.onclick=async e=>{
@@ -1969,7 +1969,7 @@ if(diri)await segarPeran();if(sesudah)sesudah()}
 catch(er){toast(er.message,1);b.disabled=false;b.textContent='Simpan'}}}
 function dialogTambahPengguna(sesudah){
 const md=document.createElement('div');md.className='md';md.style.zIndex=40;
-md.innerHTML=`<div class="sheet" style="max-width:460px"><h2>Tambah pengguna</h2><p class="sub" style="margin-bottom:10px">Pengguna baru tampil di daftar nama pada halaman login. Kosongkan PIN agar dibuat otomatis. Pengguna diminta mengganti PIN saat pertama masuk.</p><div class="fg"><div class="fd"><label>Nama pengguna</label><input type="text" name="nama" maxlength="60" autocomplete="off"></div><div class="fd"><label>Peran</label><select name="peran"><option value="guru">Guru</option><option value="kepsek">Kepala Sekolah</option><option value="admin">Admin Sekolah</option></select></div><div class="fd"><label>Mengisi jurnal sendiri</label><select name="mengajar"><option value="ya">Ya</option><option value="tidak">Tidak</option></select></div><div class="fd"><label>PIN awal (6 angka, boleh kosong)</label><input type="password" inputmode="numeric" maxlength="6" autocomplete="new-password" name="pin"></div></div><div class="act"><button class="btn gh" data-x type="button">Batal</button><button class="btn" data-s type="button">Simpan</button></div></div>`;
+md.innerHTML=`<div class="sheet" style="max-width:460px"><h2>Tambah pengguna</h2><p class="sub" style="margin-bottom:10px">Pengguna baru tampil di daftar nama pada halaman login. Kosongkan PIN agar dibuat otomatis. Pengguna diminta mengganti PIN saat pertama masuk.</p><div class="fg"><div class="fd"><label>Nama lengkap</label><input type="text" name="nama" maxlength="60" autocomplete="off"></div><div class="fd"><label>Peran</label><select name="peran"><option value="guru">Guru</option><option value="kepsek">Kepala Sekolah</option><option value="admin">Admin Sekolah</option></select></div><div class="fd"><label>Mengisi jurnal sendiri</label><select name="mengajar"><option value="ya">Ya</option><option value="tidak">Tidak</option></select></div><div class="fd"><label>PIN awal (6 angka, boleh kosong)</label><input type="password" inputmode="numeric" maxlength="6" autocomplete="new-password" name="pin"></div></div><div class="act"><button class="btn gh" data-x type="button">Batal</button><button class="btn" data-s type="button">Simpan</button></div></div>`;
 document.body.appendChild(md);
 const g=n=>md.querySelector(`[name=${n}]`);
 g('pin').oninput=e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,6)};
