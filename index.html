@@ -964,7 +964,7 @@ $('#ls').innerHTML=rs.length?rs.map(r=>`<div class="card row"><small>${fmt(r.tan
 isiFoto($('#ls'));
 $('#ls').onclick=async e=>{const bf=e.target.closest('img.ft');if(bf&&bf.dataset.loaded)return lihatFoto(bf.src);const be=e.target.closest('[data-e]'),bd=e.target.closest('[data-d]');
 if(be)bukaForm(k,ROWS[k].find(r=>r.ID===be.dataset.e));
-if(bd&&await tanya('Hapus catatan?','Catatan ini akan dihapus dan tidak bisa dikembalikan.','Hapus')){try{await api('hapus',{jenis:k,id:bd.dataset.d});ROWS[k]=ROWS[k].filter(r=>r.ID!==bd.dataset.d);cRows(k);tampil(k);toast('Catatan dihapus')}catch(er){toast(er.message,1)}}}}
+if(bd&&await tanya('Hapus catatan?','Catatan ini akan dihapus dan tidak bisa dikembalikan.','Hapus')){try{const rh=await api('hapus',{jenis:k,id:bd.dataset.d});ROWS[k]=ROWS[k].filter(r=>r.ID!==bd.dataset.d);cRows(k);tampil(k);if(!(rh&&rh.queued)){toast('Catatan berhasil dihapus');ucap('Catatan berhasil dihapus')}}catch(er){toast(er.message,1)}}}}
 
 /* ---------- hapus semua catatan dalam 1 hari ---------- */
 async function hapusSehari(k,d){try{await api('hapusHari',{jenis:k,tanggal:d})}catch(e){if(!/tidak dikenal/i.test(e.message))throw e;for(const r of ROWS[k].filter(x=>x.tanggal===d))await api('hapus',{jenis:k,id:r.ID})}}
@@ -979,7 +979,7 @@ const bh=t.closest('[data-h]');if(!bh)return;
 const d=nilai('hd');if(!d)return;const c=n(d);
 if(!await tanya('Hapus semua catatan hari ini?',`${c} catatan tanggal ${tgl(d)} akan dihapus. Tindakan ini tidak bisa dibatalkan.`,'Hapus Semua'))return;
 bh.disabled=true;bh.textContent='Menghapus...';
-try{await hapusSehari(k,d);ROWS[k]=ROWS[k].filter(r=>r.tanggal!==d);cRows(k);md.remove();tampil(k);toast(c+' catatan dihapus')}
+try{await hapusSehari(k,d);ROWS[k]=ROWS[k].filter(r=>r.tanggal!==d);cRows(k);md.remove();tampil(k);toast('Catatan berhasil dihapus');ucap('Catatan berhasil dihapus')}
 catch(er){toast(er.message,1);bh.disabled=false;bh.textContent='Hapus Semua'}}}
 
 /* ---------- form tambah/ubah dengan tabel anak ---------- */
@@ -1268,7 +1268,7 @@ const b=t.closest('[data-s]');b.disabled=true;b.textContent='Menyimpan...';
 if(k==='kehadiran'||k==='harian'){await (k==='harian'?JRmuat('harian'):KHmuat());const dx=cekDup();if(dx){toast('Tidak bisa disimpan: '+(k==='harian'?'Jurnal Harian ':'Jurnal Kehadiran ')+E('kelas').value+' tanggal '+tgl(E('tanggal').value)+' sudah ada.',1);b.disabled=false;b.textContent='Simpan';return}}
 try{if(FOTO[k]){if(list&&k==='perkembangan'){for(const x of list){const a=FA[x.nama];x.foto='';if(a){await kirimFoto(a,b);x.foto=a.lama.join(' ')}}}
 else{await kirimFoto(Fo,b);d.foto=Fo.lama.join(' ');if(list)list.forEach(x=>x.foto=d.foto)}}
-let kbE='',antri=false;if(list){const sb=await simpanBanyak(k,list);kbE=(sb&&sb.kbcError)||'';antri=!!(sb&&sb.queued)}else{const rs=await api('simpan',{jenis:k,data:d});kbE=rs.kbcError||'';antri=!!rs.queued}md.remove();toast(kbE?'Jurnal tersimpan, tetapi KBC belum tersimpan: '+kbE:(list?`${list.length} catatan tersimpan`:'Jurnal tersimpan'),!!kbE);if(!kbE&&!antri)ucap('Catatan berhasil disimpan'); // saat offline, ucapan "tersimpan di perangkat" diberikan oleh offline.js
+let kbE='',antri=false;if(list){const sb=await simpanBanyak(k,list);kbE=(sb&&sb.kbcError)||'';antri=!!(sb&&sb.queued)}else{const rs=await api('simpan',{jenis:k,data:d});kbE=rs.kbcError||'';antri=!!rs.queued}md.remove();toast(kbE?'Jurnal tersimpan, tetapi KBC belum tersimpan: '+kbE:(row?'Catatan berhasil diubah':(list?`${list.length} catatan tersimpan`:'Jurnal tersimpan')),!!kbE);if(!kbE&&!antri)ucap(row?'Catatan berhasil diubah':'Catatan berhasil disimpan'); // saat offline, ucapan "tersimpan di perangkat" diberikan oleh offline.js
 stale(k);viewJurnal(k)}
 catch(er){toast(er.message,1);gFoto();b.disabled=false;b.textContent='Simpan'}}}}
 
