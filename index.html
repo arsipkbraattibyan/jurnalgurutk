@@ -1865,7 +1865,7 @@ const TM3=[['ceria','Ceria Biru','Desain bawaan: biru, kuning, dan hijau yang ce
 $('#main').innerHTML=`<div class="card"><h3>🎨 Ganti desain</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Pilih tampilan aplikasi. Pilihan tersimpan di perangkat ini.</p>
 <div class="tmg" id="tmg">${TM3.map(([v,n,k,c,bg])=>`<button type="button" class="tmc${SET.tema===v?' on':''}" data-tm="${v}"><div class="tmv" style="background:${bg}">${c.map((x,i)=>`<i style="background:${x};height:${[70,46,58,34][i]}%"></i>`).join('')}</div><b>${n}</b><small>${k}</small></button>`).join('')}</div></div>
 <div class="card"><h3>🔒 Keamanan akun</h3><p class="sub" style="font-size:13px;margin:-6px 0 12px">PIN dipakai untuk masuk. Ganti secara berkala dan jangan dibagikan ke orang lain.</p><button class="btn o s" id="gp" type="button">Ganti PIN</button></div>
-${boleh('pengguna.kelola')?`<div class="card"><h3>👥 Kelola Pengguna</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Atur peran (guru, kepala sekolah, admin), aktifkan atau nonaktifkan akun, wajibkan ganti PIN, dan reset PIN guru. Perlu koneksi internet.</p><button class="btn o s" id="kpb" type="button">Buka Kelola Pengguna</button></div>`:''}${boleh('log.lihat')?`<div class="card"><h3>📜 Log Akses</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Riwayat masuk, percobaan masuk yang gagal, dan tindakan yang ditolak. Perlu koneksi internet.</p><button class="btn o s" id="lgb" type="button">Lihat Log Akses</button></div>`:''}
+${boleh('pengguna.kelola')?`<div class="card"><h3>👥 Manajemen Pengguna</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Tambah pengguna, ubah nama dan peran, buat atau reset PIN, aktifkan, nonaktifkan, atau hapus akun. Perlu koneksi internet.</p><button class="btn o s" id="kpb" type="button">Buka Manajemen Pengguna</button></div>`:''}${boleh('log.lihat')?`<div class="card"><h3>📜 Log Akses</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Riwayat masuk, percobaan masuk yang gagal, dan tindakan yang ditolak. Perlu koneksi internet.</p><button class="btn o s" id="lgb" type="button">Lihat Log Akses</button></div>`:''}
 <div class="card"><h3>🔊 Suara</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Bunyi pendek saat menekan tombol dan saat data tersimpan atau gagal. Saat catatan jurnal berhasil disimpan, terdengar ucapan "Catatan berhasil disimpan".</p>
 <div class="fg" style="grid-template-columns:repeat(2,1fr);max-width:360px" id="sps"><label class="op"><input type="radio" name="su" value="1"${SET.suara?' checked':''}><span>Hidup</span></label><label class="op"><input type="radio" name="su" value="0"${SET.suara?'':' checked'}><span>Mati</span></label></div>
 <p class="sub" style="font-size:13px;margin:14px 0 6px">Volume</p>
@@ -1887,22 +1887,22 @@ const b=$('#ins');if(b)b.onclick=async()=>{DIP.prompt();try{await DIP.userChoice
 const boleh=a=>!!(S.guru&&Array.isArray(S.guru.izin)&&S.guru.izin.includes(a));
 const ngajar=()=>String((S.guru||{}).mengajar||'').trim().toLowerCase()!=='tidak'; // kolom mengajar di sheet Guru: tidak = menu jurnal disembunyikan
 const VIEW_PIMPINAN=['beranda','identitas','pengaturan','lihat'];
-const PERAN_L={guru:'Guru',kepsek:'Kepala sekolah',admin:'Admin'};
+const PERAN_L={guru:'Guru',kepsek:'Kepala Sekolah',admin:'Admin Sekolah'};
 function segarPeran(){return api('profil').then(j=>{const o=S.guru,g=j.guru;if(!o||!g)return false;const b=JSON.stringify([o.peran,o.izin,o.mengajar])!==JSON.stringify([g.peran,g.izin,g.mengajar]);o.peran=g.peran;o.izin=g.izin;o.mengajar=g.mengajar;simpanSesi();return b}).catch(()=>false)}
 function dialogPengguna(){
 const md=document.createElement('div');md.className='md';
-md.innerHTML=`<div class="sheet"><h2>👥 Kelola Pengguna</h2><p class="sub" style="margin-bottom:10px">Perubahan peran dan status langsung berlaku pada permintaan berikutnya. Guru baru ditambahkan di sheet Guru, lalu PIN-nya dibuat dengan tombol Reset PIN.</p><div id="kpl">${muat()}</div><div class="act"><button class="btn gh" data-x>Tutup</button></div></div>`;
+md.innerHTML=`<div class="sheet"><h2>👥 Manajemen Pengguna</h2><p class="sub" style="margin-bottom:10px">Perubahan langsung berlaku pada permintaan berikutnya. Akun yang dihapus tidak bisa masuk lagi, tetapi jurnal yang pernah dibuat tetap tersimpan.</p><div id="kpl">${muat()}</div><div class="act"><button class="btn gh" data-x>Tutup</button><button class="btn" data-add type="button">+ Tambah pengguna</button></div></div>`;
 document.body.appendChild(md);
 let L=[];
 const el=()=>md.querySelector('#kpl');
 const gambar=()=>{el().innerHTML=L.map((u,i)=>`<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--ln)"><span style="flex:1;min-width:0"><b>${esc(u.nama||u.id)}</b><br><small class="sub">${esc(u.id)}${u.kelas?' · '+esc(u.kelas):''}</small><br><span class="abg ${u.peran==='admin'?'izin':u.peran==='kepsek'?'sakit':'hadir'}">${esc(PERAN_L[u.peran]||u.peran)}</span>${u.aktif==='tidak'?' <span class="abg alpha">Nonaktif</span>':''}${u.wajibpin==='ya'?' <span class="abg sakit">Wajib ganti PIN</span>':''}${u.punyaPin?'':' <span class="abg alpha">Belum ada PIN</span>'}</span><button class="btn gh s" type="button" data-u="${i}">Ubah</button></div>`).join('')||'<div class="empty">Belum ada pengguna.</div>'};
 const muatUlang=()=>api('pengguna').then(j=>{L=j.rows||[];gambar()}).catch(er=>{el().innerHTML=`<div class="empty">${esc(er.message)}<br><button class="btn s" data-re type="button" style="margin-top:10px">Coba lagi</button></div>`});
-md.onclick=e=>{if(e.target===md||e.target.closest('[data-x]'))return md.remove();if(e.target.closest('[data-re]'))return muatUlang();const b=e.target.closest('[data-u]');if(b)dialogUbahPengguna(L[+b.dataset.u],muatUlang)};
+md.onclick=e=>{if(e.target===md||e.target.closest('[data-x]'))return md.remove();if(e.target.closest('[data-re]'))return muatUlang();if(e.target.closest('[data-add]'))return dialogTambahPengguna(muatUlang);const b=e.target.closest('[data-u]');if(b)dialogUbahPengguna(L[+b.dataset.u],muatUlang)};
 muatUlang()}
 function dialogUbahPengguna(u,sesudah){
 const md=document.createElement('div');md.className='md';md.style.zIndex=40;
 const sel=(n,o,v)=>`<select name="${n}">${o.map(([k,l])=>`<option value="${k}"${k===v?' selected':''}>${l}</option>`).join('')}</select>`;
-md.innerHTML=`<div class="sheet" style="max-width:460px"><h2>${esc(u.nama||u.id)}</h2><p class="sub" style="margin-bottom:10px">ID ${esc(u.id)}</p><div class="fg"><div class="fd"><label>Peran</label>${sel('peran',[['guru','Guru'],['kepsek','Kepala sekolah'],['admin','Admin']],u.peran)}</div><div class="fd"><label>Status akun</label>${sel('aktif',[['ya','Aktif'],['tidak','Nonaktif']],u.aktif)}</div><div class="fd"><label>Wajib ganti PIN saat masuk berikutnya</label>${sel('wajibpin',[['tidak','Tidak'],['ya','Ya']],u.wajibpin)}</div></div><div class="act" style="flex-wrap:wrap"><button class="btn rd s" data-r type="button">Reset PIN</button><button class="btn gh" data-x type="button">Batal</button><button class="btn" data-s type="button">Simpan</button></div></div>`;
+md.innerHTML=`<div class="sheet" style="max-width:460px"><h2>${esc(u.nama||u.id)}</h2><p class="sub" style="margin-bottom:10px">ID ${esc(u.id)}</p><div class="fg"><div class="fd"><label>Nama pengguna</label><input type="text" name="nama" maxlength="60" value="${esc(u.nama||'')}" autocomplete="off"></div><div class="fd"><label>Peran</label>${sel('peran',[['guru','Guru'],['kepsek','Kepala Sekolah'],['admin','Admin Sekolah']],u.peran)}</div><div class="fd"><label>Status akun</label>${sel('aktif',[['ya','Aktif'],['tidak','Nonaktif']],u.aktif)}</div><div class="fd"><label>Wajib ganti PIN saat masuk berikutnya</label>${sel('wajibpin',[['tidak','Tidak'],['ya','Ya']],u.wajibpin)}</div></div><div class="act" style="flex-wrap:wrap"><button class="btn rd s" data-r type="button">Reset PIN</button><button class="btn rd s" data-d type="button"${u.id===S.guru.id?' disabled':''}>Hapus akun</button><button class="btn gh" data-x type="button">Batal</button><button class="btn" data-s type="button">Simpan</button></div></div>`;
 document.body.appendChild(md);
 const diri=u.id===S.guru.id,g=n=>md.querySelector(`[name=${n}]`).value;
 md.onclick=async e=>{
@@ -1910,13 +1910,32 @@ if(e.target===md||e.target.closest('[data-x]'))return md.remove();
 const r=e.target.closest('[data-r]');
 if(r){if(!await tanya('Reset PIN '+(u.nama||u.id)+'?','PIN sementara acak akan dibuat dan PIN lama tidak berlaku lagi. PIN sementara hanya ditampilkan sekali. Saat masuk, guru diminta membuat PIN baru.','Ya, reset'))return;
 r.disabled=true;try{const j=await api('resetPin',{id:u.id});md.remove();tampilPinSementara(j);if(sesudah)sesudah()}catch(er){toast(er.message,1);r.disabled=false}return}
+const dl=e.target.closest('[data-d]');
+if(dl){if(!await tanya('Hapus akun '+(u.nama||u.id)+'?','Akun tidak bisa masuk lagi dan hilang dari daftar. Jurnal yang pernah dibuat tetap tersimpan. Lanjutkan?','Ya, hapus'))return;
+dl.disabled=true;try{await api('penggunaHapus',{id:u.id,konfirmasi:'ya'});md.remove();toast('Akun dihapus');if(sesudah)sesudah()}catch(er){toast(er.message,1);dl.disabled=false}return}
 const b=e.target.closest('[data-s]');if(!b)return;
-const data={peran:g('peran'),aktif:g('aktif'),wajibpin:g('wajibpin')},hilang=diri&&(data.peran!=='admin'||data.aktif!=='ya');
+const data={nama:g('nama'),peran:g('peran'),aktif:g('aktif'),wajibpin:g('wajibpin')},hilang=diri&&(data.peran!=='admin'||data.aktif!=='ya');
 if(hilang&&!await tanya('Ubah akun Anda sendiri?','Anda akan kehilangan akses admin atau tidak bisa masuk lagi. Lanjutkan?','Ya, lanjutkan'))return;
 b.disabled=true;b.textContent='Menyimpan...';
-try{await api('simpanPengguna',{id:u.id,data});md.remove();toast('Perubahan tersimpan');
+try{await api('simpanPengguna',{id:u.id,data});md.remove();toast('Perubahan tersimpan');if(diri&&data.nama.trim()){S.guru.nama=data.nama.trim().replace(/\s+/g,' ');simpanSesi();isiAkun()}
 if(hilang){document.querySelectorAll('.md').forEach(x=>x.remove());await segarPeran();viewPengaturan();return}
 if(diri)await segarPeran();if(sesudah)sesudah()}
+catch(er){toast(er.message,1);b.disabled=false;b.textContent='Simpan'}}}
+function dialogTambahPengguna(sesudah){
+const md=document.createElement('div');md.className='md';md.style.zIndex=40;
+md.innerHTML=`<div class="sheet" style="max-width:460px"><h2>Tambah pengguna</h2><p class="sub" style="margin-bottom:10px">Pengguna baru tampil di daftar nama pada halaman login. Kosongkan PIN agar dibuat otomatis. Pengguna diminta mengganti PIN saat pertama masuk.</p><div class="fg"><div class="fd"><label>Nama pengguna</label><input type="text" name="nama" maxlength="60" autocomplete="off"></div><div class="fd"><label>Peran</label><select name="peran"><option value="guru">Guru</option><option value="kepsek">Kepala Sekolah</option><option value="admin">Admin Sekolah</option></select></div><div class="fd"><label>Mengisi jurnal sendiri</label><select name="mengajar"><option value="ya">Ya</option><option value="tidak">Tidak</option></select></div><div class="fd"><label>PIN awal (6 angka, boleh kosong)</label><input type="password" inputmode="numeric" maxlength="6" autocomplete="new-password" name="pin"></div></div><div class="act"><button class="btn gh" data-x type="button">Batal</button><button class="btn" data-s type="button">Simpan</button></div></div>`;
+document.body.appendChild(md);
+const g=n=>md.querySelector(`[name=${n}]`);
+g('pin').oninput=e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,6)};
+g('peran').onchange=()=>{g('mengajar').value=g('peran').value==='guru'?'ya':'tidak'};
+md.onclick=async e=>{
+if(e.target===md||e.target.closest('[data-x]'))return md.remove();
+const b=e.target.closest('[data-s]');if(!b)return;
+const nama=g('nama').value.trim(),pin=g('pin').value;
+if(!nama)return toast('Nama pengguna wajib diisi',1);
+if(pin&&!/^\d{6}$/.test(pin))return toast('PIN harus tepat 6 angka',1);
+b.disabled=true;b.textContent='Menyimpan...';
+try{const j=await api('penggunaBaru',{data:{nama,peran:g('peran').value,mengajar:g('mengajar').value,pin}});md.remove();toast('Pengguna ditambahkan');if(j.pin)tampilPinSementara({id:j.id,nama:j.nama,pin:j.pin});if(sesudah)sesudah()}
 catch(er){toast(er.message,1);b.disabled=false;b.textContent='Simpan'}}}
 function tampilPinSementara(j){
 const md=document.createElement('div');md.className='md';md.style.zIndex=50;
