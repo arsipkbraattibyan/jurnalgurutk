@@ -1154,7 +1154,14 @@ md.addEventListener('click',e=>{const l=e.target.closest&&e.target.closest('.op.
 e.stopPropagation();e.preventDefault();toast(E('tema').value?'Subtema ini bukan bagian dari tema '+E('tema').value:'Pilih tema dulu',1)})}
 const setV=(n,v)=>{const e=E(n);if(!e)return;v=String(v);if(e.type==='hidden')pilih(md,n,v);else e.value=v};
 const setArea=(n,txt)=>{const fd=E(n).closest('.fd');fd.querySelector('.ex').value=txt;syncOpt(fd)};
-const cekDup=aw=>{if(k!=='kehadiran'&&k!=='harian')return null;const nj=k==='harian'?'Jurnal Harian':'Jurnal Kehadiran',tg=E('tanggal').value,kl=E('kelas').value,w=md.querySelector('#dupw');
+const cekDupP=aw=>{const w=md.querySelector('#dupw'),tg=E('tanggal').value,kl=E('kelas').value;if(!w||!tg||!kl)return null;
+const ada=new Set((ROWS.perkembangan||[]).filter(r=>String(r.tanggal).slice(0,10)===tg&&kelNorm(r.kelas)===kelNorm(kl)&&(!row||r.ID!==row.ID)).map(r=>kunci(r.nama)));
+const pilih_=aktif?Object.keys(T).filter(n=>T[n]):[String((E('nama')||{}).value||'').trim()].filter(Boolean);
+const b=pilih_.filter(n=>ada.has(kunci(n)));
+if(!b.length){w.style.display='none';return null}
+w.style.display='';w.innerHTML=`⚠️ Pengamatan ${esc(b.join(', '))} tanggal ${tgl(tg)} (${esc(kl)}) sudah ada, jadi tidak bisa disimpan lagi. Ubah catatan yang sudah ada atau pilih tanggal lain.`;
+if(aw)toast('Pengamatan tanggal ini sudah ada untuk '+b.join(', '),1);return b};
+const cekDup=aw=>{if(k==='perkembangan')return cekDupP(aw);if(k!=='kehadiran'&&k!=='harian')return null;const nj=k==='harian'?'Jurnal Harian':'Jurnal Kehadiran',tg=E('tanggal').value,kl=E('kelas').value,w=md.querySelector('#dupw');
 if(row&&String(row.tanggal).slice(0,10)===tg&&kelNorm(row.kelas)===kelNorm(kl)){w.style.display='none';return null} // mengubah catatan lama tanpa ganti tanggal/kelompok
 const x=(ROWS[k]||[]).find(r=>String(r.tanggal).slice(0,10)===tg&&kelNorm(r.kelas)===kelNorm(kl)&&(!row||r.ID!==row.ID));
 w.style.display=x?'':'none';if(x){w.innerHTML=`⚠️ ${nj} ${esc(kl)} tanggal ${tgl(tg)} sudah ada, jadi tidak bisa disimpan lagi. <button type="button" class="btn gh s" data-ed="${x.ID}">Ubah yang sudah ada</button>`;if(aw)toast('Sudah ada. Ubah catatan yang ada.',1)}return x};
@@ -1166,7 +1173,7 @@ if(k==='kehadiran'){['hadir','sakit','izin','alpha'].forEach(c=>setV(c,cnt(c)));
 const ct=[['izin','Izin'],['sakit','Sakit'],['alpha','Tanpa keterangan']].map(([c,l])=>{const x=nm.filter(n=>T[n]===c);return x.length?l+': '+x.join(', '):''}).filter(Boolean).join('. ')||'Semua hadir';
 const cat=E('catatan');if(!cat.value||cat.value===auto)setArea('catatan',ct);auto=ct}
 if(k==='penilaian'){TKT.forEach((t,i)=>setV(['bb','mb','bsh','bsb'][i],cnt(t)));setV('peserta',nm.length)}
-const sm=md.querySelector('#sm');if(sm)sm.textContent=k==='kehadiran'?`Hadir ${cnt('hadir')}, Sakit ${cnt('sakit')}, Izin ${cnt('izin')}, Alpa ${cnt('alpha')} dari ${daftar().length} anak`:`${nm.length} anak sudah dinilai`};
+if(k==='perkembangan')cekDup();const sm=md.querySelector('#sm');if(sm)sm.textContent=k==='kehadiran'?`Hadir ${cnt('hadir')}, Sakit ${cnt('sakit')}, Izin ${cnt('izin')}, Alpa ${cnt('alpha')} dari ${daftar().length} anak`:`${nm.length} anak sudah dinilai`};
 const isiNama=()=>{const dl=md.querySelector('#dl_nama');if(!dl||!SISWA)return;const kl=E('kelas').value;dl.innerHTML=SISWA.filter(s=>!kl||s.kelas===kl).map(s=>`<option value="${esc(s.nama)}">`).join('')};
 const gPk=n=>{const c=[...md.querySelectorAll('.pk')].find(x=>x.dataset.pk===n);if(!c)return;const a=FA[n]||{lama:[],baru:[]},tot=a.lama.length+a.baru.length;
 c.innerHTML=`<button type="button" class="btn o s" data-pkb="${esc(n)}">📷 ${tot?'Tambah foto':'Foto '+esc(n)}</button>`+a.lama.map((id,i)=>`<div class="fth"><img class="ft" data-fid="${esc(id)}" src="${BLANK}" alt="Foto"><button type="button" data-pl="${i}" aria-label="Hapus foto">×</button></div>`).join('')+a.baru.map((s,i)=>`<div class="fth"><img class="ft" data-loaded="1" src="${s}" alt="Foto"><button type="button" data-pb="${i}" aria-label="Hapus foto">×</button></div>`).join('');isiFoto(c)};
@@ -1205,6 +1212,7 @@ gambar();
 if(tb||k==='perkembangan')loadSiswa().then(()=>{isiNama();gambar();hitung()});
 cekDup();
 if(k==='harian'){md.addEventListener('change',e=>{if(e.target.name==='tanggal'||e.target.name==='kelas')setTimeout(()=>cekDup(1),0)});(md._mu=JRmuat('harian')).then(()=>cekDup())}
+if(k==='perkembangan'){['input','change'].forEach(ev=>md.addEventListener(ev,e=>{if(e.target.name==='nama')cekDup()}));JRmuat('perkembangan').then(()=>cekDup())}
 if(['kehadiran','perkembangan','penilaian'].includes(k))(md._mu=KHmuat()).then(()=>{if(k!=='kehadiran'){gambar();hitung()}cekDup()});
 if(!row&&k==='harian'){pilih(md,'kendala','Tidak ada kendala');pilih(md,'capaian','Sebagian besar antusias')}
 akordeon(md);
@@ -1275,6 +1283,7 @@ if(k==='harian'){const wj=[['#kbct','Tujuan penguatan KBC'],['#kbca','Aktivitas 
 if(k==='harian'){const kb=kbcAmbil(md);if(kb){const er=kbcCek(kb);if(er){const b2=md.querySelector('#kbcb');b2.open=true;b2.scrollIntoView({behavior:'smooth',block:'center'});return toast(er,1)}d.kbc=kb}}
 if(k==='penilaian'){if(md._pcpPending&&md._pcpPending()){const pb=md.querySelector('#pcpb');pb.open=true;pb.scrollIntoView({behavior:'smooth',block:'center'});return toast('Pengamatan Panca Cinta belum dimasukkan. Ketuk "Simpan pengamatan anak ini" atau kosongkan isiannya',1)}const pc=md._pcpGet&&md._pcpGet();if(pc!==undefined)d.pcobs=pc}
 const b=t.closest('[data-s]');b.disabled=true;b.textContent='Menyimpan...';
+if(k==='perkembangan'){await JRmuat('perkembangan');const dp=cekDup();if(dp){toast('Tidak bisa disimpan: pengamatan '+dp.join(', ')+' tanggal '+tgl(E('tanggal').value)+' sudah ada.',1);b.disabled=false;b.textContent='Simpan';return}}
 if(k==='kehadiran'||k==='harian'){await (md._mu||(k==='harian'?JRmuat('harian'):KHmuat()));const dx=cekDup();if(dx){toast('Tidak bisa disimpan: '+(k==='harian'?'Jurnal Harian ':'Jurnal Kehadiran ')+E('kelas').value+' tanggal '+tgl(E('tanggal').value)+' sudah ada.',1);b.disabled=false;b.textContent='Simpan';return}}
 try{if(FOTO[k]){if(list&&k==='perkembangan'){for(const x of list){const a=FA[x.nama];x.foto='';if(a){await kirimFoto(a,b);x.foto=a.lama.join(' ')}}}
 else{await kirimFoto(Fo,b);d.foto=Fo.lama.join(' ');if(list)list.forEach(x=>x.foto=d.foto)}}
