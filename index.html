@@ -757,16 +757,16 @@ catch(er){toast(er.message,1);b.disabled=false;b.textContent='Simpan PIN'}}}
 /* ---------- kerangka ---------- */
 const SHORT=k=>J[k].no+'. '+J[k].n.replace('Jurnal ','').replace(' Guru dan Sekolah','');
 function shell(){S.mode='app';
-const items=[['beranda','🏠','Dashboard'],...ORDER.map(k=>[k,J[k].ic,SHORT(k)]),['siswa','🧑‍🎓','Data Siswa'],['portofolio','👧','Portofolio Anak'],['laporan','📄','Laporan'],...(boleh('guru.lihat')?[['lihat','👁️','Lihat Guru']]:[]),['pengaturan','⚙️','Pengaturan']];
+const aj=ngajar(),items=[['beranda','🏠','Dashboard'],...(aj?ORDER:['identitas']).map(k=>[k,J[k].ic,SHORT(k)]),...(aj?[['siswa','🧑‍🎓','Data Siswa'],['portofolio','👧','Portofolio Anak'],['laporan','📄','Laporan']]:[]),...(boleh('guru.lihat')?[['lihat','👁️','Lihat Guru']]:[]),['pengaturan','⚙️','Pengaturan']];
 $('#app').innerHTML=`<header class="top"><div class="brand"><img class="lg" src="${logoSek()}" alt=""><div><b>Jurnal Guru</b><small>KB-RA AT TIBYAN</small></div></div><div class="cu" id="me"></div></header>
-<nav class="menu" id="nav">${items.map(([v,ic,l])=>`<button class="nv" data-v="${v}"><i class="ni">${ic}</i><span>${l}</span></button>`).join('')}<div class="sbx"><button type="button" class="promo" data-v="harian"><b>Catat hari ini</b><small>Isi jurnal harian sebelum pulang agar tidak menumpuk.</small><i>→</i></button><button type="button" class="lo2" data-lo><i class="ni">🚪</i>Keluar</button></div></nav>
+<nav class="menu" id="nav">${items.map(([v,ic,l])=>`<button class="nv" data-v="${v}"><i class="ni">${ic}</i><span>${l}</span></button>`).join('')}<div class="sbx">${aj?'<button type="button" class="promo" data-v="harian"><b>Catat hari ini</b><small>Isi jurnal harian sebelum pulang agar tidak menumpuk.</small><i>→</i></button>':''}<button type="button" class="lo2" data-lo><i class="ni">🚪</i>Keluar</button></div></nav>
 <div class="page"><h1 class="pt" id="pt"></h1><main id="main"></main></div>
 <footer class="foot">⭐ Jurnal Guru TK: mencatat langkah kecil, mendukung mimpi besar ⭐</footer>`;
 $('#nav').onclick=e=>{if(e.target.closest('[data-lo]'))return keluar();const b=e.target.closest('[data-v]');if(b)go(b.dataset.v)};
-isiAkun();loadSiswa();go(S.view);segarPeran().then(b=>{if(b)shell()});if(!String(S.guru.kelas||'').trim())pilihKelompok()}
+isiAkun();loadSiswa();go(S.view);segarPeran().then(b=>{if(b)shell()});if(ngajar()&&!String(S.guru.kelas||'').trim())pilihKelompok()}
 function isiAkun(){const g=S.guru;
 $('#me').innerHTML=`${av(g.foto,g.nama)}<span>${esc(g.nama)}</span><button class="btn y s" id="out">Keluar</button>`;$('#out').onclick=keluar}
-function go(v){S.view=v;document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.dataset.v===v));window.scrollTo(0,0);
+function go(v){if(!ngajar()&&!VIEW_PIMPINAN.includes(v))v='beranda';S.view=v;document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.dataset.v===v));window.scrollTo(0,0);
 $('#pt').textContent=v==='laporan'?'Laporan':v==='siswa'?'Data siswa dan presensi':v==='portofolio'?'Portofolio perkembangan anak':v==='identitas'?J.identitas.n:v==='pengaturan'?'Pengaturan':v==='lihat'?'Lihat jurnal guru':'';
 $('#pt').style.display=['laporan','siswa','portofolio','identitas','pengaturan','lihat'].includes(v)?'':'none';
 if(v!=='identitas'&&v!=='laporan')segarAkad();
@@ -798,12 +798,12 @@ function kbdHitung(D,gid){
 function kbdGambar(){
   const el=$('#kbd');if(!el)return;
   if(!KBD){el.innerHTML=KBDE?`<div class="card"><div class="empty">${esc(KBDE)}<br><button class="btn s" data-kbr="1" style="margin-top:10px">Coba lagi</button></div></div>`:'<div class="card"><div class="empty">Memuat statistik KBC...</div></div>';return}
-  const D=KBD,me=S.guru&&S.guru.id,semua=boleh('kbc.rekapSemua'),H=kbdHitung(D,semua&&KBDF!=='saya'?'':me),A=kbdHitung(D,''),nl=D.nilai||[],bi=hari().slice(0,7);
+  const D=KBD,me=S.guru&&S.guru.id,semua=boleh('kbc.rekapSemua'),H=kbdHitung(D,semua&&KBDF!=='saya'&&ngajar()||semua&&!ngajar()?'':me),A=kbdHitung(D,''),nl=D.nilai||[],bi=hari().slice(0,7);
   const nm=n=>(KBD_P[n.ID]||[n.nama])[0];
   const chip=(v,t)=>`<button class="btn s${KBDF===v?'':' gh'}" data-kbf="${v}">${t}</button>`;
   const bulan=b=>{try{return new Date(b+'-01T00:00').toLocaleDateString('id-ID',{month:'short',year:'numeric'})}catch(e){return b}};
   const sel=v=>v?v:'<span class="z">0</span>';
-  const head=semua?`<div class="kbf">${chip('semua','Semua guru')}${chip('saya','Hanya saya')}</div>`:'';
+  const head=semua&&ngajar()?`<div class="kbf">${chip('semua','Semua guru')}${chip('saya','Hanya saya')}</div>`:'';
   const strip=`<div class="strip"><div class="sti"><i style="background:#e3f2fd">🌟</i><div><b>${H.keg}</b><small>Jumlah kegiatan KBC</small></div></div><div class="sti"><i style="background:#fff3d6">📅</i><div><b>${(H.bln[bi]||{k:0}).k}</b><small>Kegiatan bulan ini</small></div></div><div class="sti"><i style="background:#fde4ee">📝</i><div><b>${H.cat}</b><small>Jumlah catatan</small></div></div></div>`;
   let isi;
   if(!H.keg){isi=`<div class="card"><div class="empty">${KBDF==='saya'||!semua?'Anda belum punya catatan KBC.':'Belum ada catatan KBC.'} Isi bagian Penguatan KBC pada Jurnal Harian, Perkembangan, Penilaian, Kokurikuler, atau Refleksi.</div></div>`}
@@ -813,7 +813,7 @@ function kbdGambar(){
     const leg=nl.map((n,i)=>{const v=H.nil[n.ID]||0;return`<li><i style="background:${WARNA[i%WARNA.length]}"></i>${esc(n.nama)}<b>${v} (${H.keg?Math.round(v/H.keg*100):0}%)</b></li>`}).join('');
     const th=nl.map(n=>`<th title="${esc(n.nama)}">${esc(nm(n))}</th>`).join('');
     const bl=Object.keys(H.bln).sort().reverse().slice(0,12).map(b=>`<tr><td>${esc(bulan(b))}</td><td><b>${H.bln[b].k}</b></td>${nl.map(n=>`<td>${sel(H.bln[b].n[n.ID]||0)}</td>`).join('')}</tr>`).join('');
-    const gs=(D.guru||[]).map(g=>({g,v:A.gr[g.id]||{k:0,c:0,n:{}}})).sort((a,b)=>b.v.k-a.v.k||String(a.g.nama).localeCompare(b.g.nama));
+    const gs=(D.guru||[]).filter(g=>ngajar()||g.id!==me).map(g=>({g,v:A.gr[g.id]||{k:0,c:0,n:{}}})).sort((a,b)=>b.v.k-a.v.k||String(a.g.nama).localeCompare(b.g.nama));
     const gl=gs.map(x=>`<tr><td>${esc(x.g.nama)}${x.g.id===me?' (Anda)':''}</td><td><b>${x.v.k}</b></td>${nl.map(n=>`<td>${sel(x.v.n[n.ID]||0)}</td>`).join('')}</tr>`).join('');
     isi=`<div class="two"><div class="card"><h3>Rekap per nilai Panca Cinta</h3><div class="bars">${bars}</div><ul class="kbl">${leg}</ul></div>
 <div class="card"><h3>Rekap per bulan</h3><div class="kbo"><table class="kbt"><thead><tr><th>Bulan</th><th>Kegiatan</th>${th}</tr></thead><tbody>${bl}<tr class="tt"><td>Total</td><td>${H.keg}</td>${nl.map(n=>`<td>${H.nil[n.ID]||0}</td>`).join('')}</tr></tbody></table></div></div></div>
@@ -858,7 +858,11 @@ m.innerHTML=`<section class="hero"><div><h1>${sapa}, <span class="c1">${nm}</spa
 </div>`;
 m.onclick=e=>{const b=e.target.closest('[data-v]');if(b)go(b.dataset.v)};kbdIsi()}
 catch(e){m.innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
-async function viewBeranda(){const m=$('#main'),ada=cacheSemua();
+function gambarBerandaPimpinan(){const m=$('#main'),h=new Date().getHours(),sapa=h<11?'Selamat pagi':h<15?'Selamat siang':h<18?'Selamat sore':'Selamat malam',nm=esc(S.guru.nama.split(/[ ,]/)[0]);
+m.innerHTML=`<section class="hero"><div><h1>${sapa}, <span class="c1">${nm}</span>!</h1><p>${fmt(hari())}. Pantau statistik KBC seluruh guru di sini${boleh('guru.lihat')?', atau buka jurnal masing-masing guru.':'.'}</p>${boleh('guru.lihat')?'<div class="hb"><button class="btn y" data-v="lihat">Lihat Jurnal Guru →</button></div>':''}</div></section>
+<div style="margin-top:26px"><h2 class="sec">Statistik KBC (Panca Cinta)</h2><div id="kbd"></div></div>`;
+m.onclick=e=>{const b=e.target.closest('[data-v]');if(b)go(b.dataset.v)};kbdIsi()}
+async function viewBeranda(){if(!ngajar())return gambarBerandaPimpinan();const m=$('#main'),ada=cacheSemua();
 if(ada)gambarBeranda();else m.innerHTML=muat();
 try{await muatSemua();if(S.view!=='beranda')return;gambarBeranda();loadSiswa()}
 catch(e){if(!ada&&S.view==='beranda')m.innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
@@ -1832,8 +1836,10 @@ const b=$('#ins');if(b)b.onclick=async()=>{DIP.prompt();try{await DIP.userChoice
 /* ---------- peran dan izin: menu sesuai peran, Kelola Pengguna, Log Akses ---------- */
 /* Menu hanya disembunyikan di tampilan; backend tetap memeriksa izin pada setiap aksi. */
 const boleh=a=>!!(S.guru&&Array.isArray(S.guru.izin)&&S.guru.izin.includes(a));
+const ngajar=()=>String((S.guru||{}).mengajar||'').trim().toLowerCase()!=='tidak'; // kolom mengajar di sheet Guru: tidak = menu jurnal disembunyikan
+const VIEW_PIMPINAN=['beranda','identitas','pengaturan','lihat'];
 const PERAN_L={guru:'Guru',kepsek:'Kepala sekolah',admin:'Admin'};
-function segarPeran(){return api('profil').then(j=>{const o=S.guru,g=j.guru;if(!o||!g)return false;const b=JSON.stringify([o.peran,o.izin])!==JSON.stringify([g.peran,g.izin]);o.peran=g.peran;o.izin=g.izin;simpanSesi();return b}).catch(()=>false)}
+function segarPeran(){return api('profil').then(j=>{const o=S.guru,g=j.guru;if(!o||!g)return false;const b=JSON.stringify([o.peran,o.izin,o.mengajar])!==JSON.stringify([g.peran,g.izin,g.mengajar]);o.peran=g.peran;o.izin=g.izin;o.mengajar=g.mengajar;simpanSesi();return b}).catch(()=>false)}
 function dialogPengguna(){
 const md=document.createElement('div');md.className='md';
 md.innerHTML=`<div class="sheet"><h2>👥 Kelola Pengguna</h2><p class="sub" style="margin-bottom:10px">Perubahan peran dan status langsung berlaku pada permintaan berikutnya. Guru baru ditambahkan di sheet Guru, lalu PIN-nya dibuat dengan tombol Reset PIN.</p><div id="kpl">${muat()}</div><div class="act"><button class="btn gh" data-x>Tutup</button></div></div>`;
