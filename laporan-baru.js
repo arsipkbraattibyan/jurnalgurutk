@@ -480,11 +480,11 @@ function hitungDariRekap(D, bln) {
   return n;
 }
 
-function htmlDash(rows, bln, rekap) {
+function htmlDash(rows, bln, rekap, tunggu) {
   const ns = (KBCN || KBCN0), hit = rekap ? hitungDariRekap(rekap, bln) : null;
   return '<div id="kbcdash"><div class="strip">'
     + ns.map(([id, n], i) => '<div class="sti"><i style="background:' + WARNA_K[i % 5] + '">' + (IKON[id] || '💗') + '</i><div><b>'
-      + (hit ? (hit[id] || 0) : rows.filter(r => nilaiKbc(r).indexOf(id) >= 0).length)
+      + (tunggu ? '…' : rekap ? (hit[id] || 0) : rows.filter(r => nilaiKbc(r).indexOf(id) >= 0).length)
       + '</b><small>' + E(n) + '</small></div></div>').join('')
     + '</div></div>';
 }
@@ -494,8 +494,8 @@ function pasangDash(rows, bln) {
   const st = m.querySelector('.strip'); if (!st) return;
   const lama = $('#kbcdash'); if (lama) lama.remove();
   const rekap = boleh('kbc.rekapSemua') && !ngajar() ? cGet('kbcrekap') : null;
-  if (!ngajar() && !rekap) return; // kepala sekolah: tunggu rekap termuat
-  st.insertAdjacentHTML('afterend', htmlDash(rows || [], bln, rekap));
+  const tunggu = !ngajar() && !rekap;  // rekap belum termuat: tampilkan "…" dulu
+  st.insertAdjacentHTML('afterend', htmlDash(rows || [], bln, rekap, tunggu));
 }
 
 // Mulai ambil data KBC bersamaan dengan data jurnal, agar lima kartu KBC muncul bersama empat kartu di atasnya
