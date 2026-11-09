@@ -1019,6 +1019,42 @@ if(on&&a&&!(a.tahun===th&&a.semester===sm)&&!await tanya('Ganti periode aktif?',
 if(!on&&a&&a.tahun===th&&a.semester===sm&&!await tanya('Nonaktifkan periode?','Tidak ada periode aktif. Laporan akan memakai isian tahun ajaran lama di profil guru sampai Anda mengaktifkan periode lain.','Ya, nonaktifkan',false))return;
 sv.disabled=true;try{const j=await api('simpanAkademik',{data:{tahun:th,semester:sm,aktif:on,mulai:mu,selesai:se}});AKAD={aktif:j.aktif,daftar:j.daftar,boleh:j.boleh};cSet('akad',AKAD);S.guru=j.guru;simpanSesi();isiAkun();_akT=Date.now();
 const bx=$('#akd');if(bx)delete bx.dataset.t;akadIsi();const lp=$('#lap');if(lp)lp.innerHTML=dataPaper(nilai('dj')||'guru');toast('Pengaturan akademik tersimpan')}catch(er){toast(er.message,1);sv.disabled=false}}}
+/* ---------- Sumber data kehadiran otomatis (khusus Admin Sekolah, perlu internet) ---------- */
+async function sumberSegar(){SISWA=null;cSet('siswa',null);try{Object.keys(localStorage).filter(x=>x.indexOf(CK()+'ds_')===0).forEach(x=>localStorage.removeItem(x))}catch(e){}await segarSiswa()}
+async function sumberKartu(){
+const bx=$('#srk');if(!bx)return;
+const H='<h3>🔗 Sumber data kehadiran otomatis</h3>';
+bx.innerHTML=H+'<p class="sub" style="font-size:13px">Memuat...</p>';
+let I;try{I=await api('sumberInfo')}catch(er){bx.innerHTML=H+'<div class="empty">'+esc(er.message)+'</div>';return}
+const sts={bawaan:'Bawaan aplikasi',diatur:'Diatur dari Pengaturan',belum:'Belum diatur'};
+bx.innerHTML=H+`<p class="sub" style="font-size:13px;margin:-6px 0 12px">Link spreadsheet Google yang berisi sheet <b>Data Siswa</b> dan <b>Rekap Absen</b>, dipakai untuk mengisi kehadiran otomatis. Perlu koneksi internet.</p>
+<div class="fd"><label>Status</label><p style="margin:0;font-weight:800;color:var(--navy)">${esc(sts[I.status]||'')}${I.id?' · '+esc(I.id):''}</p></div>
+<div class="fd"><label for="srl">Link atau ID spreadsheet</label><input id="srl" placeholder="https://docs.google.com/spreadsheets/d/..." autocomplete="off" style="width:100%"></div>
+<p class="sub" style="font-size:12px;margin:6px 0 10px">Bagikan spreadsheet itu ke <b>${esc(I.email||'akun pemilik aplikasi')}</b> (minimal sebagai Pelihat). Judul kolom: Nama, Kelas, Status. Di Rekap Absen ditambah Tanggal.</p>
+<div id="srx"></div>
+<div class="act" style="justify-content:flex-start;gap:10px;flex-wrap:wrap"><button class="btn o s" id="srt" type="button">Tes sambungan</button><button class="btn y s" id="srs" type="button" disabled>Simpan</button>${I.status==='diatur'?'<button class="btn gh s" id="srh" type="button">Kembalikan ke bawaan</button>':''}</div>`;
+const li=$('#srl'),tx=$('#srx'),bt=$('#srt'),bs=$('#srs'),bh=$('#srh');let ok='';
+const ls=a=>'<ul style="margin:4px 0 0 18px;padding:0">'+a.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>';
+const tampil=t=>t.masalah.length
+?'<div class="empty" style="text-align:left;margin-bottom:10px"><b>Belum bisa dipakai</b>'+ls(t.masalah)+'</div>'
+:'<div class="empty" style="text-align:left;margin-bottom:10px"><b>Sambungan berhasil</b><br>'+esc(t.nama)+' · Data Siswa: '+t.anak+' baris · Rekap Absen: '+t.baris+' baris'+(t.peringatan.length?'<br><b>Perhatian:</b>'+ls(t.peringatan):'')+'</div>';
+li.oninput=()=>{bs.disabled=!ok||li.value.trim()!==ok};
+bt.onclick=async()=>{const v=li.value.trim();if(!v)return toast('Isi link spreadsheet dulu',1);
+bt.disabled=true;bt.textContent='Menguji...';ok='';bs.disabled=true;
+try{const t=await api('sumberTes',{link:v});tx.innerHTML=tampil(t);if(!t.masalah.length){ok=v;bs.disabled=false}}
+catch(er){tx.innerHTML='<div class="empty" style="text-align:left;margin-bottom:10px">'+esc(er.message)+'</div>'}
+bt.disabled=false;bt.textContent='Tes sambungan'};
+bs.onclick=async()=>{const v=ok;if(!v)return;
+if(I.status!=='belum'&&!await tanya('Ganti sumber data?','Sumber data kehadiran yang sekarang akan diganti. Mengganti di tengah tahun ajaran dapat membuat data profil anak dan status kehadiran manual tidak cocok dengan data baru. Data lama tidak dihapus. Lanjutkan?','Ya, ganti',true))return;
+bs.disabled=true;
+try{await api('sumberSimpan',{link:v,konfirmasi:true});await sumberSegar();bunyi('ok');toast('Sumber data tersimpan');sumberKartu()}
+catch(er){toast(er.message,1);bs.disabled=false}};
+if(bh)bh.onclick=async()=>{
+if(!await tanya('Kembalikan ke bawaan?','Pengaturan link dihapus dan aplikasi memakai sumber bawaan. Data tidak dihapus.','Ya, kembalikan',true))return;
+bh.disabled=true;
+try{await api('sumberHapus');await sumberSegar();bunyi('ok');toast('Dikembalikan ke sumber bawaan');sumberKartu()}
+catch(er){toast(er.message,1);bh.disabled=false}};
+}
 /* ---------- identitas (tanpa foto) ---------- */
 function viewIdentitas(){formIdentitas();const m=$('#main');let sentuh=false;const h=()=>{sentuh=true};m.addEventListener('input',h);m.addEventListener('change',h);
 api('profil').then(j=>{const beda=JSON.stringify(j.guru)!==JSON.stringify(S.guru);S.guru=j.guru;simpanSesi();if(beda&&!sentuh&&S.view==='identitas')formIdentitas()}).catch(()=>{}).then(()=>{m.removeEventListener('input',h);m.removeEventListener('change',h)})}
@@ -1944,7 +1980,7 @@ ${SET.foto?`<div class="fbv" id="fbv"><img class="hbg" src="${SET.foto}" alt="" 
 <label class="sub" style="font-size:13px;display:flex;align-items:center;gap:10px;max-width:560px;margin-bottom:12px">Gelapkan latar<input type="range" id="fgl" min="0" max="85" step="5" value="${SET.fgel}" style="flex:1"></label>`:'<div class="empty" style="margin-bottom:12px">Belum ada foto. Gambar bawaan dipakai.</div>'}
 <div class="act" style="justify-content:flex-start;gap:10px;flex-wrap:wrap"><button class="btn o s" id="fbp1" type="button">${SET.foto?'Ganti foto':'Pilih foto'}</button>${SET.foto?'<button class="btn gh s" id="fbp2" type="button">Hapus foto</button>':''}</div><input type="file" id="fbf" accept="image/*" hidden></div>
 <div class="card"><h3>🔒 Keamanan akun</h3><p class="sub" style="font-size:13px;margin:-6px 0 12px">PIN dipakai untuk masuk. Ganti secara berkala dan jangan dibagikan ke orang lain.</p><button class="btn o s" id="gp" type="button">Ganti PIN</button></div>
-${boleh('pengguna.kelola')?`<div class="card"><h3>👥 Manajemen Pengguna</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Tambah pengguna, ubah nama dan peran, buat atau reset PIN, aktifkan, nonaktifkan, atau hapus akun. Perlu koneksi internet.</p><button class="btn o s" id="kpb" type="button">Buka Manajemen Pengguna</button></div>`:''}${boleh('log.lihat')?`<div class="card"><h3>📜 Log Akses</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Riwayat masuk, percobaan masuk yang gagal, dan tindakan yang ditolak. Perlu koneksi internet.</p><button class="btn o s" id="lgb" type="button">Lihat Log Akses</button></div>`:''}
+${boleh('pengguna.kelola')?`<div class="card"><h3>👥 Manajemen Pengguna</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Tambah pengguna, ubah nama dan peran, buat atau reset PIN, aktifkan, nonaktifkan, atau hapus akun. Perlu koneksi internet.</p><button class="btn o s" id="kpb" type="button">Buka Manajemen Pengguna</button></div>`:''}${boleh('log.lihat')?`<div class="card"><h3>📜 Log Akses</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Riwayat masuk, percobaan masuk yang gagal, dan tindakan yang ditolak. Perlu koneksi internet.</p><button class="btn o s" id="lgb" type="button">Lihat Log Akses</button></div>`:''}${boleh('sumber.ubah')?'<div class="card" id="srk"></div>':''}
 <div class="card"><h3>🔊 Suara</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Bunyi pendek saat menekan tombol dan saat data tersimpan atau gagal. Saat catatan jurnal berhasil disimpan, terdengar ucapan "Catatan berhasil disimpan".</p>
 <div class="fg" style="grid-template-columns:repeat(2,1fr);max-width:360px" id="sps"><label class="op"><input type="radio" name="su" value="1"${SET.suara?' checked':''}><span>Hidup</span></label><label class="op"><input type="radio" name="su" value="0"${SET.suara?'':' checked'}><span>Mati</span></label></div>
 <p class="sub" style="font-size:13px;margin:14px 0 6px">Volume</p>
@@ -1967,7 +2003,7 @@ const g=$('#fgl');g.oninput=()=>{SET.fgel=+g.value;$('#fbo').style.setProperty('
 $('#sps').onchange=e=>{SET.suara=e.target.value==='1';simpanSet();bunyi('ok')};
 $('#spv').onchange=e=>{SET.vol=+e.target.value;simpanSet();bunyi('ok')};
 $('#gp').onclick=()=>dialogPin(false);
-if($('#kpb'))$('#kpb').onclick=dialogPengguna;if($('#lgb'))$('#lgb').onclick=dialogLog;
+if($('#kpb'))$('#kpb').onclick=dialogPengguna;if($('#lgb'))$('#lgb').onclick=dialogLog;if($('#srk'))sumberKartu();
 if($('#dmi'))$('#dmi').onclick=async()=>{if(!await tanya('Isi data demo?','Contoh jurnal Senin sampai Sabtu minggu ini akan dibuat, memakai nama anak dari kelompok Anda. Demo sebelumnya diganti. Data asli tidak diubah.','Ya, isi demo',false))return;const b=$('#dmi');b.disabled=true;b.textContent='Mengisi...';
 try{const j=await api('isiDemo');await muatSemua();const x=[];if(j.lewat&&j.lewat.length)x.push(j.lewat.length+' tanggal dilewati karena sudah ada data asli');if(j.tanpaAnak)x.push('jurnal perkembangan dan penilaian per anak dilewati karena daftar anak kosong');if(j.galat&&j.galat.length)x.push('ada bagian yang gagal: '+j.galat[0]);toast('Data demo dibuat: '+j.n+' catatan'+(x.length?'. '+x.join('; '):''),!!(j.galat&&j.galat.length))}catch(er){toast(er.message,1)}b.disabled=false;b.textContent='Isi data demo'};
 if($('#dmh'))$('#dmh').onclick=async()=>{if(!await tanya('Hapus data demo?','Hanya catatan yang dibuat dari tombol Isi data demo yang dihapus. Data asli Anda tidak disentuh.','Ya, hapus'))return;const b=$('#dmh');b.disabled=true;b.textContent='Menghapus...';
