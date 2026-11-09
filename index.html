@@ -882,7 +882,7 @@ catch(er){toast(er.message,1);b.disabled=false;b.textContent='Simpan PIN'}}}
 /* ---------- kerangka ---------- */
 const SHORT=k=>J[k].no+'. '+J[k].n.replace('Jurnal ','').replace(' Guru dan Sekolah','');
 function shell(){S.mode='app';$('#app').classList.remove('lgmode');
-const aj=ngajar(),items=[['beranda','🏠','Dashboard'],...(aj?ORDER:['identitas']).map(k=>[k,J[k].ic,SHORT(k)]),...(aj?[['siswa','🧑‍🎓','Data Siswa'],['portofolio','👧','Portofolio Anak'],['laporan','📄','Laporan']]:adminSek()?[['siswa','🧑‍🎓','Data Siswa']]:[]),...(boleh('guru.lihat')?[['lihat','👁️','Lihat Guru']]:[]),['pengaturan','⚙️','Pengaturan']];
+const aj=ngajar(),items=[['beranda','🏠','Dashboard'],...(aj?ORDER:['identitas']).map(k=>[k,J[k].ic,SHORT(k)]),...(aj?[['siswa','🧑‍🎓','Data Siswa'],['portofolio','👧','Portofolio Anak'],['laporan','📄','Laporan']]:bolehSiswa()?[['siswa','🧑‍🎓','Data Siswa']]:[]),...(boleh('guru.lihat')?[['lihat','👁️','Lihat Guru']]:[]),['pengaturan','⚙️','Pengaturan']];
 $('#app').innerHTML=`<header class="top"><div class="brand"><img class="lg" src="${logoSek()}" alt=""><div><b>Jurnal Guru</b><small>KB-RA AT TIBYAN</small></div></div><div class="cu" id="me"></div></header>
 <nav class="menu" id="nav">${items.map(([v,ic,l])=>`<button class="nv" data-v="${v}"><i class="ni">${ic}</i><span>${l}</span></button>`).join('')}<div class="sbx">${aj?'<button type="button" class="promo" data-v="harian"><b>Catat hari ini</b><small>Isi jurnal harian sebelum pulang agar tidak menumpuk.</small><i>→</i></button>':''}<button type="button" class="lo2" data-lo><i class="ni">🚪</i>Logout</button></div></nav>
 <div class="page"><h1 class="pt" id="pt"></h1><main id="main"></main></div>
@@ -891,7 +891,7 @@ $('#nav').onclick=e=>{if(e.target.closest('[data-lo]'))return keluar(true);const
 isiAkun();loadSiswa();go(S.view);segarPeran().then(b=>{if(b)shell()});if(ngajar()&&!String(S.guru.kelas||'').trim())pilihKelompok()}
 function isiAkun(){const g=S.guru;
 $('#me').innerHTML=`${av(g.foto,g.nama)}<span>${esc(g.nama)}</span><button class="btn y s" id="out">Logout</button>`;$('#out').onclick=()=>keluar(true)}
-function go(v){if(!ngajar()&&!VIEW_PIMPINAN.includes(v)&&!(v==='siswa'&&adminSek()))v='beranda';S.view=v;document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.dataset.v===v));window.scrollTo(0,0);
+function go(v){if(!ngajar()&&!VIEW_PIMPINAN.includes(v)&&!(v==='siswa'&&bolehSiswa()))v='beranda';S.view=v;document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.dataset.v===v));window.scrollTo(0,0);
 $('#pt').textContent=v==='laporan'?'Laporan':v==='siswa'?'Data siswa dan presensi':v==='portofolio'?'Portofolio perkembangan anak':v==='identitas'?J.identitas.n:v==='pengaturan'?'Pengaturan':v==='lihat'?'Lihat jurnal guru':'';
 $('#pt').style.display=['laporan','siswa','portofolio','identitas','pengaturan','lihat'].includes(v)?'':'none';
 if(v!=='identitas'&&v!=='laporan')segarAkad();
@@ -1643,7 +1643,7 @@ catch(er){toast(/tidak dikenal/i.test(er.message)?'Backend belum diperbarui. Pas
 document.body.appendChild(md)}
 function sdSegarkan(){svBersih();try{Object.keys(localStorage).filter(x=>x.indexOf(CK())===0&&/^(ds_|pr_)/.test(x.slice(CK().length))).forEach(x=>localStorage.removeItem(x))}catch(e){}SD=null;segarSiswa();if(S.view==='siswa'&&SISTAB==='data')muatDataSiswa()}
 const NAIK={'KB':['Kelompok A'],'Kelompok A':['Kelompok B']};
-function sdTujuan(dari){return boleh('pengguna.kelola')?['KB',...KELAS].filter(x=>x!==dari):(NAIK[dari]||[])}
+function sdTujuan(dari){return boleh('siswa.pindah')?['KB',...KELAS].filter(x=>x!==dari):[]}
 function sdPindah(i){const r=SD.rows[i],nama=r[SD.iNama],dari=r[SD.iKelas],lid=(SD.lokalId&&SD.lokalId[i])||'',tj=sdTujuan(dari);
 if(!tj.length)return toast('Tidak ada kelompok tujuan dari '+dari,1);
 const md=document.createElement('div');md.className='md';
@@ -2074,6 +2074,7 @@ const boleh=a=>!!(S.guru&&Array.isArray(S.guru.izin)&&S.guru.izin.includes(a));
 const ngajar=()=>String((S.guru||{}).mengajar||'').trim().toLowerCase()!=='tidak'&&(S.guru||{}).peran!=='kepsek'; // kepala sekolah hanya melihat; admin mengisi jurnal hanya jika kolom mengajar = ya
 const adminSek=()=>!!(S.guru&&S.guru.peran==='admin'); // admin selalu mengelola Data Siswa walau tidak mengajar // kolom mengajar di sheet Guru: tidak = menu jurnal disembunyikan
 const VIEW_PIMPINAN=['beranda','identitas','pengaturan','lihat'];
+const bolehSiswa=()=>adminSek()||boleh('siswa.pindah'); // kepala sekolah dan admin membuka Data Siswa untuk Naik Kelas / Pindah
 const PERAN_L={guru:'Guru',kepsek:'Kepala Sekolah',admin:'Admin Sekolah'};
 function segarPeran(){return api('profil').then(j=>{const o=S.guru,g=j.guru;if(!o||!g)return false;const b=JSON.stringify([o.peran,o.izin,o.mengajar])!==JSON.stringify([g.peran,g.izin,g.mengajar]);o.peran=g.peran;o.izin=g.izin;o.mengajar=g.mengajar;simpanSesi();return b}).catch(()=>false)}
 function dialogPengguna(){
