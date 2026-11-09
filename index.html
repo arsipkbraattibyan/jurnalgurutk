@@ -568,7 +568,11 @@ async function api(action,p={}){
 const r=await fetch(API_URL,{method:'POST',body:JSON.stringify({action,token:S.token,...p})});
 const j=await r.json();
 if(!j.ok){if(j.auth)keluar();throw new Error(j.error||'Terjadi kesalahan')}
+if(j.sv!==undefined)svCek(j.sv);
 return j}
+/* versi sumber data: jika admin mengganti sumber, cache siswa / data siswa / presensi di perangkat ini dibuang otomatis */
+function svBersih(){SISWA=null;try{cSet('siswa',null);Object.keys(localStorage).filter(x=>x.indexOf(CK())===0&&/^(ds_|pr_)/.test(x.slice(CK().length))).forEach(x=>localStorage.removeItem(x))}catch(e){}}
+function svCek(v){try{const k='jgsv_'+((S.guru&&S.guru.id)||''),o=localStorage.getItem(k);if(o===String(v))return;localStorage.setItem(k,String(v));if(o!==null)svBersih()}catch(e){}}
 /* ---------- cache lokal: tampil cepat dari data terakhir, lalu disegarkan di latar ---------- */
 const CK=()=>'jgc_'+((S.guru&&S.guru.id)||'')+'_';
 function cGet(k){try{const x=JSON.parse(localStorage.getItem(CK()+k)||'null');return x?x.d:null}catch(e){return null}}
@@ -1020,7 +1024,7 @@ if(!on&&a&&a.tahun===th&&a.semester===sm&&!await tanya('Nonaktifkan periode?','T
 sv.disabled=true;try{const j=await api('simpanAkademik',{data:{tahun:th,semester:sm,aktif:on,mulai:mu,selesai:se}});AKAD={aktif:j.aktif,daftar:j.daftar,boleh:j.boleh};cSet('akad',AKAD);S.guru=j.guru;simpanSesi();isiAkun();_akT=Date.now();
 const bx=$('#akd');if(bx)delete bx.dataset.t;akadIsi();const lp=$('#lap');if(lp)lp.innerHTML=dataPaper(nilai('dj')||'guru');toast('Pengaturan akademik tersimpan')}catch(er){toast(er.message,1);sv.disabled=false}}}
 /* ---------- Sumber data kehadiran otomatis (khusus Admin Sekolah, perlu internet) ---------- */
-async function sumberSegar(){SISWA=null;cSet('siswa',null);try{Object.keys(localStorage).filter(x=>x.indexOf(CK()+'ds_')===0).forEach(x=>localStorage.removeItem(x))}catch(e){}await segarSiswa()}
+async function sumberSegar(){svBersih();await segarSiswa()}
 async function sumberKartu(){
 const bx=$('#srk');if(!bx)return;
 const H='<h3>🔗 Sumber data kehadiran otomatis</h3>';
@@ -1028,7 +1032,7 @@ bx.innerHTML=H+'<p class="sub" style="font-size:13px">Memuat...</p>';
 let I;try{I=await api('sumberInfo')}catch(er){bx.innerHTML=H+'<div class="empty">'+esc(er.message)+'</div>';return}
 const sts={bawaan:'Bawaan aplikasi',diatur:'Diatur dari Pengaturan',belum:'Belum diatur'};
 bx.innerHTML=H+`<p class="sub" style="font-size:13px;margin:-6px 0 12px">Link spreadsheet Google yang berisi sheet <b>Data Siswa</b> dan <b>Rekap Absen</b>, dipakai untuk mengisi kehadiran otomatis. Perlu koneksi internet.</p>
-<div class="fd"><label>Status</label><p style="margin:0;font-weight:800;color:var(--navy)">${esc(sts[I.status]||'')}${I.id?' · '+esc(I.id):''}</p></div>
+<div class="fd"><label>Status</label><p style="margin:0;font-weight:800;color:var(--navy)">${esc(sts[I.status]||'')}${I.id?' · '+esc(I.id):''}</p>${I.oleh?'<p class="sub" style="font-size:12px;margin:2px 0 0">Terakhir diubah '+esc(I.diubah||'')+' oleh '+esc(I.oleh)+'</p>':''}</div>
 <div class="fd"><label for="srl">Link atau ID spreadsheet</label><input id="srl" placeholder="https://docs.google.com/spreadsheets/d/..." autocomplete="off" style="width:100%"></div>
 <p class="sub" style="font-size:12px;margin:6px 0 10px">Bagikan spreadsheet itu ke <b>${esc(I.email||'akun pemilik aplikasi')}</b> (minimal sebagai Pelihat). Judul kolom: Nama, Kelas, Status. Di Rekap Absen ditambah Tanggal.</p>
 <div id="srx"></div>
