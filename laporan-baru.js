@@ -473,10 +473,19 @@ const berandaAsli = window.gambarBeranda;
 let KBD = null; // data terakhir, supaya langsung tampil saat dashboard digambar ulang
 const IKON = { PC1: '🕌', PC2: '📚', PC3: '🌿', PC4: '🤝', PC5: '🇮🇩' }, WARNA_K = ['#fde7bf', '#d7ecfb', '#e1f2c9', '#fbd3e0', '#ede3fb'];
 
-function htmlDash(rows, bln) {
-  const ns = (KBCN || KBCN0);
+// hitung per nilai dari rekap (bulan ini); dipakai bila pengguna boleh melihat semua guru
+function hitungDariRekap(D, bln) {
+  const n = {};
+  (D.kub || []).forEach(x => { if (x[0] === bln) n[x[2]] = (n[x[2]] || 0) + x[3]; });
+  return n;
+}
+
+function htmlDash(rows, bln, rekap) {
+  const ns = (KBCN || KBCN0), hit = rekap ? hitungDariRekap(rekap, bln) : null;
   return '<div id="kbcdash"><div class="strip">'
-    + ns.map(([id, n], i) => '<div class="sti"><i style="background:' + WARNA_K[i % 5] + '">' + (IKON[id] || '💗') + '</i><div><b>' + rows.filter(r => nilaiKbc(r).indexOf(id) >= 0).length + '</b><small>' + E(n) + '</small></div></div>').join('')
+    + ns.map(([id, n], i) => '<div class="sti"><i style="background:' + WARNA_K[i % 5] + '">' + (IKON[id] || '💗') + '</i><div><b>'
+      + (hit ? (hit[id] || 0) : rows.filter(r => nilaiKbc(r).indexOf(id) >= 0).length)
+      + '</b><small>' + E(n) + '</small></div></div>').join('')
     + '</div></div>';
 }
 
@@ -484,7 +493,9 @@ function pasangDash(rows, bln) {
   const m = $('#main'); if (!m || S.view !== 'beranda') return;
   const st = m.querySelector('.strip'); if (!st) return;
   const lama = $('#kbcdash'); if (lama) lama.remove();
-  st.insertAdjacentHTML('afterend', htmlDash(rows, bln));
+  const rekap = boleh('kbc.rekapSemua') && !ngajar() ? cGet('kbcrekap') : null;
+  if (!ngajar() && !rekap) return; // kepala sekolah: tunggu rekap termuat
+  st.insertAdjacentHTML('afterend', htmlDash(rows || [], bln, rekap));
 }
 
 // Mulai ambil data KBC bersamaan dengan data jurnal, agar lima kartu KBC muncul bersama empat kartu di atasnya
