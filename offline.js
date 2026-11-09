@@ -47,7 +47,9 @@ const BUTUH = {
   hapusHari: 'Hapus 1 hari memerlukan internet.', simpanProfil: 'Menyimpan identitas memerlukan internet.',
   unggahFoto: 'Unggah foto profil memerlukan internet.', unggahLogo: 'Unggah logo memerlukan internet.',
   simpanSiswa: 'Menyimpan data siswa memerlukan internet.',
-  siswaBaru: 'Menambah siswa memerlukan internet.', siswaLokalNonaktif: 'Menonaktifkan siswa memerlukan internet.'
+  siswaBaru: 'Menambah siswa memerlukan internet.', siswaLokalNonaktif: 'Menonaktifkan siswa memerlukan internet.',
+  siswaPindah: 'Memindahkan kelompok siswa memerlukan internet.', siswaAktifkan: 'Mengaktifkan siswa memerlukan internet.',
+  siswaHapus: 'Menghapus siswa memerlukan internet.', siswaNonaktifDaftar: 'Daftar siswa nonaktif memerlukan internet.'
 };
 
 /* ---------- pembantu ---------- */
