@@ -402,6 +402,19 @@ html:is([data-tema=belajar],[data-tema=ujian]) .page{padding:10px 12px 24px}
 html[data-tema=belajar] .hero h1{font-size:20px}html[data-tema=ujian] .hero{padding:18px;grid-template-columns:1fr}html[data-tema=ujian] .hero h1{font-size:23px}html[data-tema=ujian] .scene{display:none}}
 @media print{html:is([data-tema=belajar],[data-tema=ujian]) #app{padding:0}html:is([data-tema=belajar],[data-tema=ujian]) #app::before{display:none}html[data-tema=belajar] body,html[data-tema=ujian] body{background:#fff}}
 .sheet.frm .act{position:sticky;bottom:-22px;background:#fff;padding:12px 0 22px;margin:16px 0 -22px;border-top:1px solid var(--ln);z-index:3}
+/* Dialog detail siswa: tombol aksi rapi di HP */
+.sheet .sda{position:sticky;bottom:-22px;margin:16px -22px -22px;padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));background:#fffffff2;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid var(--ln);display:flex;flex-direction:column;gap:10px;z-index:3;border-radius:0 0 30px 30px}
+.sheet .sda .sdg{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:8px}
+.sheet .sda .sdm{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sheet .sda .btn{display:flex;align-items:center;justify-content:center;gap:6px;min-height:46px;padding:0 10px;border-radius:14px;font-size:14px;font-weight:700;white-space:nowrap;box-shadow:none;width:100%;margin:0}
+.sheet .sda .btn span{font-size:16px;line-height:1}
+.sheet .sda .sdm .btn{min-height:50px;font-size:15px;border-radius:16px}
+.sheet .sda .btn.gh{background:#eaf3fe;color:var(--blued);border:0}
+.sheet .sda .btn.rd{background:#fde4ee;color:#c2185b;border:0}
+.sheet .sda .btn.o{background:#fff;color:var(--blued);border:2px solid var(--blue)}
+.sheet .sda .btn:not(.gh):not(.rd):not(.o){background:var(--blue);color:#fff;box-shadow:0 4px 12px #1e88e540}
+.sheet .sda .btn:active{transform:scale(.97)}
+@media(max-width:360px){.sheet .sda .sdg{grid-template-columns:1fr}}
 .ah{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:8px 14px;border:2px solid var(--ln);border-radius:14px;background:#fff;color:var(--navy);font-weight:800;font-size:14px;text-align:left;list-style:none;cursor:pointer}
 .ah::-webkit-details-marker{display:none}
 .ah span{flex:1}
@@ -1618,7 +1631,7 @@ function sdDetail(i){const r=SD.rows[i],md=document.createElement('div');md.clas
 const g=[[],[],[],[]];SD.kolom.forEach((k,n)=>g[sdGrup(k)].push(n));
 const nilaiHtml=(k,v)=>{const t=sdv(k,v);return sdTel(k)&&t!=='-'&&/^[+\d][\d\s\-+]{6,}$/.test(t)?`<a href="tel:${esc(t.replace(/[\s-]/g,''))}">${esc(t)}</a>`:esc(t)};
 const lk=!!(SD.lokal&&SD.lokal[i]),lid=(SD.lokalId&&SD.lokalId[i])||'',rp=(SD.pindah&&SD.pindah[i])||[];
-md.innerHTML=`<div class="sheet"><h2>🧑‍🎓 ${esc(r[SD.iNama])}</h2>${SDG.map(([jd],gi)=>g[gi].length?`<h3 class="sdh">${jd}</h3><div class="dl">${g[gi].map(n=>`<div><small>${esc(SD.kolom[n])}</small><b>${nilaiHtml(SD.kolom[n],r[n])}</b></div>`).join('')}</div>`:'').join('')}${lk&&rp.length?`<h3 class="sdh">🔁 Riwayat kelompok</h3><div class="dl">${rp.map(x=>`<div><small>Efektif ${esc(tgl(x.efektif))}</small><b>${esc(x.dari)} → ${esc(x.ke)}</b></div>`).join('')}</div>`:''}${lk?'':'<p class="sub" style="font-size:12px;margin:8px 0 0">Siswa otomatis: kelompok dan status mengikuti spreadsheet sumber, tidak dapat dipindahkan, dinonaktifkan, atau dihapus dari aplikasi.</p>'}<div class="act">${lk&&boleh('siswa.pindah')&&sdTujuan(r[SD.iKelas]).length?'<button class="btn o" data-pk>⬆️ Naik Kelas / Pindah</button>':''}${lk&&boleh('siswa.tambah')?'<button class="btn gh" data-nk>Nonaktifkan</button>':''}${lk&&boleh('siswa.hapus')?'<button class="btn gh" data-hp>🗑️ Hapus</button>':''}<button class="btn o" data-ub>✏️ Ubah</button><button class="btn" data-x>Tutup</button></div></div>`;
+md.innerHTML=`<div class="sheet"><h2>🧑‍🎓 ${esc(r[SD.iNama])}</h2>${SDG.map(([jd],gi)=>g[gi].length?`<h3 class="sdh">${jd}</h3><div class="dl">${g[gi].map(n=>`<div><small>${esc(SD.kolom[n])}</small><b>${nilaiHtml(SD.kolom[n],r[n])}</b></div>`).join('')}</div>`:'').join('')}${lk&&rp.length?`<h3 class="sdh">🔁 Riwayat kelompok</h3><div class="dl">${rp.map(x=>`<div><small>Efektif ${esc(tgl(x.efektif))}</small><b>${esc(x.dari)} → ${esc(x.ke)}</b></div>`).join('')}</div>`:''}${lk?'':'<p class="sub" style="font-size:12px;margin:8px 0 0">Siswa otomatis: kelompok dan status mengikuti spreadsheet sumber, tidak dapat dipindahkan, dinonaktifkan, atau dihapus dari aplikasi.</p>'}<div class="sda">${(()=>{const sec=(lk&&boleh('siswa.pindah')&&sdTujuan(r[SD.iKelas]).length?'<button class="btn gh" data-pk><span>⬆️</span>Naik Kelas</button>':'')+(lk&&boleh('siswa.tambah')?'<button class="btn gh" data-nk><span>⏸️</span>Nonaktifkan</button>':'')+(lk&&boleh('siswa.hapus')?'<button class="btn rd" data-hp><span>🗑️</span>Hapus</button>':'');return sec?'<div class="sdg">'+sec+'</div>':''})()}<div class="sdm"><button class="btn o" data-ub><span>✏️</span>Ubah</button><button class="btn" data-x>Tutup</button></div></div></div>`;
 md.onclick=async e=>{if(e.target===md||e.target.closest('[data-x]'))return md.remove();if(e.target.closest('[data-ub]')){md.remove();sdEdit(i)}
 if(e.target.closest('[data-pk]')){md.remove();sdPindah(i)}
 if(e.target.closest('[data-hp]')){md.remove();sdHapus(lid,r[SD.iNama],true)}
