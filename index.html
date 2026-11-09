@@ -1056,7 +1056,7 @@ bu.disabled=false;bu.textContent='Uji koneksi sumber aktif'};
 bs.onclick=async()=>{const v=ok;if(!v)return;
 if(I.status!=='belum'&&!await tanya('Ganti sumber data?','Sumber data kehadiran yang sekarang akan diganti. Mengganti di tengah tahun ajaran dapat membuat data profil anak dan status kehadiran manual tidak cocok dengan data baru. Data lama tidak dihapus. Lanjutkan?','Ya, ganti',true))return;
 bs.disabled=true;
-try{await api('sumberSimpan',{link:v,konfirmasi:true});await sumberSegar();bunyi('ok');toast('Sumber data tersimpan');sumberKartu()}
+try{const j=await api('sumberSimpan',{link:v,konfirmasi:true});await sumberSegar();bunyi('ok');toast('Sumber data tersimpan'+(j.kbcBaru?' · '+j.kbcBaru+' anak baru di KBC':''));sumberKartu()}
 catch(er){toast(er.message,1);bs.disabled=false}};
 if(bh)bh.onclick=async()=>{
 if(!await tanya('Kembalikan ke bawaan?','Pengaturan link dihapus dan aplikasi memakai sumber bawaan. Data tidak dihapus.','Ya, kembalikan',true))return;
