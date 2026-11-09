@@ -402,6 +402,19 @@ html:is([data-tema=belajar],[data-tema=ujian]) .page{padding:10px 12px 24px}
 html[data-tema=belajar] .hero h1{font-size:20px}html[data-tema=ujian] .hero{padding:18px;grid-template-columns:1fr}html[data-tema=ujian] .hero h1{font-size:23px}html[data-tema=ujian] .scene{display:none}}
 @media print{html:is([data-tema=belajar],[data-tema=ujian]) #app{padding:0}html:is([data-tema=belajar],[data-tema=ujian]) #app::before{display:none}html[data-tema=belajar] body,html[data-tema=ujian] body{background:#fff}}
 .sheet.frm .act{position:sticky;bottom:-22px;background:#fff;padding:12px 0 22px;margin:16px 0 -22px;border-top:1px solid var(--ln);z-index:3}
+/* Menu 2-8 dan Portofolio: header, kartu catatan, tombol cetak rapi di HP */
+.card.row .rbt{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+.card.row .rbt .btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:44px;margin:0;padding:0 10px;border-radius:14px;font-size:14px;font-weight:800;box-shadow:none}
+.card.row .rbt .btn:active,.ukb.u4 .btn:active,.jh .jbt .btn:active{transform:scale(.97)}
+.ukb.u4 .btn{min-height:46px;border-radius:14px;font-size:14px;font-weight:800;box-shadow:none}
+@media(max-width:640px){
+.jh{padding:14px;gap:10px 12px}.jh .jbt{margin-left:0;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.jh .jbt .btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;margin:0;padding:0 8px;border-radius:14px;font-size:14px;font-weight:800;white-space:nowrap;box-shadow:none}
+.jh .jbt .btn.y{box-shadow:0 4px 12px #f7b50055}
+.sheet.frm .act{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sheet.frm .act .btn{width:100%;min-height:50px;margin:0;border-radius:14px;font-weight:800;box-shadow:none}
+.sheet.frm .act .btn:not(.gh):not(.rd){box-shadow:0 4px 12px #1e88e540}
+}
 /* Filter Data Siswa / Presensi / Galeri: kotak selebar layar, tombol rapi */
 .filt.sf{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px;align-items:end}
 .filt.sf>.fd{grid-column:1/-1;min-width:0}.filt.sf>.fd.h{grid-column:auto}
@@ -1187,9 +1200,9 @@ function filDyn(k){const sig=[],on=[];let h='';
 if(f==='kelas'&&!(o.length>=2||(o.length===1&&!klf())))o=[]; // satu pilihan saja (kelompok guru sendiri) tidak perlu disaring
 if(!o.length)return;on.push(f);sig.push(f,o);
 const L=typeof FLB[f]==='object'?FLB[f][k]:FLB[f],id='f_'+f;let cur=KF.v[f]||'';
-if(f==='nama'||f==='keg')h+=`<div class="fd"><label for="${id}">${L}</label><input id="${id}" data-f="${f}" list="dl_${f}" placeholder="${f==='nama'?'Ketik atau pilih nama anak':'Ketik tema atau kegiatan'}" autocomplete="off" style="width:210px" value="${esc(cur)}"><datalist id="dl_${f}">${o.map(x=>`<option value="${esc(x)}">`).join('')}</datalist></div>`;
+if(f==='nama'||f==='keg')h+=`<div class="fd"><label for="${id}">${L}</label><input id="${id}" data-f="${f}" list="dl_${f}" placeholder="${f==='nama'?'Ketik atau pilih nama anak':'Ketik tema atau kegiatan'}" autocomplete="off" value="${esc(cur)}"><datalist id="dl_${f}">${o.map(x=>`<option value="${esc(x)}">`).join('')}</datalist></div>`;
 else{const ops=o.map(x=>Array.isArray(x)?x:[x,x]);if(cur&&!ops.some(x=>x[0]===cur)){KF.v[f]=cur=''}
-h+=`<div class="fd"><label for="${id}">${L}</label><select id="${id}" data-f="${f}" style="width:210px"><option value="">Semua</option>${ops.map(([a,b])=>`<option value="${esc(a)}"${a===cur?' selected':''}>${esc(b)}</option>`).join('')}</select></div>`}});
+h+=`<div class="fd"><label for="${id}">${L}</label><select id="${id}" data-f="${f}"><option value="">Semua</option>${ops.map(([a,b])=>`<option value="${esc(a)}"${a===cur?' selected':''}>${esc(b)}</option>`).join('')}</select></div>`}});
 return{h,on,sig:JSON.stringify(sig)}}
 function filSync(k){const d=$('#fdyn');if(!d)return;if(KF.k!==k)KF={k,v:{},sig:'',on:[]};
 const x=filDyn(k);KF.on=x.on;if(x.sig===KF.sig)return;
@@ -1214,7 +1227,7 @@ if(f==='tema'||f==='subtema'||f==='aspek'||f==='jenis')return String(r[f]||'').t
 if(f==='nama')return k==='kehadiran'||kunci(r.nama).includes(kunci(x));
 if(f==='keg')return[r.tema,r.bentuk,r.aktivitas,r.tujuan].join(' ').toLowerCase().includes(String(x).trim().toLowerCase());
 return true})})}
-const filKartu=()=>`<div class="fd"><label for="bln">Bulan dan tahun</label><input type="month" id="bln" value="${hari().slice(0,7)}" style="width:210px"></div><div class="fd"><label for="tg">Tanggal</label><input type="date" id="tg" style="width:210px"></div><div id="fdyn" style="display:contents"></div><div class="fd" style="display:flex;gap:8px"><button type="button" class="btn y" id="fcari">Cari</button><button type="button" class="btn gh" id="freset">Reset</button></div><small class="sub" style="flex-basis:100%">Boleh memakai satu atau beberapa filter sekaligus. Kosongkan bulan untuk melihat semua.</small>`;
+const filKartu=()=>`<div class="fd h"><label for="bln">Bulan dan tahun</label><input type="month" id="bln" value="${hari().slice(0,7)}"></div><div class="fd h"><label for="tg">Tanggal</label><input type="date" id="tg"></div><div id="fdyn" style="display:contents"></div><div class="fd bt"><button type="button" class="btn y" id="fcari">Cari</button><button type="button" class="btn gh" id="freset">Reset</button></div><small class="sub sfn">Boleh memakai satu atau beberapa filter sekaligus. Kosongkan bulan untuk melihat semua.</small>`;
 function filPasang(k){const fc=$('#fc');let tm=0;const segar=()=>tampil(k);
 fc.addEventListener('input',e=>{const t=e.target;if(t.tagName==='INPUT'&&t.dataset.f){KF.v[t.dataset.f]=t.value;clearTimeout(tm);tm=setTimeout(segar,150)}});
 fc.addEventListener('change',e=>{const t=e.target;
@@ -1228,7 +1241,7 @@ else if(b.id==='freset'){KF.v={};KF.sig='';$('#bln').value=hari().slice(0,7);$('
 
 async function viewJurnal(k){const j=J[k],m=$('#main');
 m.innerHTML=`<div class="jh c${j.no%4}"><span class="em">${j.ic}</span><div><h2>${j.n}</h2><small>${j.no}. ${j.per}${klf()?' - '+klf():''}</small></div><div class="jbt"><button class="btn rd" id="hh">Hapus 1 Hari</button><button class="btn y" id="ad">+ Tambah Catatan</button></div></div>
-<div class="card filt" id="fc">${filKartu()}</div><div id="ls">${muat()}</div>`;
+<div class="card filt sf" id="fc">${filKartu()}</div><div id="ls">${muat()}</div>`;
 KF={k,v:{},sig:'',on:[]};
 $('#ad').onclick=()=>bukaForm(k);$('#hh').onclick=()=>hapusHariDialog(k);filPasang(k);
 if(k==='kehadiran'||k==='perkembangan')loadSiswa().then(()=>{if(S.view===k&&$('#fdyn'))tampil(k)}).catch(()=>{}); // daftar nama anak (dari cache bila offline)
@@ -1236,7 +1249,7 @@ const cc=cGet('semua');if(!ROWS[k]&&cc&&Array.isArray(cc[k]))ROWS[k]=urut(cc[k].
 try{const r=await api('list',{jenis:k});ROWS[k]=urut(r.rows);cRows(k);if(S.view===k)tampil(k)}
 catch(e){if(!ROWS[k])$('#ls').innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
 function tampil(k){const j=J[k];filSync(k);const rs=filCocok(k);
-$('#ls').innerHTML=rs.length?rs.map(r=>`<div class="card row"><small>${fmt(r.tanggal)}</small><h3>${esc(j.t(r))}</h3><div class="kv">${j.f.filter(f=>f.k!=='tanggal'&&r[f.k]!==''&&r[f.k]!==undefined).map(f=>`<div><small>${f.l}</small>${esc(fv(f,r))}</div>`).join('')}</div>${fotoHtml(r)}<button class="btn gh s" data-e="${r.ID}">Ubah</button> <button class="btn rd s" data-d="${r.ID}">Hapus</button></div>`).join(''):`<div class="card empty">${(ROWS[k]||[]).length?'Data tidak ditemukan':'Belum ada catatan. Ketuk <b>+ Tambah Catatan</b> untuk mengisi jurnal.'}</div>`;
+$('#ls').innerHTML=rs.length?rs.map(r=>`<div class="card row"><small>${fmt(r.tanggal)}</small><h3>${esc(j.t(r))}</h3><div class="kv">${j.f.filter(f=>f.k!=='tanggal'&&r[f.k]!==''&&r[f.k]!==undefined).map(f=>`<div><small>${f.l}</small>${esc(fv(f,r))}</div>`).join('')}</div>${fotoHtml(r)}<div class="rbt"><button class="btn gh s" data-e="${r.ID}">✏️ Ubah</button><button class="btn rd s" data-d="${r.ID}">🗑️ Hapus</button></div></div>`).join(''):`<div class="card empty">${(ROWS[k]||[]).length?'Data tidak ditemukan':'Belum ada catatan. Ketuk <b>+ Tambah Catatan</b> untuk mengisi jurnal.'}</div>`;
 isiFoto($('#ls'));
 $('#ls').onclick=async e=>{const bf=e.target.closest('img.ft');if(bf&&bf.dataset.loaded)return lihatFoto(bf.src);const be=e.target.closest('[data-e]'),bd=e.target.closest('[data-d]');
 if(be)bukaForm(k,ROWS[k].find(r=>r.ID===be.dataset.e));
@@ -2014,7 +2027,7 @@ const kf=klf(),tp=new Map();
 ROWS.perkembangan.forEach(x=>{const k=kunci(x.nama);if(k&&!tp.has(k))tp.set(k,{nama:String(x.nama).trim(),kelas:kelNorm(x.kelas)})});
 const L=[...tp.entries()].map(([k,o])=>({k,nama:o.nama,kelas:o.kelas,n:ROWS.perkembangan.filter(x=>kunci(x.nama)===k).length})).sort((a,b)=>a.nama.localeCompare(b.nama));
 if(!L.length){m.innerHTML='<div class="card empty">Belum ada data anak. Isi Jurnal 4 (Perkembangan Anak) atau pastikan Data Siswa tersambung.</div>';return}
-m.innerHTML=`<div class="card noprint"><div class="filt"><div class="fd" style="flex:1 1 260px"><label for="pa">Pilih anak</label><select id="pa"><option value="">Pilih nama anak...</option>${L.map(o=>`<option value="${esc(o.k)}">${esc(o.nama)} (${o.n} catatan)</option>`).join('')}</select></div><div class="fd"><label for="pd">Dari tanggal</label><input type="date" id="pd" style="width:190px"></div><div class="fd"><label for="ps">Sampai tanggal</label><input type="date" id="ps" style="width:190px"></div></div><small class="sub">Tanggal boleh dikosongkan untuk melihat seluruh catatan.</small><div id="pu" style="display:none">${ukrHtml()}</div></div><div id="lap"><div class="card empty">Pilih nama anak untuk menampilkan portofolionya.</div></div>`;
+m.innerHTML=`<div class="card noprint"><div class="filt sf"><div class="fd"><label for="pa">Pilih anak</label><select id="pa"><option value="">Pilih nama anak...</option>${L.map(o=>`<option value="${esc(o.k)}">${esc(o.nama)} (${o.n} catatan)</option>`).join('')}</select></div><div class="fd h"><label for="pd">Dari tanggal</label><input type="date" id="pd"></div><div class="fd h"><label for="ps">Sampai tanggal</label><input type="date" id="ps"></div><small class="sub sfn">Tanggal boleh dikosongkan untuk melihat seluruh catatan.</small></div><div id="pu" style="display:none">${ukrHtml()}</div></div><div id="lap"><div class="card empty">Pilih nama anak untuk menampilkan portofolionya.</div></div>`;
 const tampil=()=>{const k=$('#pa').value,pu=$('#pu');
 if(!k){$('#lap').innerHTML='<div class="card empty">Pilih nama anak untuk menampilkan portofolionya.</div>';pu.style.display='none';return}
 const o=L.find(x=>x.k===k);S.pfNama=o.nama;pu.style.display='';$('#lap').innerHTML=portofolio(o,$('#pd').value,$('#ps').value);isiFoto($('#lap'))};
