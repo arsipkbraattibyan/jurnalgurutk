@@ -952,7 +952,7 @@ new MutationObserver(sync).observe(U,{childList:true,attributes:true,attributeFi
 sync()}
 async function viewLogin(){S.mode='login';GID='';PIN='';busy=false;
 $('#app').classList.add('lgmode');$('#app').innerHTML=`<div class="lgx"><div class="lgx-card">
-<div class="lgx-hd"><img class="lgx-logo" id="lgxLogo" src="${sekCache().logo||LOGO}" alt="Logo sekolah"><h1>Jurnal Guru TK</h1><p id="lgxSek">${esc(sekCache().nama||'KB-RA At Tibyan')}</p></div>
+<div class="lgx-hd"><img class="lgx-logo" id="lgxLogo" src="${sekCache().logo||LOGO}" alt="Logo sekolah"><h1>Jurnal Guru TK</h1><p id="lgxSek">${esc(sekCache().nama||'')}</p></div>
 <div class="lgx-body"><form class="lgx-fm" id="lgxF" novalidate>
 <label for="lgxU">Nama pengguna</label>
 <select id="lgxU" name="username" autocomplete="off" disabled><option value="">Memuat daftar nama...</option></select>
@@ -1012,7 +1012,7 @@ catch(er){toast(er.message,1);b.disabled=false;b.textContent='Simpan PIN'}}}
 const SHORT=k=>J[k].no+'. '+J[k].n.replace('Jurnal ','').replace(' Guru dan Sekolah','');
 function shell(){S.mode='app';$('#app').classList.remove('lgmode');
 const aj=ngajar(),items=[['beranda','🏠','Dashboard'],...(aj?ORDER:['identitas']).map(k=>[k,J[k].ic,SHORT(k)]),...(aj?[['siswa','🧑‍🎓','Data Siswa'],['portofolio','👧','Portofolio Anak'],['kalender','🗓️','Kalender Pendidikan'],['laporan','📄','Laporan']]:bolehSiswa()?[['siswa','🧑‍🎓','Data Siswa']]:[]),...(boleh('guru.lihat')?[['lihat','👁️','Lihat Guru']]:[]),['pengaturan','⚙️','Pengaturan']];
-$('#app').innerHTML=`<header class="top"><div class="brand"><img class="lg" src="${logoSek()}" alt=""><div><b>Jurnal Guru</b><small>KB-RA AT TIBYAN</small></div></div><div class="cu" id="me"></div></header>
+$('#app').innerHTML=`<header class="top"><div class="brand"><img class="lg" src="${logoSek()}" alt="">  <div><b>Jurnal Guru</b><small>${esc(((S.guru&&S.guru.sekolah)||sekCache().nama||'').toUpperCase())}</small></div></div><div class="cu" id="me"></div></header>
 <nav class="menu" id="nav">${items.map(([v,ic,l])=>`<button class="nv" data-v="${v}"><i class="ni">${ic}</i><span>${l}</span></button>`).join('')}<div class="sbx">${aj?'<button type="button" class="promo" data-v="harian"><b>Catat hari ini</b><small>Isi jurnal harian sebelum pulang agar tidak menumpuk.</small><i>→</i></button>':''}<button type="button" class="lo2" data-lo><i class="ni">🚪</i>Logout</button></div></nav>
 <div class="page"><h1 class="pt" id="pt"></h1><main id="main"></main></div>
 <footer class="foot">⭐ Jurnal Guru TK: mencatat langkah kecil, mendukung mimpi besar ⭐</footer>`;
