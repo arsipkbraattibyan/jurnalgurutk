@@ -2143,7 +2143,7 @@ const tblX=(rows,widths,bd)=>`<w:tbl><w:tblPr><w:tblW w:w="${widths.reduce((a,b)
 const tabelX=(t,cwx,rh)=>{const CW=cwx||cw;const trs=[...t.querySelectorAll('tr')].filter(r=>r.closest('table')===t);if(!trs.length)return'';
 const nc=Math.max.apply(null,trs.map(r=>[...r.children].reduce((a,c)=>a+(c.colSpan||1),0))),isId=t.classList.contains('id'),isG=t.classList.contains('idx'),wt=Array(nc).fill(4);
 trs.forEach(r=>{let i=0;[...r.children].forEach(c=>{const sp=c.colSpan||1;if(sp===1)wt[i]=Math.max(wt[i],Math.min(40,selTeks(c.textContent).length));i+=sp})});
-let wd;if(isG){wd=[.2,.3,.2,.3].map(x=>Math.floor(CW*x))}else if(isId&&nc===2){const a=Math.round(CW*.3);wd=[a,CW-a]}else{const tot=wt.reduce((a,b)=>a+b,0);wd=wt.map(w=>Math.max(500,Math.round(CW*w/tot)));const s=wd.reduce((a,b)=>a+b,0);wd=wd.map(w=>Math.floor(w*CW/s))}
+if(!rh&&(isId||isG))rh=420;let wd;if(isG){wd=[.2,.3,.2,.3].map(x=>Math.floor(CW*x))}else if(isId&&nc===2){const a=Math.round(CW*.3);wd=[a,CW-a]}else{const tot=wt.reduce((a,b)=>a+b,0);wd=wt.map(w=>Math.max(500,Math.round(CW*w/tot)));const s=wd.reduce((a,b)=>a+b,0);wd=wd.map(w=>Math.floor(w*CW/s))}
 const rows=trs.map(r=>{const head=!!r.closest('thead'),tot=r.classList.contains('tt');let i=0;
 const tcs=[...r.children].map((c,ci)=>{const sp=c.colSpan||1;let w=0;for(let k=0;k<sp;k++)w+=wd[i+k]||0;i+=sp;
 const hd=head||c.tagName==='TH',b=hd||tot||(isId&&ci===0)||c.classList.contains('lb'),jc=hd||c.classList.contains('c')?'center':'left';
@@ -2181,9 +2181,9 @@ const inl=n=>!n.querySelector('table,div,p,h1,h2,h3,h4,figure,ul,ol,img');
 function satu(n,o){o=o||{};const g=n.tagName.toLowerCase(),cl=n.classList;
 if(cl.contains('noprint')||g==='svg'||g==='style'||g==='script')return'';
 if(cl.contains('idgrid'))return idX(n);if(cl.contains('kop'))return kopX(n);if(cl.contains('ttd'))return ttdX(n);if(cl.contains('gal'))return galX(n);
-if(cl.contains('pfr')){const im=n.querySelector('.pfw img'),t=n.querySelector('table'),nr=t?t.querySelectorAll('tr').length:7,ph=Math.round(nr*340/15),pw=Math.round(ph*.76),lw=pw*15+283,rw=cw-lw,x=im?gbr(im,pw,ph):'';
+if(cl.contains('pfr')){const im=n.querySelector('.pfw img'),t=n.querySelector('table'),nr=t?t.querySelectorAll('tr').length:7,ph=Math.round(nr*420/15)-6,pw=Math.round(ph*.76),lw=pw*15+283,rw=cw-lw,x=im?gbr(im,pw,ph):'';
 const left=x?`<w:p><w:pPr><w:spacing w:before="0" w:after="0"/><w:jc w:val="left"/></w:pPr><w:r>${x}</w:r></w:p>`:'<w:p/>';
-const row=`<w:tr><w:trPr><w:cantSplit/></w:trPr><w:tc><w:tcPr><w:tcW w:w="${lw}" w:type="dxa"/></w:tcPr>${left}</w:tc><w:tc><w:tcPr><w:tcW w:w="${rw}" w:type="dxa"/></w:tcPr>${t?tabelX(t,rw-140,340):'<w:p/>'}</w:tc></w:tr>`;
+const row=`<w:tr><w:trPr><w:cantSplit/></w:trPr><w:tc><w:tcPr><w:tcW w:w="${lw}" w:type="dxa"/></w:tcPr>${left}</w:tc><w:tc><w:tcPr><w:tcW w:w="${rw}" w:type="dxa"/></w:tcPr>${t?tabelX(t,rw-140,420):'<w:p/>'}</w:tc></w:tr>`;
 return tblX(row,[lw,rw],'')+spasi}
 if(cl.contains('pfw')){const im=n.querySelector('img'),x=im?gbr(im,136,224):'';return x?`<w:p><w:pPr><w:spacing w:before="0" w:after="60"/><w:jc w:val="right"/></w:pPr><w:r>${x}</w:r></w:p>`:''}
 if(cl.contains('sp'))return P({childNodes:[]},{after:0}).repeat(3);
