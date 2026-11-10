@@ -463,6 +463,9 @@ select option,datalist option{background:#fff;color:#2b3a67}
 .slc .sle{padding:22px 14px;color:#6b7aa6;font-weight:700;text-align:center}
 .slc .slj{flex:none;font:800 12.5px Nunito,sans-serif;color:#6b7aa6;margin:0 4px 8px}
 .slc .slp{flex:none;margin-top:10px;min-height:48px;border:0;border-radius:16px;background:#eaf3fe;color:#1565c0;font:inherit;font-weight:800;font-size:15px;cursor:pointer}
+@media(min-width:600px){.slc{max-width:440px;padding:20px 20px 18px}.slc .slg{display:none}.slc .slo{min-height:50px;font-size:15px;border-radius:14px}.slc .slo .av{width:34px;height:34px;font-size:15px}.slc .sll{gap:6px}}
+@media(hover:hover){.slc .slo:hover{border-color:#9ccbf7;background:#f0f7ff}.slc .slo.on:hover{background:#e0efff}.slc .slo:hover .rd{border-color:#1e88e5}.slc .slx:hover,.slc .slp:hover{background:#d9eafc}}
+.slc .slo:focus-visible,.slc .slx:focus-visible{outline:3px solid #1e88e555;outline-offset:1px}
 .filt.sf{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px;align-items:end}
 .filt.sf>.fd{grid-column:1/-1;min-width:0}.filt.sf>.fd.h{grid-column:auto}
 .filt.sf .fd input,.filt.sf .fd select{display:block;width:100%!important;max-width:100%;min-width:0;box-sizing:border-box;height:50px;padding:0 14px;font:inherit;border-radius:14px}
@@ -2321,9 +2324,8 @@ document.addEventListener('click',function(e){var t=sasar(e);if(!t)return;e.prev
 })();
 </script>
 <script>
-/* Daftar pilihan putih untuk layar sentuh (daftar bawaan HP mengikuti mode gelap sistem) */
+/* Daftar pilihan putih di HP dan laptop (daftar bawaan peramban mengikuti mode gelap sistem) */
 (function(){
-if(!window.matchMedia||!matchMedia('(pointer:coarse)').matches)return;
 var esc=function(t){return String(t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
 var WARNA=['#1e88e5','#ee4f9a','#7cc243','#f59e0b','#8e6bd8','#14b8a6','#ef6c4d'];
 function warna(t){var h=0;for(var i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))>>>0;return WARNA[h%WARNA.length]}
@@ -2367,6 +2369,10 @@ function lembar(el,opsi,cari,bebas,nama){
 function selSasar(t){return t&&t.tagName==='SELECT'&&!t.multiple&&!t.disabled?t:null}
 function listSasar(t){return t&&t.tagName==='INPUT'&&t.getAttribute('list')&&!t.disabled&&!t.readOnly?t:null}
 function listSasar2(t){return t&&t.tagName==='INPUT'&&t.getAttribute('list')&&!t.disabled?t:null}
+document.addEventListener('keydown',function(e){
+ if(e.key==='Escape'){var m=document.querySelector('.slm');if(m){e.preventDefault();m.remove()}return}
+ var t=e.target;if((e.key==='Enter'||e.key===' '||e.key==='ArrowDown'||e.key==='ArrowUp')&&(selSasar(t)||(listSasar2(t)&&e.key!=='Enter'&&e.key!==' '&&false))){e.preventDefault();t.click()}
+},true);
 document.addEventListener('mousedown',function(e){if(selSasar(e.target))e.preventDefault()},true);
 document.addEventListener('pointerdown',function(e){var t=listSasar(e.target);if(t)t.readOnly=true;t=selSasar(e.target);if(t)t.blur()},true);
 document.addEventListener('click',function(e){
