@@ -1899,20 +1899,20 @@ const pr=$('#prs');if(pr){pr.innerHTML=presTabel(p);pr.removeAttribute('data-w')
 ['#lj','#lt','#lb'].forEach(x=>$(x).onchange=r);r();
 if(dariCache)muatSemua().then(()=>{if(S.view==='laporan')r()}).catch(()=>{})}
 catch(e){$('#lap').innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
-/* ---------- cetak, simpan PDF, simpan gambar (A4 dan HVS, potret) ---------- */
+/* ---------- cetak, simpan PDF, simpan gambar (A4 dan HVS, potret atau lanskap) ---------- */
 const UK={a4:{n:'A4',w:210,h:297},hvs:{n:'HVS',w:215,h:330}},MM=96/25.4,MG=10; // ukuran mm, margin 10 mm
 const cm=v=>String(v/10).replace('.',',');
-function ukrHtml(){return`<div class="ukr"><div class="ukb u4"><b>Cetak atau simpan <small>(ukuran kertas dipilih setelah tombol ditekan)</small></b><button class="btn o s" data-ak="cetak">🖨️ Cetak</button><button class="btn s" data-ak="pdf">📄 Simpan PDF</button><button class="btn y s" data-ak="xls">📊 Simpan Excel</button><button class="btn s" data-ak="doc">📝 Simpan Word</button></div></div>`}
+function ukrHtml(){return`<div class="ukr"><div class="ukb u4"><b>Cetak atau simpan <small>(ukuran dan posisi kertas dipilih setelah tombol ditekan)</small></b><button class="btn o s" data-ak="cetak">🖨️ Cetak</button><button class="btn s" data-ak="pdf">📄 Simpan PDF</button><button class="btn y s" data-ak="xls">📊 Simpan Excel</button><button class="btn s" data-ak="doc">📝 Simpan Word</button></div></div>`}
 // jendela pilihan ukuran kertas (dipakai Cetak, PDF, dan Word; Excel tidak bergantung pada ukuran kertas)
 function pilihKertas(ak){return new Promise(ok=>{const md=document.createElement('div');md.className='md';md.style.zIndex=40;
 const lb={cetak:'Cetak',pdf:'Simpan PDF',doc:'Simpan Word'}[ak]||'';
-md.innerHTML=`<div class="sheet" style="max-width:420px"><h2>Pilih ukuran kertas</h2><p class="sub" style="margin-bottom:12px">${esc(lb)}.${ak==='doc'?' Posisi kertas dipilih setelah ini.':' Semua ukuran berorientasi potret.'}</p><div class="kts">${Object.entries(UK).map(([c,u])=>`<button type="button" class="btn s kt" data-kt="${c}"><b>${u.n}</b><small>${cm(u.w)} x ${cm(u.h)} cm</small></button>`).join('')}</div><div class="act"><button class="btn gh" data-n>Batal</button></div></div>`;
+md.innerHTML=`<div class="sheet" style="max-width:420px"><h2>Pilih ukuran kertas</h2><p class="sub" style="margin-bottom:12px">${esc(lb)}.${ak==='xls'?'':' Posisi kertas (potret atau lanskap) dipilih setelah ini.'}</p><div class="kts">${Object.entries(UK).map(([c,u])=>`<button type="button" class="btn s kt" data-kt="${c}"><b>${u.n}</b><small>${cm(u.w)} x ${cm(u.h)} cm</small></button>`).join('')}</div><div class="act"><button class="btn gh" data-n>Batal</button></div></div>`;
 const t=x=>{md.remove();ok(x)};md.onclick=e=>{if(e.target===md)return t('');if(e.target.closest('[data-n]'))return t('');const b=e.target.closest('[data-kt]');if(b)t(b.dataset.kt)};
 document.body.appendChild(md)})}
 // langkah kedua khusus Word: pilih posisi kertas setelah ukuran dipilih. Hasil: 'portrait', 'landscape', atau '' jika dibatalkan
-function pilihOrientasi(u){return new Promise(ok=>{const md=document.createElement('div');md.className='md';md.style.zIndex=40;
+function pilihOrientasi(u,ak){const lb={cetak:'Cetak',pdf:'Simpan PDF',doc:'Simpan Word'}[ak]||'';return new Promise(ok=>{const md=document.createElement('div');md.className='md';md.style.zIndex=40;
 const ik=(w,h)=>`<span style="display:block;width:${w}px;height:${h}px;border:2px solid currentColor;border-radius:3px;margin-bottom:4px"></span>`;
-md.innerHTML=`<div class="sheet" style="max-width:420px"><h2>Pilih posisi kertas</h2><p class="sub" style="margin-bottom:12px">Simpan Word, ukuran ${esc(u.n)}.</p><div class="kts"><button type="button" class="btn s kt" data-or="portrait">${ik(24,32)}<b>Potret</b><small>${cm(u.w)} x ${cm(u.h)} cm</small></button><button type="button" class="btn s kt" data-or="landscape">${ik(32,24)}<b>Lanskap</b><small>${cm(u.h)} x ${cm(u.w)} cm</small></button></div><div class="act"><button class="btn gh" data-n>Batal</button></div></div>`;
+md.innerHTML=`<div class="sheet" style="max-width:420px"><h2>Pilih posisi kertas</h2><p class="sub" style="margin-bottom:12px">${esc(lb)}, ukuran ${esc(u.n)}.</p><div class="kts"><button type="button" class="btn s kt" data-or="portrait">${ik(24,32)}<b>Potret</b><small>${cm(u.w)} x ${cm(u.h)} cm</small></button><button type="button" class="btn s kt" data-or="landscape">${ik(32,24)}<b>Lanskap</b><small>${cm(u.h)} x ${cm(u.w)} cm</small></button></div><div class="act"><button class="btn gh" data-n>Batal</button></div></div>`;
 const t=x=>{md.remove();ok(x)};md.onclick=e=>{if(e.target===md)return t('');if(e.target.closest('[data-n]'))return t('');const b=e.target.closest('[data-or]');if(b)t(b.dataset.or)};
 document.body.appendChild(md)})}
 const _js={};
@@ -2131,16 +2131,16 @@ if(S.view==='siswa')return'Data-Siswa-'+String(klf()||nilai('sk')||'Semua').repl
 if(S.view==='portofolio')return'Portofolio-'+String(S.pfNama||'anak').replace(/[^\w]+/g,'_')+'-'+u.n;
 if(S.view==='identitas')return'Data-'+({guru:'Guru',sekolah:'Sekolah',semua:'Guru-dan-Sekolah'}[nilai('dj')]||'Data')+'-'+nmGuru()+'-'+u.n;
 return'Laporan-Jurnal-'+nmGuru()+'-'+u.n}
-async function aksiLap(c,ak){if(!c){if(ak==='xls')c='a4';else{c=await pilihKertas(ak);if(!c)return}}const u=UK[c];if(!u)return;let ori='portrait';if(ak==='doc'){ori=await pilihOrientasi(u);if(!ori)return}if(document.querySelector('#prs[data-w]'))return toast('Data presensi masih dimuat, tunggu sebentar',1);
-if(ak==='cetak'){if(!$('#lap .paper'))return toast('Laporan belum siap dimuat',1);setKertas(u);await siapFoto();window.print();return}
+async function aksiLap(c,ak){if(!c){if(ak==='xls')c='a4';else{c=await pilihKertas(ak);if(!c)return}}const u=UK[c];if(!u)return;let ori='portrait';if(ak!=='xls'){ori=await pilihOrientasi(u,ak);if(!ori)return}const ls=ori==='landscape',ue=ls?{n:u.n,w:u.h,h:u.w}:u;if(document.querySelector('#prs[data-w]'))return toast('Data presensi masih dimuat, tunggu sebentar',1);
+if(ak==='cetak'){if(!$('#lap .paper'))return toast('Laporan belum siap dimuat',1);setKertas(ue);await siapFoto();window.print();return}
 const bt=document.querySelectorAll('.ukr button');bt.forEach(b=>b.disabled=true);
-const lb={pdf:'PDF',xls:'Excel',doc:'Word'}[ak]||ak;toast('Menyiapkan '+lb+(ak==='xls'?'...':' '+u.n+'...'));
-const nama=namaBerkas(u,ak);
+const lb={pdf:'PDF',xls:'Excel',doc:'Word'}[ak]||ak;toast('Menyiapkan '+lb+(ak==='xls'?'...':' '+u.n+(ls?' lanskap':'')+'...'));
+const nama=namaBerkas(u,ak)+(ls&&ak==='pdf'?'-Lanskap':'');
 try{if(ak==='xls'){await simpanExcel(nama);toast('Excel tersimpan')}
 else if(ak==='doc'){await simpanWord(nama+(ori==='landscape'?'-Lanskap':''),u,ori);toast('Word '+u.n+(ori==='landscape'?' lanskap':' potret')+' tersimpan')}
-else{const cs=await halaman(u),{jsPDF}=window.jspdf,doc=new jsPDF({orientation:'portrait',unit:'mm',format:[u.w,u.h]});
-cs.forEach((cv,i)=>{if(i)doc.addPage([u.w,u.h],'portrait');doc.addImage(cv.toDataURL('image/jpeg',.92),'JPEG',0,0,u.w,u.h)});
-doc.save(nama+'.pdf');toast('PDF '+u.n+' tersimpan ('+cs.length+' halaman)')}}
+else{const cs=await halaman(ue),{jsPDF}=window.jspdf,doc=new jsPDF({orientation:ori,unit:'mm',format:[ue.w,ue.h]});
+cs.forEach((cv,i)=>{if(i)doc.addPage([ue.w,ue.h],ori);doc.addImage(cv.toDataURL('image/jpeg',.92),'JPEG',0,0,ue.w,ue.h)});
+doc.save(nama+'.pdf');toast('PDF '+u.n+(ls?' lanskap':' potret')+' tersimpan ('+cs.length+' halaman)')}}
 catch(e){toast(e.message||'Gagal membuat file',1)}
 bt.forEach(b=>b.disabled=false)}
 /* ---------- lampiran foto di laporan ---------- */
