@@ -458,7 +458,7 @@ select option,datalist option{background:#fff;color:#2b3a67}
 .sf2 .btn:active{transform:scale(.97)}
 .sf2 .btn.y{box-shadow:0 4px 12px #f7b50055}
 .sf2 .btn:not(.y):not(.gh){box-shadow:0 4px 12px #1e88e540}
-.sf2 .sdact{display:flex;gap:10px;margin-left:auto}
+.sf2 .sdact{display:flex;gap:10px;margin-left:auto;flex:0 0 auto}
 .sf2 .sfn{flex:1 1 100%;display:block;max-width:820px;margin:2px 0 0;font-size:12.5px;line-height:1.55}
 @media(max-width:640px){.sf2 .sdq{flex-basis:100%;max-width:none}.sf2 .sdrow{flex-wrap:wrap}.sf2 .sdrow input{flex:1 1 100%}.sf2 .sdrow .btn{flex:1 1 0;padding:0 12px}.sf2 .sdact{flex:1 1 100%;margin:0}.sf2 .sdact .btn{flex:1 1 0;padding:0 12px}}
 .sdc{margin:0 0 14px}
@@ -1814,7 +1814,7 @@ if(j.err||j.loading||!j.hari)return sr.innerHTML=presTabel(j,'ap');
 const q=kunci(n.value),st=s.value,rs=j.rows.filter(r=>(!q||kunci(r.nama).includes(q))&&(!st||(st==='hadir'?r.hadir>0&&r.sakit+r.izin+r.alpha===0:r[st]>0)));
 sr.innerHTML=rs.length?presTabel({...j,rows:rs},'ap'):'<div class="empty" style="padding:16px">Data tidak ditemukan</div>'}
 function tabSiswa(){{const LP=$('#lap');if(LP)LP.innerHTML=''}document.querySelectorAll('#stb button').forEach(b=>b.classList.toggle('on',b.dataset.t===SISTAB));const sr=$('#sr');sr.onclick=null;
-if(SISTAB==='data'){$('#sfil').innerHTML=`<div class="sf2"><h3 class="sfh">🔎 Filter Data Siswa</h3><div class="sdq"><label for="sq">Cari nama</label><div class="sdrow"><input id="sq" placeholder="Ketik nama anak" autocomplete="off"><button type="button" class="btn y" id="qc">Cari</button><button type="button" class="btn gh" id="qx">Reset</button></div></div><div style="flex:1 1 100%">${ukrHtml()}</div>${boleh('siswa.tambah')?'<div class="sdact"><button type="button" class="btn" id="sbaru">➕ Tambah Siswa</button><button type="button" class="btn gh" id="snk">🗂️ Nonaktif</button></div>':''}<small class="sub sfn">Daftar anak diambil dari spreadsheet absensi, ditambah siswa baru yang dimasukkan di sini (ditandai Manual). Ketuk kartu anak untuk melihat data lengkap, lalu isi lewat tombol Ubah. Naik kelas, nonaktif, dan hapus hanya untuk siswa manual.</small></div>`;
+if(SISTAB==='data'){$('#sfil').innerHTML=`<div class="sf2"><h3 class="sfh">🔎 Filter Data Siswa</h3><div class="sdq"><label for="sq">Cari nama</label><div class="sdrow"><input id="sq" placeholder="Ketik nama anak" autocomplete="off"><button type="button" class="btn y" id="qc">Cari</button><button type="button" class="btn gh" id="qx">Reset</button></div></div>${boleh('siswa.tambah')?'<div class="sdact"><button type="button" class="btn" id="sbaru">➕ Tambah Siswa</button><button type="button" class="btn gh" id="snk">🗂️ Nonaktif</button></div>':''}<div style="flex:1 1 100%">${ukrHtml()}</div><small class="sub sfn">Daftar anak diambil dari spreadsheet absensi, ditambah siswa baru yang dimasukkan di sini (ditandai Manual). Ketuk kartu anak untuk melihat data lengkap, lalu isi lewat tombol Ubah. Naik kelas, nonaktif, dan hapus hanya untuk siswa manual.</small></div>`;
 $('#sfil .ukr').onclick=e=>{const b=e.target.closest('[data-ak]');if(b)aksiLap(b.dataset.uk,b.dataset.ak)};
 if($('#sbaru'))$('#sbaru').onclick=sdBaru;if($('#snk'))$('#snk').onclick=sdNonaktif;
 $('#sq').oninput=renderDataSiswa;$('#qc').onclick=renderDataSiswa;$('#qx').onclick=()=>{$('#sq').value='';renderDataSiswa()};sr.onclick=e=>{const t=e.target.closest('[data-i]');if(t)sdDetail(+t.dataset.i)};muatDataSiswa()}
