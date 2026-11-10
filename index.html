@@ -447,6 +447,10 @@ select option,datalist option{background:#fff;color:#2b3a67}
 .filt.sf .sfn{grid-column:1/-1;font-size:12.5px;line-height:1.5}
 @media(min-width:760px){.filt.sf{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}.filt.sf>.fd,.filt.sf>.fd.h{grid-column:auto}.filt.sf .fd.bt{grid-template-columns:auto auto;justify-content:start}.filt.sf .fd.bt .btn{padding:0 26px}.filt.sf .sfn{grid-column:1/-1}}
 
+.kh{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.kh h3{margin:0;font-size:17px;color:var(--navy);text-transform:capitalize}.kh .btn{min-width:44px}
+.kg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.kw{text-align:center;font-size:12px;font-weight:800;color:var(--navy);padding:4px 0}.kd{min-height:54px;border:1px solid #dfe7f7;border-radius:10px;background:#fff;padding:4px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;cursor:pointer;font:inherit}.kd.kx{border:0;background:none;cursor:default}.kd b{font-size:13px}.kd span{display:flex;gap:3px;flex-wrap:wrap}.kd span i,.kl2 i,.ke>i{display:inline-block;width:8px;height:8px;border-radius:50%}.kmg{color:#e53935}.kd.kt{border-color:#f7b500;background:#fff8e1}.kd.kp{outline:2px solid #1e88e5}
+.kl2{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px}.kl2 span{display:inline-flex;align-items:center;gap:5px}
+.ke{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #eef2fb}.ke>i{flex:none;width:10px;height:10px}.ke>div{flex:1;min-width:0}.ke small{display:block;color:#6c7aa5}
 /* ---------- Data Siswa: filter rapi + kartu per anak ---------- */
 .sf2{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 16px}
 .sf2>.sfh{flex:1 1 100%;margin:0;font-size:18px;line-height:1.3;color:var(--navy)}
@@ -973,7 +977,7 @@ catch(er){toast(er.message,1);b.disabled=false;b.textContent='Simpan PIN'}}}
 /* ---------- kerangka ---------- */
 const SHORT=k=>J[k].no+'. '+J[k].n.replace('Jurnal ','').replace(' Guru dan Sekolah','');
 function shell(){S.mode='app';$('#app').classList.remove('lgmode');
-const aj=ngajar(),items=[['beranda','🏠','Dashboard'],...(aj?ORDER:['identitas']).map(k=>[k,J[k].ic,SHORT(k)]),...(aj?[['siswa','🧑‍🎓','Data Siswa'],['portofolio','👧','Portofolio Anak'],['laporan','📄','Laporan']]:bolehSiswa()?[['siswa','🧑‍🎓','Data Siswa']]:[]),...(boleh('guru.lihat')?[['lihat','👁️','Lihat Guru']]:[]),['pengaturan','⚙️','Pengaturan']];
+const aj=ngajar(),items=[['beranda','🏠','Dashboard'],...(aj?ORDER:['identitas']).map(k=>[k,J[k].ic,SHORT(k)]),...(aj?[['siswa','🧑‍🎓','Data Siswa'],['portofolio','👧','Portofolio Anak'],['kalender','🗓️','Kalender Pendidikan'],['laporan','📄','Laporan']]:bolehSiswa()?[['siswa','🧑‍🎓','Data Siswa']]:[]),...(boleh('guru.lihat')?[['lihat','👁️','Lihat Guru']]:[]),['pengaturan','⚙️','Pengaturan']];
 $('#app').innerHTML=`<header class="top"><div class="brand"><img class="lg" src="${logoSek()}" alt=""><div><b>Jurnal Guru</b><small>KB-RA AT TIBYAN</small></div></div><div class="cu" id="me"></div></header>
 <nav class="menu" id="nav">${items.map(([v,ic,l])=>`<button class="nv" data-v="${v}"><i class="ni">${ic}</i><span>${l}</span></button>`).join('')}<div class="sbx">${aj?'<button type="button" class="promo" data-v="harian"><b>Catat hari ini</b><small>Isi jurnal harian sebelum pulang agar tidak menumpuk.</small><i>→</i></button>':''}<button type="button" class="lo2" data-lo><i class="ni">🚪</i>Logout</button></div></nav>
 <div class="page"><h1 class="pt" id="pt"></h1><main id="main"></main></div>
@@ -983,10 +987,10 @@ isiAkun();loadSiswa();go(S.view);segarPeran().then(b=>{if(b)shell()});if(ngajar(
 function isiAkun(){const g=S.guru;
 $('#me').innerHTML=`${av(g.foto,g.nama)}<span>${esc(g.nama)}</span><button class="btn y s" id="out">Logout</button>`;$('#out').onclick=()=>keluar(true)}
 function go(v){if(!ngajar()&&!VIEW_PIMPINAN.includes(v)&&!(v==='siswa'&&bolehSiswa()))v='beranda';S.view=v;document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.dataset.v===v));window.scrollTo(0,0);
-$('#pt').textContent=v==='laporan'?'Laporan':v==='siswa'?'Data siswa dan presensi':v==='portofolio'?'Portofolio perkembangan anak':v==='identitas'?J.identitas.n:v==='pengaturan'?'Pengaturan':v==='lihat'?'Lihat jurnal guru':'';
-$('#pt').style.display=['laporan','siswa','portofolio','identitas','pengaturan','lihat'].includes(v)?'':'none';
+$('#pt').textContent=v==='laporan'?'Laporan':v==='siswa'?'Data siswa dan presensi':v==='portofolio'?'Portofolio perkembangan anak':v==='kalender'?'Kalender pendidikan':v==='identitas'?J.identitas.n:v==='pengaturan'?'Pengaturan':v==='lihat'?'Lihat jurnal guru':'';
+$('#pt').style.display=['laporan','siswa','portofolio','kalender','identitas','pengaturan','lihat'].includes(v)?'':'none';
 if(v!=='identitas'&&v!=='laporan')segarAkad();
-v==='beranda'?viewBeranda():v==='identitas'?viewIdentitas():v==='pengaturan'?viewPengaturan():v==='laporan'?segarAkad().then(()=>{if(S.view==='laporan')viewLaporan()}):v==='siswa'?viewSiswa():v==='portofolio'?viewPortofolio():v==='lihat'?viewLihat():viewJurnal(v)}
+v==='beranda'?viewBeranda():v==='identitas'?viewIdentitas():v==='pengaturan'?viewPengaturan():v==='laporan'?segarAkad().then(()=>{if(S.view==='laporan')viewLaporan()}):v==='siswa'?viewSiswa():v==='portofolio'?viewPortofolio():v==='kalender'?viewKalender():v==='lihat'?viewLihat():viewJurnal(v)}
 const muat=()=>'<div class="empty">Memuat data...</div>';
 
 /* ---------- wajib pilih kelompok jika belum diisi ---------- */
@@ -2019,7 +2023,7 @@ const sheet='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet x
 const HD='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',z=new JSZip();
 z.file('[Content_Types].xml',HD+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>');
 z.file('_rels/.rels',HD+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>');
-z.file('xl/workbook.xml',HD+'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="'+(S.view==='portofolio'?'Portofolio':'Laporan')+'" sheetId="1" r:id="rId1"/></sheets></workbook>');
+z.file('xl/workbook.xml',HD+'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="'+(S.view==='portofolio'?'Portofolio':S.view==='kalender'?'Kalender':'Laporan')+'" sheetId="1" r:id="rId1"/></sheets></workbook>');
 z.file('xl/_rels/workbook.xml.rels',HD+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>');
 z.file('xl/styles.xml',styles);z.file('xl/worksheets/sheet1.xml',sheet);
 const blob=await z.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',compression:'DEFLATE'});
@@ -2115,7 +2119,8 @@ const url=URL.createObjectURL(blob);unduh(url,nama+'.docx');setTimeout(()=>URL.r
 
 const nmGuru=()=>String((S.guru&&S.guru.nama)||'guru').replace(/[^\w]+/g,'_');
 function namaBerkas(u,ak){return namaBerkas0(u).replace(/-(A4|HVS)$/,ak==='xls'?'':'$&')}
-function namaBerkas0(u){if(S.view==='siswa')return'Data-Siswa-'+String(klf()||nilai('sk')||'Semua').replace(/[^\w]+/g,'_')+'-'+u.n;
+function namaBerkas0(u){if(S.view==='kalender')return'Kalender-Pendidikan-'+String((S.guru&&S.guru.tahun)||'').replace(/[^\w]+/g,'_')+'-'+u.n;
+if(S.view==='siswa')return'Data-Siswa-'+String(klf()||nilai('sk')||'Semua').replace(/[^\w]+/g,'_')+'-'+u.n;
 if(S.view==='portofolio')return'Portofolio-'+String(S.pfNama||'anak').replace(/[^\w]+/g,'_')+'-'+u.n;
 if(S.view==='identitas')return'Data-'+({guru:'Guru',sekolah:'Sekolah',semua:'Guru-dan-Sekolah'}[nilai('dj')]||'Data')+'-'+nmGuru()+'-'+u.n;
 return'Laporan-Jurnal-'+nmGuru()+'-'+u.n}
@@ -2171,6 +2176,46 @@ ${lampiranHtml(F)}<div class="ttd"><div><p>Mengetahui,<br>Kepala ${esc(g.sekolah
 
 
 
+/* ---------- kalender pendidikan ---------- */
+const KAT={libur:['Libur','#e53935'],ujian:['Ujian / asesmen','#8e24aa'],rapor:['Pembagian rapor','#fb8c00'],kegiatan:['Kegiatan sekolah','#1e88e5'],lain:['Lainnya','#43a047']};
+let KAL={y:new Date().getFullYear(),m:new Date().getMonth(),pil:''};
+const kalK=()=>'jgkal_'+((S.guru&&S.guru.id)||'');
+function kalGet(){try{const a=JSON.parse(localStorage.getItem(kalK())||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
+function kalSet(a){try{localStorage.setItem(kalK(),JSON.stringify(a))}catch(e){toast('Penyimpanan perangkat penuh',1)}}
+const kIso=(y,m,d)=>y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+const kTgl=i=>{const d=new Date(i+'T00:00:00');return isNaN(d)?i:d.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})};
+const kRent=e=>e.s&&e.s>e.d?kTgl(e.d)+' s.d. '+kTgl(e.s):kTgl(e.d);
+function kalPaper(){const g=S.guru,ev=kalGet().sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0),today=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+return`<div class="paper"><div class="kop"><img class="kl" src="${logoSek()}" alt=""><div class="kt"><h2>${esc((g.sekolah||'NAMA SEKOLAH').toUpperCase())}</h2><p>${esc(g.jenjang||'')}${g.npsn?' - NPSN '+esc(g.npsn):''}</p>${alamatSek(g)?`<p>${esc(alamatSek(g))}${g.telpsekolah?' | Telp. '+esc(g.telpsekolah):''}</p>`:''}</div></div>
+<h1 class="jd">KALENDER PENDIDIKAN</h1><p class="sj">Tahun ajaran ${esc(g.tahun||'-')}, semester ${esc(g.semester||'-')}</p>
+<div class="ov"><table class="rt"><thead><tr><th>No</th><th>Tanggal</th><th>Kegiatan</th><th>Jenis</th></tr></thead><tbody>${ev.length?ev.map((e,i)=>`<tr><td class="c">${i+1}</td><td>${esc(kRent(e))}</td><td>${esc(e.t)}</td><td>${esc((KAT[e.k]||KAT.lain)[0])}</td></tr>`).join(''):'<tr><td class="c" colspan="4">Belum ada agenda.</td></tr>'}</tbody></table></div>
+<div class="ttd"><div><p>Mengetahui,<br>Kepala ${esc(g.sekolah||'sekolah')}</p><div class="sp"></div><b><u>${esc(g.kepsek||'..............................')}</u></b></div>
+<div><p>${esc(kotaTtd(g))}, ${today}<br>Guru ${esc(g.kelas||'kelompok')}</p><div class="sp"></div><b><u>${esc(g.nama)}</u></b></div></div></div>`}
+function kalRender(){const ev=kalGet(),{y,m}=KAL,nm=new Date(y,m,1).toLocaleDateString('id-ID',{month:'long',year:'numeric'}),
+awal=(new Date(y,m,1).getDay()+6)%7,hr=new Date(y,m+1,0).getDate(),td=hari();
+const pada=i=>ev.filter(e=>e.d<=i&&i<=(e.s&&e.s>e.d?e.s:e.d));
+let sel='';for(let i=0;i<awal;i++)sel+='<div class="kd kx"></div>';
+for(let d=1;d<=hr;d++){const i=kIso(y,m,d),es=pada(i);sel+=`<button type="button" class="kd${i===td?' kt':''}${i===KAL.pil?' kp':''}${(awal+d-1)%7===6?' kmg':''}" data-d="${i}"><b>${d}</b><span>${es.slice(0,4).map(e=>`<i style="background:${(KAT[e.k]||KAT.lain)[1]}"></i>`).join('')}</span></button>`}
+const bln=ev.filter(e=>e.d<=kIso(y,m,hr)&&(e.s&&e.s>e.d?e.s:e.d)>=kIso(y,m,1)).sort((a,b)=>a.d<b.d?-1:1);
+$('#kcal').innerHTML=`<div class="kh"><button type="button" class="btn gh s" data-n="-1">‹</button><h3>${esc(nm)}</h3><button type="button" class="btn gh s" data-n="1">›</button></div>
+<div class="kg">${['Sen','Sel','Rab','Kam','Jum','Sab','Min'].map((x,i)=>`<div class="kw${i>4?' kmg':''}">${x}</div>`).join('')}${sel}</div>
+<div class="kl2">${Object.values(KAT).map(k=>`<span><i style="background:${k[1]}"></i>${k[0]}</span>`).join('')}</div>
+<h4 style="margin:14px 0 6px">Agenda bulan ini</h4>${bln.length?bln.map(e=>`<div class="ke"><i style="background:${(KAT[e.k]||KAT.lain)[1]}"></i><div><b>${esc(e.t)}</b><small>${esc(kRent(e))} · ${esc((KAT[e.k]||KAT.lain)[0])}</small></div><button type="button" class="btn gh s" data-h="${esc(e.id)}">Hapus</button></div>`).join(''):'<div class="empty" style="padding:12px">Belum ada agenda bulan ini.</div>'}`;
+const L=$('#lap');if(L)L.innerHTML=kalPaper()}
+function viewKalender(){const m=$('#main');
+m.innerHTML=`<div class="card noprint"><h3 class="sfh">🗓️ Tambah Agenda</h3><div class="filt sf"><div class="fd"><label for="kt">Nama kegiatan</label><input id="kt" placeholder="Contoh: Libur Maulid Nabi" autocomplete="off"></div><div class="fd"><label for="kd">Tanggal</label><input type="date" id="kd" value="${hari()}"></div><div class="fd"><label for="ks">Sampai tanggal (boleh kosong)</label><input type="date" id="ks"></div><div class="fd"><label for="kk">Jenis</label><select id="kk">${Object.entries(KAT).map(([k,v])=>`<option value="${k}">${v[0]}</option>`).join('')}</select></div><div class="fd bt"><button type="button" class="btn y" id="ksv">Simpan Agenda</button></div></div>
+<small class="sub">Agenda tersimpan di perangkat ini. Ketuk tanggal di kalender untuk mengisi kolom tanggal.</small></div>
+<div class="card noprint" id="kcal"></div><div class="card noprint">${ukrHtml()}</div><div id="lap" class="hid"></div>`;
+kalRender();
+$('#kcal').onclick=e=>{const n=e.target.closest('[data-n]'),d=e.target.closest('[data-d]'),h=e.target.closest('[data-h]');
+if(n){const x=new Date(KAL.y,KAL.m+(+n.dataset.n),1);KAL.y=x.getFullYear();KAL.m=x.getMonth();kalRender()}
+else if(d){KAL.pil=d.dataset.d;$('#kd').value=d.dataset.d;kalRender()}
+else if(h){kalSet(kalGet().filter(x=>x.id!==h.dataset.h));kalRender();toast('Agenda dihapus')}};
+$('#ksv').onclick=()=>{const t=$('#kt').value.trim(),d=$('#kd').value,sd=$('#ks').value;
+if(!t)return toast('Nama kegiatan wajib diisi',1);if(!d)return toast('Tanggal wajib diisi',1);if(sd&&sd<d)return toast('Tanggal akhir tidak boleh sebelum tanggal awal',1);
+const a=kalGet();a.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t,d,s:sd,k:$('#kk').value});kalSet(a);
+$('#kt').value='';$('#ks').value='';const x=new Date(d+'T00:00:00');KAL.y=x.getFullYear();KAL.m=x.getMonth();kalRender();toast('Agenda tersimpan')};
+$('.ukr').onclick=e=>{const b=e.target.closest('[data-ak]');if(b)aksiLap(b.dataset.uk,b.dataset.ak)}}
 /* ---------- portofolio perkembangan per anak ---------- */
 const LVS=['BB','MB','BSH','BSB'],LVC=['#ee4f9a','#fdb913','#1e88e5','#7cc243'],LVN=['belum berkembang','mulai berkembang','berkembang sesuai harapan','berkembang sangat baik'];
 const lvl=r=>{const m=String(r.tingkat||'').match(/\((BB|MB|BSH|BSB)\)/);return m?LVS.indexOf(m[1]):-1};
