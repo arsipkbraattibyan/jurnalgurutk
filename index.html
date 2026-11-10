@@ -1219,7 +1219,7 @@ function filDyn(k){const sig=[],on=[];let h='';
 if(f==='kelas'&&!(o.length>=2||(o.length===1&&!klf())))o=[]; // satu pilihan saja (kelompok guru sendiri) tidak perlu disaring
 if(!o.length)return;on.push(f);sig.push(f,o);
 const L=typeof FLB[f]==='object'?FLB[f][k]:FLB[f],id='f_'+f;let cur=KF.v[f]||'';
-if(f==='nama'||f==='keg')h+=`<div class="fd"><label for="${id}">${L}</label><input id="${id}" data-f="${f}" list="dl_${f}" placeholder="${f==='nama'?'Ketik atau pilih nama anak':'Ketik tema atau kegiatan'}" autocomplete="off" value="${esc(cur)}"><datalist id="dl_${f}">${o.map(x=>`<option value="${esc(x)}">`).join('')}</datalist></div>`;
+if((f==='nama'&&k!=='kehadiran')||f==='keg')h+=`<div class="fd"><label for="${id}">${L}</label><input id="${id}" data-f="${f}" list="dl_${f}" placeholder="${f==='nama'?'Ketik atau pilih nama anak':'Ketik tema atau kegiatan'}" autocomplete="off" value="${esc(cur)}"><datalist id="dl_${f}">${o.map(x=>`<option value="${esc(x)}">`).join('')}</datalist></div>`;
 else{const ops=o.map(x=>Array.isArray(x)?x:[x,x]);if(cur&&!ops.some(x=>x[0]===cur)){KF.v[f]=cur=''}
 h+=`<div class="fd"><label for="${id}">${L}</label><select id="${id}" data-f="${f}"><option value="">Semua</option>${ops.map(([a,b])=>`<option value="${esc(a)}"${a===cur?' selected':''}>${esc(b)}</option>`).join('')}</select></div>`}});
 return{h,on,sig:JSON.stringify(sig)}}
