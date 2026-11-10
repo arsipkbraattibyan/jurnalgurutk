@@ -616,8 +616,9 @@ const API_URL='https://script.google.com/macros/s/AKfycbx-8q1qhUFuy-j6O6DaJsHrBp
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const hari=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
-const fmt=d=>{try{return new Date(d+'T00:00').toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}catch(e){return d}};
-const tgl=d=>{const p=String(d).split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d};
+const fmt=d=>{try{return new Date(d+'T00:00').toLocaleDateString('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}catch(e){return d}};
+const BLN_ID=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const tgl=d=>{const m=String(d==null?'':d).match(/^(\d{4})-(\d{2})-(\d{2})/);return m&&+m[2]>=1&&+m[2]<=12?m[3]+' '+BLN_ID[+m[2]-1]+' '+m[1]:d};
 const blnNama=ym=>new Date(ym+'-01T00:00').toLocaleDateString('id-ID',{month:'long',year:'numeric'});
 const N=(a,b,s=1)=>{const r=[];for(let i=a;i<=b;i+=s)r.push(String(i));return r};
 const sum=(rs,k)=>rs.reduce((a,r)=>a+(+r[k]||0),0);
@@ -678,7 +679,7 @@ g.gain.setValueAtTime({1:.05,2:.12,3:.25}[SET.vol],s);g.gain.exponentialRampToVa
 // suara ucapan (bahasa Indonesia) lewat speechSynthesis peramban; mengikuti pengaturan Suara dan Volume
 function ucap(t){if(!SET.suara)return;try{const s=window.speechSynthesis;if(!s)return;s.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='id-ID';
 const v=(s.getVoices()||[]).find(x=>/^id([-_]|$)/i.test(x.lang));if(v)u.voice=v;u.volume={1:.45,2:.75,3:1}[SET.vol]||.75;u.rate=1;setTimeout(()=>s.speak(u),250)}catch(e){}}
-document.addEventListener('input',e=>{const t=e.target;if(t&&t.matches&&t.matches('#kbct,#kbca,#kbcc')){const m=t.closest('.md');if(m&&typeof kpSeg==='function')kpSeg(m)}if(t&&t.matches&&t.matches('.dtw input')){const sp=t.parentNode.querySelector('.dv');if(sp)sp.textContent=t.value?tgl(t.value):'dd/mm/yyyy'}},true);document.addEventListener('change',e=>{const t=e.target;if(t&&t.matches&&t.matches('.dtw input')){const sp=t.parentNode.querySelector('.dv');if(sp)sp.textContent=t.value?tgl(t.value):'dd/mm/yyyy'}},true);
+document.addEventListener('input',e=>{const t=e.target;if(t&&t.matches&&t.matches('#kbct,#kbca,#kbcc')){const m=t.closest('.md');if(m&&typeof kpSeg==='function')kpSeg(m)}if(t&&t.matches&&t.matches('.dtw input')){const sp=t.parentNode.querySelector('.dv');if(sp)sp.textContent=t.value?tgl(t.value):'dd mmmm yyyy'}},true);document.addEventListener('change',e=>{const t=e.target;if(t&&t.matches&&t.matches('.dtw input')){const sp=t.parentNode.querySelector('.dv');if(sp)sp.textContent=t.value?tgl(t.value):'dd mmmm yyyy'}},true);
 function toast(m,er){const e=$('#toast');e.textContent=m;e.className='show'+(er?' er':'');bunyi(er?'err':'ok');clearTimeout(tt);tt=setTimeout(()=>e.className='',m.length>60?4000:2800)}
 document.addEventListener('click',e=>{const t=e.target;if(t.closest('button')||(t.closest('.op')&&t.tagName!=='INPUT'))bunyi()});
 document.addEventListener('change',e=>{const t=e.target;
@@ -1223,7 +1224,7 @@ const mkX=ks=>{const td=(k,c)=>{const f=P(k);let v=g[k];if(f.t==='tgl'&&v)v=tgl(
 const tb=grp.map((x,i)=>{
 if(i===0&&fpAktif(jenis))return`<h3>${String.fromCharCode(65+i)}. ${x[0]}</h3><div class="pfr"><div class="pfw"><img src="${esc(fpSrc())}" alt="Foto profil guru" referrerpolicy="no-referrer"></div><div class="pfd">${mkX(x[1])}</div></div>`;
 return`<h3>${String.fromCharCode(65+i)}. ${x[0]}</h3>`+(i===0&&jenis!=='sekolah'?mkX(x[1]):mkT(x[1]))}).join('');
-const jud={guru:'DATA GURU',sekolah:'DATA SEKOLAH',semua:'DATA GURU DAN SEKOLAH'}[jenis]||'DATA',today=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+const jud={guru:'DATA GURU',sekolah:'DATA SEKOLAH',semua:'DATA GURU DAN SEKOLAH'}[jenis]||'DATA',today=new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
 return`<div class="paper"><div class="kop"><img class="kl" src="${logoSek()}" alt=""><div class="kt"><h2>${esc((g.sekolah||'NAMA SEKOLAH').toUpperCase())}</h2><p>${esc(g.jenjang||'')}${g.npsn?' - NPSN '+esc(g.npsn):''}</p>${alamatSek(g)?`<p>${esc(alamatSek(g))}${g.telpsekolah?' | Telp. '+esc(g.telpsekolah):''}</p>`:''}</div></div>
 <h1 class="jd">${jud}</h1><p class="sj">Tahun ajaran ${esc(g.tahun||'-')}, semester ${esc(g.semester||'-')}</p>${tb}
 <div class="ttd"><div><p>Mengetahui,<br>Kepala ${esc(g.sekolah||'sekolah')}</p><div class="sp"></div><b><u>${esc(g.kepsek||'..............................')}</u></b></div>
@@ -1865,7 +1866,7 @@ function sdUsia(v){const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m
 function dataSiswaPaper(){
 const g=S.guru,cs=sdCols(),q=(($('#sq')||{}).value||'').trim().toLowerCase(),
 ix=SD.rows.map((r,i)=>i).filter(i=>!q||String(SD.rows[i][SD.iNama]).toLowerCase().includes(q)),
-today=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+today=new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
 return`<div class="paper"><div class="kop"><img class="kl" src="${logoSek()}" alt=""><div class="kt"><h2>${esc((g.sekolah||'NAMA SEKOLAH').toUpperCase())}</h2><p>${esc(g.jenjang||'')}${g.npsn?' - NPSN '+esc(g.npsn):''}</p>${alamatSek(g)?`<p>${esc(alamatSek(g))}${g.telpsekolah?' | Telp. '+esc(g.telpsekolah):''}</p>`:''}</div></div>
 <h1 class="jd">DATA SISWA</h1><p class="sj">Tahun ajaran ${esc(g.tahun||'-')}, semester ${esc(g.semester||'-')}<br>Kelompok: ${esc(klf()||nilai('sk')||'Semua kelompok')} | Jumlah anak: ${ix.length}</p>
 <div class="ov"><table class="rt"><thead><tr><th>No</th>${cs.map(c=>`<th>${esc(c.l)}</th>`).join('')}</tr></thead><tbody>${ix.length?ix.map((i,n)=>`<tr><td class="c">${n+1}</td>${cs.map(c=>`<td>${esc(sdv(c.l,SD.rows[i][c.i]))}</td>`).join('')}</tr>`).join(''):`<tr><td class="c" colspan="${cs.length+1}">Tidak ada data.</td></tr>`}</tbody></table></div>
@@ -2247,11 +2248,11 @@ return`<table class="rt"><thead><tr><th>No</th>${j.f.map(f=>`<th>${f.l}</th>`).j
 function laporan(rg,pres){const g=S.guru,per=rg.label;
 const F=k=>(ROWS[k]||[]).filter(r=>!rg.dari||(r.tanggal>=rg.dari&&r.tanggal<=rg.sampai)).slice().sort((a,b)=>String(a.tanggal).localeCompare(String(b.tanggal)));
 const kh=F('kehadiran'),pn=F('penilaian'),jh=sum(kh,'jumlah'),tn=sum(pn,'bb')+sum(pn,'mb')+sum(pn,'bsh')+sum(pn,'bsb');
-const BLN=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],tp=d=>{const m=String(d||'').match(/^(\d{4})-(\d{2})-(\d{2})/);return m?(+m[3])+' '+BLN[+m[2]-1]+' '+m[1]:String(d||'')};
+const BLN=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],tp=d=>{const m=String(d||'').match(/^(\d{4})-(\d{2})-(\d{2})/);return m?m[3]+' '+BLN[+m[2]-1]+' '+m[1]:String(d||'')};
 const idG=[['Nama guru',g.nama],['NIP / NUPTK',[g.nip,g.nuptk].filter(Boolean).join(' / ')],['Tempat, tanggal lahir',[g.tempatlahir,tp(g.tgllahir)].filter(Boolean).join(', ')],['Pendidikan terakhir',[g.pendidikan,g.jurusan].filter(Boolean).join(' - ')],['Jabatan',g.jabatan],['Status kepegawaian',g.status],['Mulai mengajar',tp(g.mulaitugas)],['Kelompok yang diampu',g.kelas]];
 const idS=[['Nama sekolah',g.sekolah],['NPSN',g.npsn],['Jenjang',g.jenjang],['Status sekolah',g.statussekolah],['Akreditasi',g.akreditasi],['Yayasan',g.yayasan],['Alamat sekolah',alamatSek(g)],['Telepon / email sekolah',[g.telpsekolah,g.emailsekolah].filter(Boolean).join(' / ')],['Kepala sekolah',g.kepsek],['NIP / NUPTK kepala sekolah',g.nipkepsek],['Tahun ajaran',g.tahun],['Semester',g.semester]];
 const tabId=r=>`<table class="rt id">${r.map(x=>`<tr><td>${x[0]}</td><td>${esc(x[1]||'-')}</td></tr>`).join('')}</table>`;
-const today=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+const today=new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
 return`<div class="paper"><div class="kop"><img class="kl" src="${logoSek()}" alt=""><div class="kt"><h2>${esc((g.sekolah||'NAMA SEKOLAH').toUpperCase())}</h2><p>${esc(g.jenjang||'')}${g.npsn?' - NPSN '+esc(g.npsn):''}</p>${alamatSek(g)?`<p>${esc(alamatSek(g))}${g.telpsekolah?' | Telp. '+esc(g.telpsekolah):''}</p>`:''}</div></div>
 <h1 class="jd">LAPORAN JURNAL GURU${rg.judul?' '+rg.judul:''}</h1><p class="sj">Tahun ajaran ${esc(g.tahun||'-')}, semester ${esc(g.semester||'-')}<br>Periode: ${esc(per)}</p>
 <h3>A. Identitas sekolah dan guru</h3><div class="idgrid"><div><h4>Identitas sekolah</h4>${tabId(idS)}</div><div><h4>Identitas guru</h4>${tabId(idG)}</div></div>
@@ -2291,9 +2292,9 @@ function kalAll(){const a=KAL.th,aw=a+'-07-01',ak=(a+1)+'-06-30';
 const own=kalGet().filter(e=>(e.s&&e.s>e.d?e.s:e.d)>=aw&&e.d<=ak);
 return(KAL.auto?kalAuto(a):[]).concat(own).sort((x,y)=>x.d<y.d?-1:x.d>y.d?1:0)}
 const kIso=(y,m,d)=>y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-const kTgl=i=>{const d=new Date(i+'T00:00:00');return isNaN(d)?i:d.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})};
+const kTgl=i=>{const d=new Date(i+'T00:00:00');return isNaN(d)?i:d.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})};
 const kRent=e=>e.s&&e.s>e.d?kTgl(e.d)+' s.d. '+kTgl(e.s):kTgl(e.d);
-function kalPaper(){const g=S.guru,ev=kalAll(),today=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}),sm=kalThLbl(KAL.th)===String(g.tahun||'')&&g.semester?', semester '+esc(g.semester):'';
+function kalPaper(){const g=S.guru,ev=kalAll(),today=new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}),sm=kalThLbl(KAL.th)===String(g.tahun||'')&&g.semester?', semester '+esc(g.semester):'';
 return`<div class="paper"><div class="kop"><img class="kl" src="${logoSek()}" alt=""><div class="kt"><h2>${esc((g.sekolah||'NAMA SEKOLAH').toUpperCase())}</h2><p>${esc(g.jenjang||'')}${g.npsn?' - NPSN '+esc(g.npsn):''}</p>${alamatSek(g)?`<p>${esc(alamatSek(g))}${g.telpsekolah?' | Telp. '+esc(g.telpsekolah):''}</p>`:''}</div></div>
 <h1 class="jd">KALENDER PENDIDIKAN</h1><p class="sj">Tahun ajaran ${esc(kalThLbl(KAL.th))}${sm}</p>
 <div class="ov"><table class="rt"><thead><tr><th>No</th><th>Tanggal</th><th>Kegiatan</th><th>Jenis</th></tr></thead><tbody>${ev.length?ev.map((e,i)=>`<tr><td class="c">${i+1}</td><td>${esc(kRent(e))}</td><td>${esc(e.t)}</td><td>${esc((KAT[e.k]||KAT.lain)[0])}</td></tr>`).join(''):'<tr><td class="c" colspan="4">Belum ada agenda.</td></tr>'}</tbody></table></div>
@@ -2364,7 +2365,7 @@ const o=L.find(x=>x.k===k);S.pfNama=o.nama;pu.style.display='';$('#lap').innerHT
 $('.ukr').onclick=e=>{const b=e.target.closest('[data-ak]');if(b)aksiLap(b.dataset.uk,b.dataset.ak)};
 $('#lap').onclick=e=>{const bf=e.target.closest('img[data-fid]');if(bf&&bf.dataset.loaded)lihatFoto(bf.src)}}
 catch(e){m.innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
-function portofolio(o,dari,sampai){const g=S.guru,today=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+function portofolio(o,dari,sampai){const g=S.guru,today=new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
 const rs=(ROWS.perkembangan||[]).filter(r=>kunci(r.nama)===o.k&&(!dari||r.tanggal>=dari)&&(!sampai||r.tanggal<=sampai)).slice().sort((a,b)=>String(a.tanggal).localeCompare(String(b.tanggal)));
 const asp=[...new Set([...ELEMEN_CP,...ASPEK,...rs.map(r=>r.aspek).filter(Boolean)])];
 const per=asp.map(a=>{const x=rs.filter(r=>r.aspek===a&&lvl(r)>=0),seq=x.map(lvl);return{aspek:a,n:x.length,seq,first:seq[0],last:seq[seq.length-1]}}).filter(p=>p.n);
