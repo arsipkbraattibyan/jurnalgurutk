@@ -1911,12 +1911,12 @@ const cm=v=>String(v/10).replace('.',',');
 function ukrHtml(){return`<div class="ukr"><div class="ukb u4"><b>Cetak atau simpan <small>(ukuran dan posisi kertas dipilih setelah tombol ditekan)</small></b><button class="btn o s" data-ak="cetak">🖨️ Cetak</button><button class="btn s" data-ak="pdf">📄 Simpan PDF</button><button class="btn y s" data-ak="xls">📊 Simpan Excel</button><button class="btn s" data-ak="doc">📝 Simpan Word</button></div></div>`}
 // jendela pilihan ukuran kertas (dipakai Cetak, PDF, dan Word; Excel tidak bergantung pada ukuran kertas)
 function pilihKertas(ak){return new Promise(ok=>{const md=document.createElement('div');md.className='md';md.style.zIndex=40;
-const lb={cetak:'Cetak',pdf:'Simpan PDF',doc:'Simpan Word'}[ak]||'';
-md.innerHTML=`<div class="sheet" style="max-width:420px"><h2>Pilih ukuran kertas</h2><p class="sub" style="margin-bottom:12px">${esc(lb)}.${ak==='xls'?'':' Posisi kertas (potret atau lanskap) dipilih setelah ini.'}</p><div class="kts">${Object.entries(UK).map(([c,u])=>`<button type="button" class="btn s kt" data-kt="${c}"><b>${u.n}</b><small>${cm(u.w)} x ${cm(u.h)} cm</small></button>`).join('')}</div><div class="act"><button class="btn gh" data-n>Batal</button></div></div>`;
+const lb={cetak:'Cetak',pdf:'Simpan PDF',xls:'Simpan Excel',doc:'Simpan Word'}[ak]||'';
+md.innerHTML=`<div class="sheet" style="max-width:420px"><h2>Pilih ukuran kertas</h2><p class="sub" style="margin-bottom:12px">${esc(lb)}. Posisi kertas (potret atau lanskap) dipilih setelah ini.</p><div class="kts">${Object.entries(UK).map(([c,u])=>`<button type="button" class="btn s kt" data-kt="${c}"><b>${u.n}</b><small>${cm(u.w)} x ${cm(u.h)} cm</small></button>`).join('')}</div><div class="act"><button class="btn gh" data-n>Batal</button></div></div>`;
 const t=x=>{md.remove();ok(x)};md.onclick=e=>{if(e.target===md)return t('');if(e.target.closest('[data-n]'))return t('');const b=e.target.closest('[data-kt]');if(b)t(b.dataset.kt)};
 document.body.appendChild(md)})}
 // langkah kedua khusus Word: pilih posisi kertas setelah ukuran dipilih. Hasil: 'portrait', 'landscape', atau '' jika dibatalkan
-function pilihOrientasi(u,ak){const lb={cetak:'Cetak',pdf:'Simpan PDF',doc:'Simpan Word'}[ak]||'';return new Promise(ok=>{const md=document.createElement('div');md.className='md';md.style.zIndex=40;
+function pilihOrientasi(u,ak){const lb={cetak:'Cetak',pdf:'Simpan PDF',xls:'Simpan Excel',doc:'Simpan Word'}[ak]||'';return new Promise(ok=>{const md=document.createElement('div');md.className='md';md.style.zIndex=40;
 const ik=(w,h)=>`<span style="display:block;width:${w}px;height:${h}px;border:2px solid currentColor;border-radius:3px;margin-bottom:4px"></span>`;
 md.innerHTML=`<div class="sheet" style="max-width:420px"><h2>Pilih posisi kertas</h2><p class="sub" style="margin-bottom:12px">${esc(lb)}, ukuran ${esc(u.n)}.</p><div class="kts"><button type="button" class="btn s kt" data-or="portrait">${ik(24,32)}<b>Potret</b><small>${cm(u.w)} x ${cm(u.h)} cm</small></button><button type="button" class="btn s kt" data-or="landscape">${ik(32,24)}<b>Lanskap</b><small>${cm(u.h)} x ${cm(u.w)} cm</small></button></div><div class="act"><button class="btn gh" data-n>Batal</button></div></div>`;
 const t=x=>{md.remove();ok(x)};md.onclick=e=>{if(e.target===md)return t('');if(e.target.closest('[data-n]'))return t('');const b=e.target.closest('[data-or]');if(b)t(b.dataset.or)};
@@ -1952,17 +1952,26 @@ const XLS_URL='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.
 const selTeks=t=>String(t==null?'':t).replace(/\s+/g,' ').trim();
 const selNilai=t=>{t=selTeks(t);return /^(-?[1-9]\d{0,8}|0)$/.test(t)?+t:t};
 function tabelAoa(t){const out=[];[...t.querySelectorAll('tr')].filter(r=>r.closest('table')===t).forEach(r=>{const row=[];[...r.children].forEach(c=>{row.push(selNilai(c.textContent));for(let k=1;k<(c.colSpan||1);k++)row.push('')});out.push(row)});return out}
-async function simpanExcel(nama){const src=$('#lap .paper');if(!src)throw new Error('Laporan belum siap dimuat.');
-if(S.view!=='identitas')return simpanExcelLap(src,nama);
+async function simpanExcel(nama,u,ori){const src=$('#lap .paper');if(!src)throw new Error('Laporan belum siap dimuat.');
+if(S.view!=='identitas')return simpanExcelLap(src,nama,u,ori);
 await loadJs(XLS_URL);const wb=XLSX.utils.book_new(),pakai=new Set();
 const lebar=a=>{const n=a.reduce((m,r)=>Math.max(m,r.length),0),w=Array(n).fill(8);a.forEach(r=>r.forEach((v,i)=>{w[i]=Math.min(60,Math.max(w[i],String(v).length+2))}));return w.map(x=>({wch:x}))};
 const els=[...src.querySelectorAll('h3,h4,table')];
 if(S.view==='identitas'){const aoa=[];els.forEach(e=>{if(e.tagName==='H3'){if(aoa.length)aoa.push([]);aoa.push([selTeks(e.textContent)])}else if(e.tagName==='TABLE')tabelAoa(e).forEach(r=>aoa.push(r))});
 if(!aoa.length)throw new Error('Tidak ada data untuk disimpan.');const ws=XLSX.utils.aoa_to_sheet(aoa);ws['!cols']=lebar(aoa);XLSX.utils.book_append_sheet(wb,ws,'Data')}
-XLSX.writeFile(wb,nama+'.xlsx')}
+// SheetJS tidak menulis pengaturan halaman, jadi ukuran dan posisi kertas disisipkan ke berkas hasilnya
+await loadJs(ZIP_URL);const zx=await JSZip.loadAsync(XLSX.write(wb,{bookType:'xlsx',type:'array'}));
+for(const fn of Object.keys(zx.files).filter(x=>/^xl\/worksheets\/sheet\d+\.xml$/.test(x))){let x=await zx.file(fn).async('string');
+const ps='<pageSetup paperSize="'+(u&&u.n==='HVS'?14:9)+'" orientation="'+(ori==='landscape'?'landscape':'portrait')+'" fitToWidth="1" fitToHeight="0"/>';
+x=x.replace(/<pageSetup[^>]*\/>/,'');
+x=/<pageMargins[^>]*\/>/.test(x)?x.replace(/(<pageMargins[^>]*\/>)/,m=>m+ps):x.replace('</worksheet>',ps+'</worksheet>');
+if(!/<sheetPr/.test(x))x=x.replace(/(<worksheet[^>]*>)/,m=>m+'<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>');
+zx.file(fn,x)}
+const bl=await zx.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',compression:'DEFLATE'});
+const ul=URL.createObjectURL(bl);unduh(ul,nama+'.xlsx');setTimeout(()=>URL.revokeObjectURL(ul),5000)}
 
 /* ---------- Excel satu sheet berformat (seperti Pratinjau): kotak, rata, teks membungkus ---------- */
-async function simpanExcelLap(src,nama){await loadJs(ZIP_URL);
+async function simpanExcelLap(src,nama,u,ori){await loadJs(ZIP_URL);
 const CWD=11,GAP=6;
 const colL=n=>{let r='';n++;while(n>0){const m=(n-1)%26;r=String.fromCharCode(65+m)+r;n=Math.floor((n-1)/26)}return r};
 const tx=h=>{const d=document.createElement('div');d.innerHTML=String(h).replace(/<br\s*\/?>/gi,'\n').replace(/<li[^>]*>/gi,'\u2022 ').replace(/<\/(li|p|div|h[1-6]|tr)>/gi,'\n');return d.textContent.split('\n').map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean).join('\n')};
@@ -2032,7 +2041,7 @@ else if(typeof c.v==='number')cx+=`<c r="${ref}" s="${c.st}"><v>${c.v}</v></c>`;
 else cx+=`<c r="${ref}" s="${c.st}" t="inlineStr"><is><t xml:space="preserve">${xe(String(c.v).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,''))}</t></is></c>`}
 if(c.s>1)mer.push(`<mergeCell ref="${colL(c.c)}${r.r}:${colL(c.c+c.s-1)}${r.r}"/>`)});
 sd+=`<row r="${r.r}" ht="${r.ht.toFixed(1)}" customHeight="1">${cx}</row>`});
-const sheet='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView showGridLines="0" workbookViewId="0"/></sheetViews><sheetFormatPr defaultRowHeight="15"/><cols><col min="1" max="'+G+'" width="'+CWD+'" customWidth="1"/></cols><sheetData>'+sd+'</sheetData>'+(mer.length?`<mergeCells count="${mer.length}">${mer.join('')}</mergeCells>`:'')+'<pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/><pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="0"/></worksheet>';
+const sheet='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView showGridLines="0" workbookViewId="0"/></sheetViews><sheetFormatPr defaultRowHeight="15"/><cols><col min="1" max="'+G+'" width="'+CWD+'" customWidth="1"/></cols><sheetData>'+sd+'</sheetData>'+(mer.length?`<mergeCells count="${mer.length}">${mer.join('')}</mergeCells>`:'')+'<pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/><pageSetup paperSize="'+(u&&u.n==='HVS'?14:9)+'" orientation="'+(ori==='landscape'?'landscape':'portrait')+'" fitToWidth="1" fitToHeight="0"/></worksheet>';
 const HD='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',z=new JSZip();
 z.file('[Content_Types].xml',HD+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>');
 z.file('_rels/.rels',HD+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>');
@@ -2137,16 +2146,16 @@ if(S.view==='siswa')return'Data-Siswa-'+String(klf()||nilai('sk')||'Semua').repl
 if(S.view==='portofolio')return'Portofolio-'+String(S.pfNama||'anak').replace(/[^\w]+/g,'_')+'-'+u.n;
 if(S.view==='identitas')return'Data-'+({guru:'Guru',sekolah:'Sekolah',semua:'Guru-dan-Sekolah'}[nilai('dj')]||'Data')+'-'+nmGuru()+'-'+u.n;
 return'Laporan-Jurnal-'+nmGuru()+'-'+u.n}
-async function aksiLap(c,ak){if(!c){if(ak==='xls')c='a4';else{c=await pilihKertas(ak);if(!c)return}}const u=UK[c];if(!u)return;let ori='portrait';if(ak!=='xls'){ori=await pilihOrientasi(u,ak);if(!ori)return}const ls=ori==='landscape',ue=ls?{n:u.n,w:u.h,h:u.w}:u;if(document.querySelector('#prs[data-w]'))return toast('Data presensi masih dimuat, tunggu sebentar',1);
+async function aksiLap(c,ak){if(!c){c=await pilihKertas(ak);if(!c)return}const u=UK[c];if(!u)return;let ori=await pilihOrientasi(u,ak);if(!ori)return;const ls=ori==='landscape',ue=ls?{n:u.n,w:u.h,h:u.w}:u;if(document.querySelector('#prs[data-w]'))return toast('Data presensi masih dimuat, tunggu sebentar',1);
 if(ak==='cetak'){if(!$('#lap .paper'))return toast('Laporan belum siap dimuat',1);setKertas(ue);await siapFoto();window.print();return}
 const bt=document.querySelectorAll('.ukr button');bt.forEach(b=>b.disabled=true);
-const lb={pdf:'PDF',xls:'Excel',doc:'Word'}[ak]||ak;toast('Menyiapkan '+lb+(ak==='xls'?'...':' '+u.n+(ls?' lanskap':'')+'...'));
-const nama=namaBerkas(u,ak)+(ls&&ak==='pdf'?'-Lanskap':'');
-try{if(ak==='xls'){await simpanExcel(nama);toast('Excel tersimpan')}
-else if(ak==='doc'){await simpanWord(nama+(ori==='landscape'?'-Lanskap':''),u,ori);toast('Word '+u.n+(ori==='landscape'?' lanskap':' potret')+' tersimpan')}
+const lb={pdf:'PDF',xls:'Excel',doc:'Word'}[ak]||ak;toast('Menyiapkan '+lb+' '+u.n+(ls?' lanskap':'')+'...');
+const nama=namaBerkas(u,ak)+(ls&&(ak==='pdf'||ak==='xls')?'-Lanskap':'');
+try{if(ak==='xls'){await simpanExcel(nama,u,ori);toast('Excel '+u.n+(ls?' lanskap':' potret')+' tersimpan');ucap('Simpan Excel Berhasil')}
+else if(ak==='doc'){await simpanWord(nama+(ori==='landscape'?'-Lanskap':''),u,ori);toast('Word '+u.n+(ori==='landscape'?' lanskap':' potret')+' tersimpan');ucap('Simpan Word Berhasil')}
 else{const cs=await halaman(ue),{jsPDF}=window.jspdf,doc=new jsPDF({orientation:ori,unit:'mm',format:[ue.w,ue.h]});
 cs.forEach((cv,i)=>{if(i)doc.addPage([ue.w,ue.h],ori);doc.addImage(cv.toDataURL('image/jpeg',.92),'JPEG',0,0,ue.w,ue.h)});
-doc.save(nama+'.pdf');toast('PDF '+u.n+(ls?' lanskap':' potret')+' tersimpan ('+cs.length+' halaman)')}}
+doc.save(nama+'.pdf');toast('PDF '+u.n+(ls?' lanskap':' potret')+' tersimpan ('+cs.length+' halaman)');ucap('Simpan PDF Berhasil')}}
 catch(e){toast(e.message||'Gagal membuat file',1)}
 bt.forEach(b=>b.disabled=false)}
 /* ---------- lampiran foto di laporan ---------- */
