@@ -2177,36 +2177,66 @@ ${lampiranHtml(F)}<div class="ttd"><div><p>Mengetahui,<br>Kepala ${esc(g.sekolah
 
 
 /* ---------- kalender pendidikan ---------- */
-const KAT={libur:['Libur','#e53935'],ujian:['Ujian / asesmen','#8e24aa'],rapor:['Pembagian rapor','#fb8c00'],kegiatan:['Kegiatan sekolah','#1e88e5'],lain:['Lainnya','#43a047']};
-let KAL={y:new Date().getFullYear(),m:new Date().getMonth(),pil:''};
+const KAT={nasional:['Libur nasional','#e53935'],cuti:['Cuti bersama','#ef6c00'],libur:['Libur sekolah','#d81b60'],ujian:['Ujian / asesmen','#8e24aa'],rapor:['Pembagian rapor','#fb8c00'],kegiatan:['Kegiatan sekolah','#1e88e5'],lain:['Lainnya','#43a047']};
+/* Libur tahunan tetap (bulan-tanggal) */
+const HL_TETAP=[['01-01','Tahun Baru Masehi'],['05-01','Hari Buruh Internasional'],['06-01','Hari Lahir Pancasila'],['08-17','Hari Kemerdekaan RI'],['12-25','Hari Raya Natal']];
+/* Libur bergerak per tahun kalender: [tgl,nama,jenis(n=nasional,c=cuti bersama)]. Tahun >= 2027 = perkiraan. */
+const HL_VAR={
+2024:[['2024-09-16','Maulid Nabi Muhammad SAW','n'],['2024-12-26','Cuti Bersama Natal','c']],
+2025:[['2025-01-27','Isra Mikraj Nabi Muhammad SAW','n'],['2025-01-28','Cuti Bersama Tahun Baru Imlek','c'],['2025-01-29','Tahun Baru Imlek 2576','n'],['2025-03-28','Cuti Bersama Nyepi','c'],['2025-03-29','Hari Suci Nyepi','n'],['2025-03-31','Hari Raya Idul Fitri 1446 H','n'],['2025-04-01','Hari Raya Idul Fitri 1446 H','n'],['2025-04-02','Cuti Bersama Idul Fitri','c'],['2025-04-03','Cuti Bersama Idul Fitri','c'],['2025-04-04','Cuti Bersama Idul Fitri','c'],['2025-04-07','Cuti Bersama Idul Fitri','c'],['2025-04-18','Wafat Yesus Kristus','n'],['2025-04-20','Hari Paskah','n'],['2025-05-12','Hari Raya Waisak 2569','n'],['2025-05-13','Cuti Bersama Waisak','c'],['2025-05-29','Kenaikan Yesus Kristus','n'],['2025-05-30','Cuti Bersama Kenaikan Yesus Kristus','c'],['2025-06-06','Hari Raya Idul Adha 1446 H','n'],['2025-06-09','Cuti Bersama Idul Adha','c'],['2025-06-27','Tahun Baru Islam 1447 H','n'],['2025-09-05','Maulid Nabi Muhammad SAW','n'],['2025-12-26','Cuti Bersama Natal','c']],
+2026:[['2026-01-16','Isra Mikraj Nabi Muhammad SAW','n'],['2026-02-16','Cuti Bersama Tahun Baru Imlek','c'],['2026-02-17','Tahun Baru Imlek 2577','n'],['2026-03-18','Cuti Bersama Nyepi','c'],['2026-03-19','Hari Suci Nyepi','n'],['2026-03-20','Cuti Bersama Idul Fitri','c'],['2026-03-21','Hari Raya Idul Fitri 1447 H','n'],['2026-03-22','Hari Raya Idul Fitri 1447 H','n'],['2026-03-23','Cuti Bersama Idul Fitri','c'],['2026-03-24','Cuti Bersama Idul Fitri','c'],['2026-04-03','Wafat Yesus Kristus','n'],['2026-04-05','Hari Paskah','n'],['2026-05-14','Kenaikan Yesus Kristus','n'],['2026-05-15','Cuti Bersama Kenaikan Yesus Kristus','c'],['2026-05-27','Hari Raya Idul Adha 1447 H','n'],['2026-05-28','Cuti Bersama Idul Adha','c'],['2026-05-31','Hari Raya Waisak 2570','n'],['2026-06-16','Tahun Baru Islam 1448 H','n'],['2026-08-25','Maulid Nabi Muhammad SAW','n'],['2026-12-24','Cuti Bersama Natal','c']],
+2027:[['2027-01-05','Isra Mikraj Nabi Muhammad SAW','n'],['2027-02-06','Tahun Baru Imlek 2578','n'],['2027-03-09','Hari Suci Nyepi','n'],['2027-03-10','Hari Raya Idul Fitri 1448 H','n'],['2027-03-11','Hari Raya Idul Fitri 1448 H','n'],['2027-03-26','Wafat Yesus Kristus','n'],['2027-03-28','Hari Paskah','n'],['2027-05-06','Kenaikan Yesus Kristus','n'],['2027-05-17','Hari Raya Idul Adha 1448 H','n'],['2027-05-20','Hari Raya Waisak 2571','n'],['2027-06-07','Tahun Baru Islam 1449 H','n'],['2027-08-15','Maulid Nabi Muhammad SAW','n']]
+};
+const kalThNow=()=>{const n=new Date();return(n.getMonth()>=6?n.getFullYear():n.getFullYear()-1)};
+const kalThDef=()=>{const m=String((S.guru&&S.guru.tahun)||'').match(/(\d{4})/);return m?+m[1]:kalThNow()};
+let KAL={th:null,y:0,m:0,pil:'',auto:true};
+const kalThSet=a=>{KAL.th=a;KAL.y=a;KAL.m=6;const n=new Date(),t=kalThNow();if(a===t){KAL.y=n.getFullYear();KAL.m=n.getMonth()}};
+const kalThLbl=a=>a+'/'+(a+1);
+const kalThList=()=>{const b=kalThNow(),s=new Set([b-2,b-1,b,b+1,b+2,kalThDef()]);if(KAL.th)s.add(KAL.th);return[...s].sort((x,y)=>x-y)};
+const kalEst=a=>a===2026;
+/* libur otomatis untuk tahun ajaran a (1 Juli a s.d. 30 Juni a+1) */
+function kalAuto(a){const r=[],aw=a+'-07-01',ak=(a+1)+'-06-30';
+[a,a+1].forEach(y=>{HL_TETAP.forEach(([md,t])=>r.push({id:'auto_'+y+md,t,d:y+'-'+md,s:'',k:'nasional',auto:1}));(HL_VAR[y]||[]).forEach(([d,t,j])=>r.push({id:'auto_'+d+t,t,d,s:'',k:j==='c'?'cuti':'nasional',auto:1}))});
+return r.filter(e=>e.d>=aw&&e.d<=ak)}
 const kalK=()=>'jgkal_'+((S.guru&&S.guru.id)||'');
 function kalGet(){try{const a=JSON.parse(localStorage.getItem(kalK())||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
 function kalSet(a){try{localStorage.setItem(kalK(),JSON.stringify(a))}catch(e){toast('Penyimpanan perangkat penuh',1)}}
+/* gabungan agenda guru + libur otomatis untuk tahun ajaran terpilih */
+function kalAll(){const a=KAL.th,aw=a+'-07-01',ak=(a+1)+'-06-30';
+const own=kalGet().filter(e=>(e.s&&e.s>e.d?e.s:e.d)>=aw&&e.d<=ak);
+return(KAL.auto?kalAuto(a):[]).concat(own).sort((x,y)=>x.d<y.d?-1:x.d>y.d?1:0)}
 const kIso=(y,m,d)=>y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
 const kTgl=i=>{const d=new Date(i+'T00:00:00');return isNaN(d)?i:d.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})};
 const kRent=e=>e.s&&e.s>e.d?kTgl(e.d)+' s.d. '+kTgl(e.s):kTgl(e.d);
-function kalPaper(){const g=S.guru,ev=kalGet().sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0),today=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+function kalPaper(){const g=S.guru,ev=kalAll(),today=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}),sm=kalThLbl(KAL.th)===String(g.tahun||'')&&g.semester?', semester '+esc(g.semester):'';
 return`<div class="paper"><div class="kop"><img class="kl" src="${logoSek()}" alt=""><div class="kt"><h2>${esc((g.sekolah||'NAMA SEKOLAH').toUpperCase())}</h2><p>${esc(g.jenjang||'')}${g.npsn?' - NPSN '+esc(g.npsn):''}</p>${alamatSek(g)?`<p>${esc(alamatSek(g))}${g.telpsekolah?' | Telp. '+esc(g.telpsekolah):''}</p>`:''}</div></div>
-<h1 class="jd">KALENDER PENDIDIKAN</h1><p class="sj">Tahun ajaran ${esc(g.tahun||'-')}, semester ${esc(g.semester||'-')}</p>
+<h1 class="jd">KALENDER PENDIDIKAN</h1><p class="sj">Tahun ajaran ${esc(kalThLbl(KAL.th))}${sm}</p>
 <div class="ov"><table class="rt"><thead><tr><th>No</th><th>Tanggal</th><th>Kegiatan</th><th>Jenis</th></tr></thead><tbody>${ev.length?ev.map((e,i)=>`<tr><td class="c">${i+1}</td><td>${esc(kRent(e))}</td><td>${esc(e.t)}</td><td>${esc((KAT[e.k]||KAT.lain)[0])}</td></tr>`).join(''):'<tr><td class="c" colspan="4">Belum ada agenda.</td></tr>'}</tbody></table></div>
+${kalEst(KAL.th)?'<p style="font-size:11px;margin-top:6px"><i>Catatan: tanggal libur keagamaan tahun ini masih perkiraan, menyesuaikan SKB 3 Menteri.</i></p>':''}
 <div class="ttd"><div><p>Mengetahui,<br>Kepala ${esc(g.sekolah||'sekolah')}</p><div class="sp"></div><b><u>${esc(g.kepsek||'..............................')}</u></b></div>
 <div><p>${esc(kotaTtd(g))}, ${today}<br>Guru ${esc(g.kelas||'kelompok')}</p><div class="sp"></div><b><u>${esc(g.nama)}</u></b></div></div></div>`}
-function kalRender(){const ev=kalGet(),{y,m}=KAL,nm=new Date(y,m,1).toLocaleDateString('id-ID',{month:'long',year:'numeric'}),
+function kalRender(){const ev=kalAll(),{y,m}=KAL,nm=new Date(y,m,1).toLocaleDateString('id-ID',{month:'long',year:'numeric'}),
 awal=(new Date(y,m,1).getDay()+6)%7,hr=new Date(y,m+1,0).getDate(),td=hari();
 const pada=i=>ev.filter(e=>e.d<=i&&i<=(e.s&&e.s>e.d?e.s:e.d));
 let sel='';for(let i=0;i<awal;i++)sel+='<div class="kd kx"></div>';
-for(let d=1;d<=hr;d++){const i=kIso(y,m,d),es=pada(i);sel+=`<button type="button" class="kd${i===td?' kt':''}${i===KAL.pil?' kp':''}${(awal+d-1)%7===6?' kmg':''}" data-d="${i}"><b>${d}</b><span>${es.slice(0,4).map(e=>`<i style="background:${(KAT[e.k]||KAT.lain)[1]}"></i>`).join('')}</span></button>`}
+for(let d=1;d<=hr;d++){const i=kIso(y,m,d),es=pada(i);sel+=`<button type="button" class="kd${i===td?' kt':''}${i===KAL.pil?' kp':''}${(awal+d-1)%7===6||es.some(e=>e.auto)?' kmg':''}" data-d="${i}"><b>${d}</b><span>${es.slice(0,4).map(e=>`<i style="background:${(KAT[e.k]||KAT.lain)[1]}"></i>`).join('')}</span></button>`}
 const bln=ev.filter(e=>e.d<=kIso(y,m,hr)&&(e.s&&e.s>e.d?e.s:e.d)>=kIso(y,m,1)).sort((a,b)=>a.d<b.d?-1:1);
 $('#kcal').innerHTML=`<div class="kh"><button type="button" class="btn gh s" data-n="-1">‹</button><h3>${esc(nm)}</h3><button type="button" class="btn gh s" data-n="1">›</button></div>
 <div class="kg">${['Sen','Sel','Rab','Kam','Jum','Sab','Min'].map((x,i)=>`<div class="kw${i>4?' kmg':''}">${x}</div>`).join('')}${sel}</div>
 <div class="kl2">${Object.values(KAT).map(k=>`<span><i style="background:${k[1]}"></i>${k[0]}</span>`).join('')}</div>
-<h4 style="margin:14px 0 6px">Agenda bulan ini</h4>${bln.length?bln.map(e=>`<div class="ke"><i style="background:${(KAT[e.k]||KAT.lain)[1]}"></i><div><b>${esc(e.t)}</b><small>${esc(kRent(e))} · ${esc((KAT[e.k]||KAT.lain)[0])}</small></div><button type="button" class="btn gh s" data-h="${esc(e.id)}">Hapus</button></div>`).join(''):'<div class="empty" style="padding:12px">Belum ada agenda bulan ini.</div>'}`;
+<h4 style="margin:14px 0 6px">Agenda bulan ini</h4>${bln.length?bln.map(e=>`<div class="ke"><i style="background:${(KAT[e.k]||KAT.lain)[1]}"></i><div><b>${esc(e.t)}</b><small>${esc(kRent(e))} · ${esc((KAT[e.k]||KAT.lain)[0])}</small></div>${e.auto?'':`<button type="button" class="btn gh s" data-h="${esc(e.id)}">Hapus</button>`}</div>`).join(''):'<div class="empty" style="padding:12px">Belum ada agenda bulan ini.</div>'}`;
 const L=$('#lap');if(L)L.innerHTML=kalPaper()}
-function viewKalender(){const m=$('#main');
-m.innerHTML=`<div class="card noprint"><h3 class="sfh">🗓️ Tambah Agenda</h3><div class="filt sf"><div class="fd"><label for="kt">Nama kegiatan</label><input id="kt" placeholder="Contoh: Libur Maulid Nabi" autocomplete="off"></div><div class="fd"><label for="kd">Tanggal</label><input type="date" id="kd" value="${hari()}"></div><div class="fd"><label for="ks">Sampai tanggal (boleh kosong)</label><input type="date" id="ks"></div><div class="fd"><label for="kk">Jenis</label><select id="kk">${Object.entries(KAT).map(([k,v])=>`<option value="${k}">${v[0]}</option>`).join('')}</select></div><div class="fd bt"><button type="button" class="btn y" id="ksv">Simpan Agenda</button></div></div>
-<small class="sub">Agenda tersimpan di perangkat ini. Ketuk tanggal di kalender untuk mengisi kolom tanggal.</small></div>
+function viewKalender(){const m=$('#main');if(!KAL.th)kalThSet(kalThDef());
+const dflt=KAL.th>=kalThNow()?kIso(KAL.y,KAL.m,1):hari();
+m.innerHTML=`<div class="card noprint"><div class="filt sf"><div class="fd"><label for="kth">Tahun ajaran</label><select id="kth">${kalThList().map(a=>`<option value="${a}"${a===KAL.th?' selected':''}>${kalThLbl(a)}</option>`).join('')}</select></div><div class="fd"><label for="kau">Libur nasional &amp; cuti bersama</label><select id="kau"><option value="1"${KAL.auto?' selected':''}>Tampilkan otomatis</option><option value="0"${KAL.auto?'':' selected'}>Sembunyikan</option></select></div></div>
+<small class="sub" id="kest"></small></div>
+<div class="card noprint"><h3 class="sfh">🗓️ Tambah Agenda</h3><div class="filt sf"><div class="fd"><label for="kt">Nama kegiatan</label><input id="kt" placeholder="Contoh: Libur semester, Pembagian rapor" autocomplete="off"></div><div class="fd"><label for="kd">Tanggal</label><input type="date" id="kd" value="${hari()}"></div><div class="fd"><label for="ks">Sampai tanggal (boleh kosong)</label><input type="date" id="ks"></div><div class="fd"><label for="kk">Jenis</label><select id="kk">${Object.entries(KAT).map(([k,v])=>`<option value="${k}"${k==='libur'?' selected':''}>${v[0]}</option>`).join('')}</select></div><div class="fd bt"><button type="button" class="btn y" id="ksv">Simpan Agenda</button></div></div>
+<small class="sub">Libur nasional &amp; cuti bersama terisi otomatis sesuai tahun ajaran (Juli-Juni). Libur semester dan kegiatan sekolah ditambahkan manual, tersimpan di perangkat ini. Ketuk tanggal di kalender untuk mengisi kolom tanggal.</small></div>
 <div class="card noprint" id="kcal"></div><div class="card noprint">${ukrHtml()}</div><div id="lap" class="hid"></div>`;
-kalRender();
+const est=()=>{$('#kest').textContent=kalEst(KAL.th)?'Perhatian: tanggal libur keagamaan tahun ajaran ini masih perkiraan sampai SKB 3 Menteri terbit; periksa kembali.':(KAL.th>2027?'Data libur keagamaan tahun ajaran ini belum tersedia; hanya libur tetap yang terisi.':'')};
+est();kalRender();
+$('#kth').onchange=e=>{kalThSet(+e.target.value);$('#kd').value=kIso(KAL.y,KAL.m,1);est();kalRender()};
+$('#kau').onchange=e=>{KAL.auto=e.target.value==='1';kalRender()};
 $('#kcal').onclick=e=>{const n=e.target.closest('[data-n]'),d=e.target.closest('[data-d]'),h=e.target.closest('[data-h]');
 if(n){const x=new Date(KAL.y,KAL.m+(+n.dataset.n),1);KAL.y=x.getFullYear();KAL.m=x.getMonth();kalRender()}
 else if(d){KAL.pil=d.dataset.d;$('#kd').value=d.dataset.d;kalRender()}
@@ -2214,7 +2244,9 @@ else if(h){kalSet(kalGet().filter(x=>x.id!==h.dataset.h));kalRender();toast('Age
 $('#ksv').onclick=()=>{const t=$('#kt').value.trim(),d=$('#kd').value,sd=$('#ks').value;
 if(!t)return toast('Nama kegiatan wajib diisi',1);if(!d)return toast('Tanggal wajib diisi',1);if(sd&&sd<d)return toast('Tanggal akhir tidak boleh sebelum tanggal awal',1);
 const a=kalGet();a.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t,d,s:sd,k:$('#kk').value});kalSet(a);
-$('#kt').value='';$('#ks').value='';const x=new Date(d+'T00:00:00');KAL.y=x.getFullYear();KAL.m=x.getMonth();kalRender();toast('Agenda tersimpan')};
+$('#kt').value='';$('#ks').value='';const x=new Date(d+'T00:00:00'),mm=x.getMonth(),yy=x.getFullYear(),th=mm>=6?yy:yy-1;
+if(th!==KAL.th){kalThSet(th);$('#kth').innerHTML=kalThList().map(a=>`<option value="${a}"${a===KAL.th?' selected':''}>${kalThLbl(a)}</option>`).join('');est()}
+KAL.y=yy;KAL.m=mm;kalRender();toast('Agenda tersimpan')};
 $('.ukr').onclick=e=>{const b=e.target.closest('[data-ak]');if(b)aksiLap(b.dataset.uk,b.dataset.ak)}}
 /* ---------- portofolio perkembangan per anak ---------- */
 const LVS=['BB','MB','BSH','BSB'],LVC=['#ee4f9a','#fdb913','#1e88e5','#7cc243'],LVN=['belum berkembang','mulai berkembang','berkembang sesuai harapan','berkembang sangat baik'];
