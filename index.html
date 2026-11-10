@@ -1201,8 +1201,8 @@ im.src=u})}
 /* ---------- kartu pencarian dinamis (mengikuti menu yang dibuka) ----------
    Filter hanya muncul jika datanya ada di catatan yang sudah dimuat (juga dari cache offline). Tidak ada kolom baru. */
 let KF={k:'',v:{},sig:'',on:[]};
-const FIL={harian:['kelas','tema','subtema'],kehadiran:['kelas','nama','status'],perkembangan:['kelas','nama','aspek'],penilaian:['kelas','jenis'],kokurikuler:['kelas','keg'],refleksi:['kelas'],tambahan:['kelas','jenis']};
-const FLB={kelas:'Kelompok',tema:'Tema',subtema:'Subtema',nama:'Nama anak',status:'Status kehadiran',aspek:'Aspek perkembangan',jenis:{penilaian:'Jenis penilaian',tambahan:'Jenis kegiatan'},keg:'Tema / kegiatan'};
+const FIL={harian:['kelas','tema','subtema'],kehadiran:['kelas','nama','status'],perkembangan:['kelas','nama','aspek'],penilaian:['kelas','jenis'],kokurikuler:['kelas','keg'],refleksi:['kelas','suasana'],tambahan:['kelas','jenis']};
+const FLB={kelas:'Kelompok',tema:'Tema',subtema:'Subtema',nama:'Nama anak',status:'Status kehadiran',aspek:'Aspek perkembangan',jenis:{penilaian:'Jenis penilaian',tambahan:'Jenis kegiatan'},keg:'Tema / kegiatan',suasana:'Perasaan'};
 const FSTAT=[['hadir','Hadir'],['sakit','Sakit'],['izin','Izin'],['alpha','Tanpa keterangan']];
 const fUniq=a=>[...new Set(a.filter(Boolean))].sort((x,y)=>String(x).localeCompare(String(y),'id'));
 function filOpsi(k,f){const R=ROWS[k]||[],v=KF.v,t=x=>String(x||'').trim();
@@ -1213,6 +1213,7 @@ if(f==='aspek'||f==='jenis')return fUniq(R.map(r=>t(r[f])));
 if(f==='status')return R.length?FSTAT:[];
 if(f==='nama'){const kl=v.kelas||klf(),sw=(SISWA||[]).filter(s=>!kl||kelNorm(s.kelas)===kl).map(s=>s.nama);return fUniq(k==='kehadiran'?sw:R.map(r=>t(r.nama)).concat(sw))}
 if(f==='keg')return fUniq(R.map(r=>t(r.tema)).concat(R.map(r=>t(r.bentuk))));
+if(f==='suasana'){const urut=['Sangat senang','Senang','Biasa saja','Lelah','Perlu dukungan'],ada=fUniq(R.map(r=>t(r.suasana)));return urut.filter(x=>ada.includes(x)).concat(ada.filter(x=>!urut.includes(x)))}
 return[]}
 function filDyn(k){const sig=[],on=[];let h='';
 (FIL[k]||[]).forEach(f=>{let o=filOpsi(k,f);
@@ -1242,7 +1243,7 @@ if(b&&d.slice(0,7)!==b)return false;if(t&&d!==t)return false;
 if(k==='kehadiran'&&(on.includes('nama')||on.includes('status'))&&!khCocok(r,on.includes('nama')?v.nama:'',on.includes('status')?v.status:''))return false;
 return on.every(f=>{const x=v[f];if(!x)return true;
 if(f==='kelas')return kelNorm(r.kelas)===x;
-if(f==='tema'||f==='subtema'||f==='aspek'||f==='jenis')return String(r[f]||'').trim()===x;
+if(f==='tema'||f==='subtema'||f==='aspek'||f==='jenis'||f==='suasana')return String(r[f]||'').trim()===x;
 if(f==='nama')return k==='kehadiran'||kunci(r.nama).includes(kunci(x));
 if(f==='keg')return[r.tema,r.bentuk,r.aktivitas,r.tujuan].join(' ').toLowerCase().includes(String(x).trim().toLowerCase());
 return true})})}
