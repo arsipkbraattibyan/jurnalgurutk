@@ -1878,29 +1878,94 @@ const selTeks=t=>String(t==null?'':t).replace(/\s+/g,' ').trim();
 const selNilai=t=>{t=selTeks(t);return /^(-?[1-9]\d{0,8}|0)$/.test(t)?+t:t};
 function tabelAoa(t){const out=[];[...t.querySelectorAll('tr')].filter(r=>r.closest('table')===t).forEach(r=>{const row=[];[...r.children].forEach(c=>{row.push(selNilai(c.textContent));for(let k=1;k<(c.colSpan||1);k++)row.push('')});out.push(row)});return out}
 async function simpanExcel(nama){const src=$('#lap .paper');if(!src)throw new Error('Laporan belum siap dimuat.');
+if(S.view!=='identitas')return simpanExcelLap(src,nama);
 await loadJs(XLS_URL);const wb=XLSX.utils.book_new(),pakai=new Set();
 const lebar=a=>{const n=a.reduce((m,r)=>Math.max(m,r.length),0),w=Array(n).fill(8);a.forEach(r=>r.forEach((v,i)=>{w[i]=Math.min(60,Math.max(w[i],String(v).length+2))}));return w.map(x=>({wch:x}))};
 const els=[...src.querySelectorAll('h3,h4,table')];
 if(S.view==='identitas'){const aoa=[];els.forEach(e=>{if(e.tagName==='H3'){if(aoa.length)aoa.push([]);aoa.push([selTeks(e.textContent)])}else if(e.tagName==='TABLE')tabelAoa(e).forEach(r=>aoa.push(r))});
 if(!aoa.length)throw new Error('Tidak ada data untuk disimpan.');const ws=XLSX.utils.aoa_to_sheet(aoa);ws['!cols']=lebar(aoa);XLSX.utils.book_append_sheet(wb,ws,'Data')}
-else{const aoa=[],mg=[],wr=[],teks=h=>{const d=document.createElement('div');d.innerHTML=h;return selTeks(d.textContent)};
-const h1=src.querySelector('h1'),sj=src.querySelector('.sj');
-if(h1)aoa.push([selTeks(h1.textContent)]);
-if(sj)sj.innerHTML.split(/<br\s*\/?>/i).forEach(x=>{const t=teks(x);if(t)aoa.push([t])});
-els.forEach(e=>{
-if(e.tagName==='H3'){if(aoa.length)aoa.push([]);aoa.push([selTeks(e.textContent)])}
-else if(e.tagName==='H4')aoa.push([selTeks(e.textContent)]);
-else{const rows=tabelAoa(e);if(!rows.length)return;
-if(e.classList.contains('id')&&rows.every(r=>r.length===2)){rows.forEach(r=>{const n=aoa.length;aoa.push([r[0],'',r[1],'','']);mg.push({s:{r:n,c:0},e:{r:n,c:1}},{s:{r:n,c:2},e:{r:n,c:4}})})}
-else rows.forEach(r=>{aoa.push(r);wr.push(r)});
-aoa.push([])}});
-if(!wr.length&&!aoa.length)throw new Error('Tidak ada tabel untuk disimpan.');
-const ws=XLSX.utils.aoa_to_sheet(aoa),cols=lebar(wr.length?wr:[['','','','','']]);
-while(cols.length<5)cols.push({wch:14});
-cols[1].wch=Math.max(cols[1].wch,22);cols[2].wch=Math.max(cols[2].wch,22);
-ws['!cols']=cols;if(mg.length)ws['!merges']=mg;
-XLSX.utils.book_append_sheet(wb,ws,S.view==='portofolio'?'Portofolio':'Laporan')}
 XLSX.writeFile(wb,nama+'.xlsx')}
+
+/* ---------- Excel satu sheet berformat (seperti Pratinjau): kotak, rata, teks membungkus ---------- */
+async function simpanExcelLap(src,nama){await loadJs(ZIP_URL);
+const CWD=11,GAP=6;
+const colL=n=>{let r='';n++;while(n>0){const m=(n-1)%26;r=String.fromCharCode(65+m)+r;n=Math.floor((n-1)/26)}return r};
+const tx=h=>{const d=document.createElement('div');d.innerHTML=String(h).replace(/<br\s*\/?>/gi,'\n').replace(/<li[^>]*>/gi,'\u2022 ').replace(/<\/(li|p|div|h[1-6]|tr)>/gi,'\n');return d.textContent.split('\n').map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean).join('\n')};
+const cellTeks=c=>{const k=c.cloneNode(true);k.querySelectorAll('img,svg,script,style').forEach(x=>x.remove());return tx(k.innerHTML)};
+const ncOf=t=>{let m=0;[...t.querySelectorAll('tr')].filter(r=>r.closest('table')===t).forEach(r=>{m=Math.max(m,[...r.children].reduce((a,c)=>a+(c.colSpan||1),0))});return m};
+let G=13;src.querySelectorAll('table').forEach(t=>{if(!t.closest('.idgrid'))G=Math.max(G,ncOf(t))});
+const ST={ctr:1,ctrB:2,ttl:3,sec:4,sub:5,hd:6,bL:7,bC:8,tL:9,tC:10,iL:11,iV:12};
+const rows=[];let R=0,tabelN=0;
+const lin=(v,sp)=>{const w=Math.max(4,sp*CWD*1.12);return String(v).split('\n').reduce((a,l)=>a+Math.max(1,Math.ceil(l.length*1.05/w)),0)};
+const addRow=(cells,minH)=>{R++;let ln=1;cells.forEach(c=>{ln=Math.max(ln,lin(c.v,c.s))});rows.push({r:R,ht:Math.min(409,Math.max(minH||16,ln*13.5+4)),cells:cells})};
+const blank=()=>{R++};
+const pend=[];
+const flush=()=>{if(pend.length){pend.forEach((q,i)=>{if(i===0||q.sec)blank();addRow([{c:0,s:G,v:q.t,st:q.st}])});pend.length=0}else if(tabelN>0)blank()};
+const num=t=>/^(-?[1-9]\d{0,8}|0)$/.test(t)?+t:t;
+const tabel=t=>{const trs=[...t.querySelectorAll('tr')].filter(r=>r.closest('table')===t);if(!trs.length)return;
+const nc=ncOf(t),wt=Array(nc).fill(3);
+trs.forEach(r=>{let i=0;[...r.children].forEach(c=>{const sp=c.colSpan||1;if(sp===1)wt[i]=Math.max(wt[i],Math.min(36,Math.max.apply(null,cellTeks(c).split('\n').map(x=>x.length).concat([1]))));i+=sp})});
+const sp=Array(nc).fill(1);let rest=G-nc;while(rest>0){let b=0,bv=-1;for(let i=0;i<nc;i++){const q=wt[i]/sp[i];if(q>bv){bv=q;b=i}}sp[b]++;rest--}
+const st0=[];let p=0;sp.forEach(x=>{st0.push(p);p+=x});
+flush();
+trs.forEach(r=>{const head=!!r.closest('thead'),tot=r.classList.contains('tt');let i=0;const cells=[];
+[...r.children].forEach(c=>{const cs=c.colSpan||1,a=st0[Math.min(i,nc-1)],e=Math.min(nc-1,i+cs-1),span=st0[e]+sp[e]-a;i+=cs;
+const hd=head||c.tagName==='TH',v=cellTeks(c),ctr=hd||c.classList.contains('c');
+cells.push({c:a,s:span,v:num(v),st:hd?ST.hd:tot?(ctr?ST.tC:ST.tL):(ctr?ST.bC:ST.bL)})});
+addRow(cells)});tabelN++};
+const ident=g=>{const ds=[...g.children].filter(d=>d.querySelector('table'));if(!ds.length)return;flush();
+const pos=[[0,2,4],[2+4+1,2,4]];
+const tb=ds.slice(0,2).map(d=>{const t=d.querySelector('table');return{h:d.querySelector('h4'),r:[...t.querySelectorAll('tr')].filter(x=>x.closest('table')===t).map(r=>[...r.children].map(cellTeks))}});
+addRow(tb.map((x,i)=>({c:pos[i][0],s:6,v:x.h?selTeks(x.h.textContent):'',st:ST.sub})));
+const n=Math.max.apply(null,tb.map(x=>x.r.length));
+for(let i=0;i<n;i++){const cells=[];tb.forEach((x,j)=>{const r=x.r[i];if(!r)return;cells.push({c:pos[j][0],s:pos[j][1],v:r[0]||'',st:ST.iL},{c:pos[j][0]+pos[j][1],s:pos[j][2],v:r[1]||'-',st:ST.iV})});addRow(cells)}
+tabelN++};
+const ttd=d=>{const ds=[...d.children];if(!ds.length)return;blank();blank();
+const pos=ds.length===2?[[0,5],[G-5,5]]:ds.map(()=>[0,G]);
+const info=ds.map(x=>{const q=x.querySelector('p'),b=x.querySelector('b');return{l:q?tx(q.innerHTML).split('\n'):[],n:b?selTeks(b.textContent):''}});
+const m=Math.max.apply(null,info.map(x=>x.l.length));
+for(let i=0;i<m;i++)addRow(info.map((x,j)=>({c:pos[j][0],s:pos[j][1],v:x.l[i]||'',st:ST.ctr})));
+blank();blank();blank();
+addRow(info.map((x,j)=>({c:pos[j][0],s:pos[j][1],v:x.n,st:ST.ctrB})))};
+// kepala surat + judul
+const kt=src.querySelector('.kop .kt');
+if(kt)[...kt.children].forEach((e,i)=>{const t=tx(e.innerHTML);if(t)addRow([{c:0,s:G,v:t.replace(/\n/g,' '),st:i?ST.ctr:ST.ttl}])});
+if(kt)blank();
+const h1=src.querySelector('h1');if(h1)tx(h1.innerHTML).split('\n').forEach(t=>addRow([{c:0,s:G,v:t,st:ST.ttl}]));
+const sj=src.querySelector('.sj');if(sj)tx(sj.innerHTML).split('\n').forEach(t=>addRow([{c:0,s:G,v:t,st:ST.ctr}]));
+const walk=n=>[...n.children].forEach(e=>{const g=e.tagName.toLowerCase(),cl=e.classList;
+if(cl.contains('noprint')||cl.contains('kop')||cl.contains('gal')||g==='svg'||g==='img'||g==='script'||g==='style'||g==='h1'||cl.contains('sj'))return;
+if(g==='h3'){pend.push({t:selTeks(e.textContent),st:ST.sec,sec:1});return}
+if(g==='h4'){pend.push({t:selTeks(e.textContent),st:ST.sub});return}
+if(g==='table'){tabel(e);return}
+if(cl.contains('idgrid')){ident(e);return}
+if(cl.contains('ttd')){ttd(e);return}
+walk(e)});
+walk(src);
+if(!tabelN)throw new Error('Tidak ada tabel untuk disimpan.');
+const bor='<border><left style="thin"><color rgb="FF444444"/></left><right style="thin"><color rgb="FF444444"/></right><top style="thin"><color rgb="FF444444"/></top><bottom style="thin"><color rgb="FF444444"/></bottom><diagonal/></border>';
+const xf=(f,fi,bd,h,w)=>`<xf numFmtId="0" fontId="${f}" fillId="${fi}" borderId="${bd}" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="${h}" vertical="center"${w?' wrapText="1"':''}/></xf>`;
+const fnt=(sz,b)=>`<font>${b?'<b/>':''}<sz val="${sz}"/><name val="Calibri"/></font>`;
+const styles='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="5">'+fnt(10)+fnt(10,1)+fnt(14,1)+fnt(12,1)+fnt(11,1)+'</fonts><fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFE3EFFB"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF3F3F3"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border>'+bor+'</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="13">'
++xf(0,0,0,'left',0)+xf(0,0,0,'center',1)+xf(1,0,0,'center',1)+xf(2,0,0,'center',1)+xf(3,0,0,'left',0)+xf(4,0,0,'left',0)+xf(1,2,1,'center',1)+xf(0,0,1,'left',1)+xf(0,0,1,'center',1)+xf(1,3,1,'left',1)+xf(1,3,1,'center',1)+xf(1,0,1,'left',1)+xf(0,0,1,'left',1)
++'</cellXfs></styleSheet>';
+const mer=[];let sd='';
+rows.forEach(r=>{let cx='';const cs=r.cells.slice().sort((a,b)=>a.c-b.c);
+cs.forEach(c=>{for(let k=0;k<c.s;k++){const ref=colL(c.c+k)+r.r;
+if(k||c.v===''||c.v==null)cx+=`<c r="${ref}" s="${c.st}"/>`;
+else if(typeof c.v==='number')cx+=`<c r="${ref}" s="${c.st}"><v>${c.v}</v></c>`;
+else cx+=`<c r="${ref}" s="${c.st}" t="inlineStr"><is><t xml:space="preserve">${xe(String(c.v).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,''))}</t></is></c>`}
+if(c.s>1)mer.push(`<mergeCell ref="${colL(c.c)}${r.r}:${colL(c.c+c.s-1)}${r.r}"/>`)});
+sd+=`<row r="${r.r}" ht="${r.ht.toFixed(1)}" customHeight="1">${cx}</row>`});
+const sheet='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView showGridLines="0" workbookViewId="0"/></sheetViews><sheetFormatPr defaultRowHeight="15"/><cols><col min="1" max="'+G+'" width="'+CWD+'" customWidth="1"/></cols><sheetData>'+sd+'</sheetData>'+(mer.length?`<mergeCells count="${mer.length}">${mer.join('')}</mergeCells>`:'')+'<pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/><pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="0"/></worksheet>';
+const HD='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',z=new JSZip();
+z.file('[Content_Types].xml',HD+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>');
+z.file('_rels/.rels',HD+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>');
+z.file('xl/workbook.xml',HD+'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="'+(S.view==='portofolio'?'Portofolio':'Laporan')+'" sheetId="1" r:id="rId1"/></sheets></workbook>');
+z.file('xl/_rels/workbook.xml.rels',HD+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>');
+z.file('xl/styles.xml',styles);z.file('xl/worksheets/sheet1.xml',sheet);
+const blob=await z.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',compression:'DEFLATE'});
+const url=URL.createObjectURL(blob);unduh(url,nama+'.xlsx');setTimeout(()=>URL.revokeObjectURL(url),5000)}
 
 const xe=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 async function simpanWord(nama,u){const src=$('#lap .paper');if(!src)throw new Error('Laporan belum siap dimuat.');
@@ -1937,11 +2002,16 @@ return`<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/>${sp>1?`<w:gridSpan w:val="
 return`<w:tr><w:trPr><w:cantSplit/>${head?'<w:tblHeader/>':''}</w:trPr>${tcs}</w:tr>`}).join('');
 return tblX(rows,wd,`<w:tblBorders>${BD}</w:tblBorders>`)+spasi};
 const idX=g=>{const ds=[...g.children].filter(d=>d.querySelector('table'));if(!ds.length)return'';
-const gap=300,w=Math.floor((cw-gap*(ds.length-1))/ds.length),iw=w-140,ws=[],tcs=[];
-ds.forEach((d,i)=>{if(i){tcs.push(`<w:tc><w:tcPr><w:tcW w:w="${gap}" w:type="dxa"/></w:tcPr><w:p/></w:tc>`);ws.push(gap)}
-let c='';[...d.children].forEach(n=>{if(n.tagName==='H4')c+=P(n,{sz:22,b:1,before:0,after:60,keep:1});else if(n.tagName==='TABLE')c+=tabelX(n,iw)});
-tcs.push(`<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/></w:tcPr>${c||'<w:p/>'}</w:tc>`);ws.push(w)});
-return tblX(`<w:tr>${tcs.join('')}</w:tr>`,ws,'')+spasi};
+const gap=300,w=Math.floor((cw-gap*(ds.length-1))/ds.length),l=Math.round(w*.42),v=w-l;
+const tb=ds.map(d=>{const t=d.querySelector('table');return{h:d.querySelector('h4'),r:[...t.querySelectorAll('tr')].filter(x=>x.closest('table')===t)}});
+const n=Math.max.apply(null,tb.map(x=>x.r.length));
+const BR=['top','left','bottom','right'].map(q=>`<w:${q} w:val="single" w:sz="4" w:space="0" w:color="444444"/>`).join('');
+const cell=(wd,x,b)=>`<w:tc><w:tcPr><w:tcW w:w="${wd}" w:type="dxa"/>${b?`<w:tcBorders>${BR}</w:tcBorders>`:''}<w:vAlign w:val="center"/></w:tcPr>${x||'<w:p/>'}</w:tc>`;
+const gp=`<w:tc><w:tcPr><w:tcW w:w="${gap}" w:type="dxa"/></w:tcPr><w:p/></w:tc>`;
+let rows=`<w:tr><w:trPr><w:cantSplit/></w:trPr>${tb.map((x,i)=>(i?gp:'')+`<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/><w:gridSpan w:val="2"/></w:tcPr>${x.h?P(x.h,{sz:22,b:1,before:0,after:60,keep:1}):'<w:p/>'}</w:tc>`).join('')}</w:tr>`;
+for(let i=0;i<n;i++)rows+=`<w:tr><w:trPr><w:cantSplit/></w:trPr>`+tb.map((x,j)=>{const r=x.r[i],c=r?[...r.children]:[];return(j?gp:'')+cell(l,c[0]?P(c[0],{sz:18,b:1,after:0}):'',!!r)+cell(v,c[1]?P(c[1],{sz:18,after:0}):'',!!r)}).join('')+`</w:tr>`;
+const ws=[];tb.forEach((x,i)=>{if(i)ws.push(gap);ws.push(l,v)});
+return tblX(rows,ws,'')+spasi};
 const kopX=k=>{const img=k.querySelector('img'),kt=k.querySelector('.kt'),lw=1100,mid=cw-2*lw,logo=img?gbr(img,70,70):'';
 let tx='';if(kt)[...kt.children].forEach(e=>{const g=e.tagName.toLowerCase();tx+=g==='h2'?P(e,{jc:'center',sz:28,b:1,after:0}):P(e,{jc:'center',sz:18,after:0})});
 const tc=(w,x)=>`<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/><w:tcBorders><w:bottom w:val="double" w:sz="12" w:space="0" w:color="111111"/></w:tcBorders><w:vAlign w:val="center"/></w:tcPr>${x}</w:tc>`;
