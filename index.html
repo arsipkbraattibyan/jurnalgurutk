@@ -6,6 +6,7 @@
 <title>Jurnal Guru KB-RA At Tibyan</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1e88e5">
+<meta name="color-scheme" content="light only">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Jurnal Guru">
@@ -416,6 +417,11 @@ html[data-tema=belajar] .hero h1{font-size:20px}html[data-tema=ujian] .hero{padd
 .sheet.frm .act .btn:not(.gh):not(.rd){box-shadow:0 4px 12px #1e88e540}
 }
 /* Filter Data Siswa / Presensi / Galeri: kotak selebar layar, tombol rapi */
+/* Pemilih tanggal/bulan, dropdown, dan form selalu terang (tidak ikut mode gelap HP) */
+html{color-scheme:light only}
+input,select,textarea,button{color-scheme:light}
+input[type=date],input[type=month],input[type=time]{color-scheme:light;background-color:#fff;color:var(--ink)}
+select option,datalist option{background:#fff;color:#2b3a67}
 .filt.sf{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px;align-items:end}
 .filt.sf>.fd{grid-column:1/-1;min-width:0}.filt.sf>.fd.h{grid-column:auto}
 .filt.sf .fd input,.filt.sf .fd select{display:block;width:100%!important;max-width:100%;min-width:0;box-sizing:border-box;height:50px;padding:0 14px;font:inherit;border-radius:14px}
