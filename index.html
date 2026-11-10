@@ -448,7 +448,7 @@ select option,datalist option{background:#fff;color:#2b3a67}
 @media(min-width:760px){.filt.sf{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}.filt.sf>.fd,.filt.sf>.fd.h{grid-column:auto}.filt.sf .fd.bt{grid-template-columns:auto auto;justify-content:start}.filt.sf .fd.bt .btn{padding:0 26px}.filt.sf .sfn{grid-column:1/-1}}
 
 .kh{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.kh h3{margin:0;font-size:17px;color:var(--navy);text-transform:capitalize}.kh .btn{min-width:44px}
-.kg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.kw{text-align:center;font-size:12px;font-weight:800;color:var(--navy);padding:4px 0}.kd{min-height:54px;border:1px solid #dfe7f7;border-radius:10px;background:#fff;padding:4px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;cursor:pointer;font:inherit}.kd.kx{border:0;background:none;cursor:default}.kd b{font-size:13px}.kd span{display:flex;gap:3px;flex-wrap:wrap}.kd span i,.kl2 i,.ke>i{display:inline-block;width:8px;height:8px;border-radius:50%}.kmg{color:#e53935}.kd.kt{border-color:#f7b500;background:#fff8e1}.kd.kp{outline:2px solid #1e88e5}
+.kg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.kw{text-align:center;font-size:12px;font-weight:800;color:var(--navy);padding:4px 0}.kd{min-height:54px;border:1px solid #dfe7f7;border-radius:10px;background:#fff;padding:4px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;cursor:pointer;font:inherit}.kd.kx{border:0;background:none;cursor:default}.kd b{font-size:13px}.kd span{display:flex;gap:3px;flex-wrap:wrap}.kd span i,.kl2 i,.ke>i{display:inline-block;width:8px;height:8px;border-radius:50%}.kmg{color:#e53935}.kd.kfl span i{background:#fff!important}.kd.kt{border-color:#f7b500;background:#fff8e1}.kd.kp{outline:2px solid #1e88e5}
 .kl2{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px}.kl2 span{display:inline-flex;align-items:center;gap:5px}
 .ke{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #eef2fb}.ke>i{flex:none;width:10px;height:10px}.ke>div{flex:1;min-width:0}.ke small{display:block;color:#6c7aa5}
 /* ---------- Data Siswa: filter rapi + kartu per anak ---------- */
@@ -2215,11 +2215,13 @@ return`<div class="paper"><div class="kop"><img class="kl" src="${logoSek()}" al
 ${kalEst(KAL.th)?'<p style="font-size:11px;margin-top:6px"><i>Catatan: tanggal libur keagamaan tahun ini masih perkiraan, menyesuaikan SKB 3 Menteri.</i></p>':''}
 <div class="ttd"><div><p>Mengetahui,<br>Kepala ${esc(g.sekolah||'sekolah')}</p><div class="sp"></div><b><u>${esc(g.kepsek||'..............................')}</u></b></div>
 <div><p>${esc(kotaTtd(g))}, ${today}<br>Guru ${esc(g.kelas||'kelompok')}</p><div class="sp"></div><b><u>${esc(g.nama)}</u></b></div></div></div>`}
+const kLb=['nasional','cuti','libur'];
+const kWarna=es=>{const h=es.find(e=>kLb.includes(e.k));if(h){const c=KAT[h.k][1];return'background:'+c+';border-color:'+c+';color:#fff'}const c=(KAT[es[0].k]||KAT.lain)[1];return'background:'+c+'22;border-color:'+c};
 function kalRender(){const ev=kalAll(),{y,m}=KAL,nm=new Date(y,m,1).toLocaleDateString('id-ID',{month:'long',year:'numeric'}),
 awal=(new Date(y,m,1).getDay()+6)%7,hr=new Date(y,m+1,0).getDate(),td=hari();
 const pada=i=>ev.filter(e=>e.d<=i&&i<=(e.s&&e.s>e.d?e.s:e.d));
 let sel='';for(let i=0;i<awal;i++)sel+='<div class="kd kx"></div>';
-for(let d=1;d<=hr;d++){const i=kIso(y,m,d),es=pada(i);sel+=`<button type="button" class="kd${i===td?' kt':''}${i===KAL.pil?' kp':''}${(awal+d-1)%7===6||es.some(e=>e.auto)?' kmg':''}" data-d="${i}"><b>${d}</b><span>${es.slice(0,4).map(e=>`<i style="background:${(KAT[e.k]||KAT.lain)[1]}"></i>`).join('')}</span></button>`}
+for(let d=1;d<=hr;d++){const i=kIso(y,m,d),es=pada(i);sel+=`<button type="button" class="kd${i===td?' kt':''}${i===KAL.pil?' kp':''}${(awal+d-1)%7===6&&!es.length?' kmg':''}${es.some(e=>kLb.includes(e.k))?' kfl':''}" data-d="${i}"${es.length?` style="${kWarna(es)}"`:''}><b>${d}</b><span>${es.slice(0,4).map(e=>`<i style="background:${(KAT[e.k]||KAT.lain)[1]}"></i>`).join('')}</span></button>`}
 const bln=ev.filter(e=>e.d<=kIso(y,m,hr)&&(e.s&&e.s>e.d?e.s:e.d)>=kIso(y,m,1)).sort((a,b)=>a.d<b.d?-1:1);
 $('#kcal').innerHTML=`<div class="kh"><button type="button" class="btn gh s" data-n="-1">‹</button><h3>${esc(nm)}</h3><button type="button" class="btn gh s" data-n="1">›</button></div>
 <div class="kg">${['Sen','Sel','Rab','Kam','Jum','Sab','Min'].map((x,i)=>`<div class="kw${i>4?' kmg':''}">${x}</div>`).join('')}${sel}</div>
