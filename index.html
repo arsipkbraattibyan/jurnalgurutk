@@ -1128,14 +1128,14 @@ const bx=$('#srk');if(!bx)return;
 const H='<h3>🔗 Sumber data kehadiran otomatis</h3>';
 bx.innerHTML=H+'<p class="sub" style="font-size:13px">Memuat...</p>';
 let I;try{I=await api('sumberInfo')}catch(er){bx.innerHTML=H+'<div class="empty">'+esc(er.message)+'</div>';return}
-const sts={bawaan:'Bawaan aplikasi',diatur:'Diatur dari Pengaturan',belum:'Belum diatur'};
+const sts={bawaan:'Bawaan aplikasi',diatur:'Diatur dari Pengaturan',belum:'Belum diatur',kosong:'Dikosongkan (data anak tidak tampil)'};
 bx.innerHTML=H+`<p class="sub" style="font-size:13px;margin:-6px 0 12px">Link spreadsheet Google yang berisi sheet <b>Data Siswa</b> dan <b>Rekap Absen</b>, dipakai untuk mengisi kehadiran otomatis. Perlu koneksi internet.</p>
 <div class="fd"><label>Status</label><p style="margin:0;font-weight:800;color:var(--navy)">${esc(sts[I.status]||'')}${I.id?' · '+esc(I.id):''}</p>${I.oleh?'<p class="sub" style="font-size:12px;margin:2px 0 0">Terakhir diubah '+esc(I.diubah||'')+' oleh '+esc(I.oleh)+'</p>':''}</div>
 <div class="fd"><label for="srl">Link atau ID spreadsheet</label><input id="srl" placeholder="https://docs.google.com/spreadsheets/d/..." autocomplete="off" style="width:100%"></div>
 <p class="sub" style="font-size:12px;margin:6px 0 10px">Bagikan spreadsheet itu ke <b>${esc(I.email||'akun pemilik aplikasi')}</b> (minimal sebagai Pelihat). Judul kolom: Nama, Kelas, Status. Di Rekap Absen ditambah Tanggal.</p>
 <div id="srx"></div>
-<div class="act" style="justify-content:flex-start;gap:10px;flex-wrap:wrap"><button class="btn o s" id="srt" type="button">Tes sambungan</button>${I.status!=='belum'?'<button class="btn o s" id="sru" type="button">Uji koneksi sumber aktif</button>':''}<button class="btn y s" id="srs" type="button" disabled>Simpan</button>${I.status==='diatur'?'<button class="btn gh s" id="srh" type="button">Kembalikan ke bawaan</button>':''}</div>`;
-const li=$('#srl'),tx=$('#srx'),bt=$('#srt'),bs=$('#srs'),bh=$('#srh');let ok='';
+<div class="act" style="justify-content:flex-start;gap:10px;flex-wrap:wrap"><button class="btn o s" id="srt" type="button">Tes sambungan</button>${I.status!=='belum'&&I.status!=='kosong'?'<button class="btn o s" id="sru" type="button">Uji koneksi sumber aktif</button>':''}<button class="btn y s" id="srs" type="button" disabled>Simpan</button>${I.status==='diatur'||I.status==='kosong'?'<button class="btn gh s" id="srh" type="button">Kembalikan ke bawaan</button>':''}${I.status==='bawaan'||I.status==='diatur'?'<button class="btn gh s" id="srd" type="button">🗑️ Hapus sumber data</button>':''}</div>`;
+const li=$('#srl'),tx=$('#srx'),bt=$('#srt'),bs=$('#srs'),bh=$('#srh'),bd=$('#srd');let ok='';
 const ls=a=>'<ul style="margin:4px 0 0 18px;padding:0">'+a.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>';
 const tampil=t=>t.masalah.length
 ?'<div class="empty" style="text-align:left;margin-bottom:10px"><b>Belum bisa dipakai</b>'+ls(t.masalah)+'</div>'
@@ -1152,7 +1152,7 @@ try{tx.innerHTML=tampil(await api('sumberTes',{}))}
 catch(er){tx.innerHTML='<div class="empty" style="text-align:left;margin-bottom:10px">'+esc(er.message)+'</div>'}
 bu.disabled=false;bu.textContent='Uji koneksi sumber aktif'};
 bs.onclick=async()=>{const v=ok;if(!v)return;
-if(I.status!=='belum'&&!await tanya('Ganti sumber data?','Sumber data kehadiran yang sekarang akan diganti. Mengganti di tengah tahun ajaran dapat membuat data profil anak dan status kehadiran manual tidak cocok dengan data baru. Data lama tidak dihapus. Lanjutkan?','Ya, ganti',true))return;
+if(I.status!=='belum'&&I.status!=='kosong'&&!await tanya('Ganti sumber data?','Sumber data kehadiran yang sekarang akan diganti. Mengganti di tengah tahun ajaran dapat membuat data profil anak dan status kehadiran manual tidak cocok dengan data baru. Data lama tidak dihapus. Lanjutkan?','Ya, ganti',true))return;
 bs.disabled=true;
 try{const j=await api('sumberSimpan',{link:v,konfirmasi:true});await sumberSegar();bunyi('ok');toast('Sumber data tersimpan'+(j.kbcBaru?' · '+j.kbcBaru+' anak baru di KBC':''));sumberKartu()}
 catch(er){toast(er.message,1);bs.disabled=false}};
@@ -1161,6 +1161,11 @@ if(!await tanya('Kembalikan ke bawaan?','Pengaturan link dihapus dan aplikasi me
 bh.disabled=true;
 try{await api('sumberHapus');await sumberSegar();bunyi('ok');toast('Dikembalikan ke sumber bawaan');sumberKartu()}
 catch(er){toast(er.message,1);bh.disabled=false}};
+if(bd)bd.onclick=async()=>{
+if(!await tanya('Hapus sumber data?','Link sumber dilepas dan daftar anak otomatis serta presensi dari sumber itu tidak tampil lagi di aplikasi. Anak tambahan lokal, jurnal, dan catatan yang sudah tersimpan tidak dihapus, dan spreadsheet sumber tidak diubah. Isi link lagi untuk menampilkannya kembali.','Ya, hapus',true))return;
+bd.disabled=true;
+try{await api('sumberKosongkan');await sumberSegar();bunyi('ok');toast('Sumber data dihapus. Data anak otomatis tidak tampil');sumberKartu()}
+catch(er){toast(er.message,1);bd.disabled=false}};
 }
 /* ---------- identitas (tanpa foto) ---------- */
 function viewIdentitas(){formIdentitas();const m=$('#main');let sentuh=false;const h=()=>{sentuh=true};m.addEventListener('input',h);m.addEventListener('change',h);
