@@ -2374,11 +2374,11 @@ function lembar(el,opsi,cari,bebas,nama){
   m.querySelector('.sll').innerHTML=h;
   var cnt=m.querySelector('.slt small');if(cnt)cnt.textContent=(qq?a.length+' dari ':'')+opsi.filter(function(o){return o.v!==''}).length+(nama?' nama':' pilihan');
  }
- m.className='slm pop';
- m.innerHTML='<div class="slc" role="listbox" aria-label="'+esc(tj)+'">'
+ var pop=menuKecil(el);m.className=pop?'slm pop':'slm';
+ m.innerHTML='<div class="slc" role="listbox" aria-label="'+esc(tj)+'">'+(pop?'':'<div class="slg"></div><div class="slh"><div class="slt">'+esc(tj)+'<small></small></div><button type="button" class="slx" data-a="x" aria-label="Tutup">✕</button></div>')
   +(cari?'<div class="slqw'+(q?' ada':'')+'"><input class="slq" type="text" placeholder="'+(nama?'Ketik nama untuk mencari':'Ketik untuk mencari')+'" autocomplete="off" value="'+esc(q)+'"><button type="button" class="slc0" data-a="c" aria-label="Hapus ketikan">✕</button></div>':'')
-  +'<div class="sll"></div>'+(bebas&&el.value?'<button type="button" class="slp" data-a="k">✕ Hapus isian ini</button>':'')+'</div>';
- (function(){var c=m.querySelector('.slc'),rc=el.getBoundingClientRect(),W=window.innerWidth,H=window.innerHeight,w=Math.min(Math.max(rc.width,250),W-16),l=Math.max(8,Math.min(rc.left,W-w-8)),bw=H-rc.bottom-10,at=rc.top-10,atas=bw<260&&at>bw,mh=Math.max(180,Math.min(380,(atas?at:bw)));
+  +'<div class="sll"></div>'+(bebas&&el.value?'<button type="button" class="slp" data-a="k">Hapus isian ini</button>':'')+'</div>';
+ if(pop)(function(){var c=m.querySelector('.slc'),rc=el.getBoundingClientRect(),W=window.innerWidth,H=window.innerHeight,w=Math.min(Math.max(rc.width,250),W-16),l=Math.max(8,Math.min(rc.left,W-w-8)),bw=H-rc.bottom-10,at=rc.top-10,atas=bw<260&&at>bw,mh=Math.max(180,Math.min(380,(atas?at:bw)));
   c.style.width=w+'px';c.style.left=l+'px';c.style.maxHeight=mh+'px';
   if(atas)c.style.bottom=(H-rc.top+6)+'px';else c.style.top=(rc.bottom+6)+'px';
   var tutupScroll=function(ev){if(!c.contains(ev.target)){tutup();removeEventListener('scroll',tutupScroll,true);removeEventListener('resize',tutupScroll,true)}};
@@ -2398,6 +2398,9 @@ function lembar(el,opsi,cari,bebas,nama){
  });
  var on=m.querySelector('.slo.on'),sl=m.querySelector('.sll');if(on&&sl)sl.scrollTop=Math.max(0,on.offsetTop-sl.clientHeight/2+on.offsetHeight/2);
 }
+/* Model menu kecil (more option) hanya untuk: Tema dan Sub tema (Filter Harian Mengajar), Status (Filter Kehadiran Anak) */
+function menuKecil(el){var fc=el.closest&&el.closest('#fc');if(!fc)return false;var h=fc.querySelector('.sfh'),t=h?h.textContent:'',f=el.dataset&&el.dataset.f;
+ return(f==='tema'||f==='subtema')&&/Harian Mengajar/i.test(t)||f==='status'&&/Kehadiran Anak/i.test(t)}
 function selSasar(t){return t&&t.tagName==='SELECT'&&!t.multiple&&!t.disabled?t:null}
 function listSasar(t){return t&&t.tagName==='INPUT'&&t.getAttribute('list')&&!t.disabled&&!t.readOnly?t:null}
 function listSasar2(t){return t&&t.tagName==='INPUT'&&t.getAttribute('list')&&!t.disabled?t:null}
