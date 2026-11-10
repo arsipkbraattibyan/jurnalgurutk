@@ -375,7 +375,7 @@ async function viewLaporan() {
     + '<div class="fd"><label for="lra">Nama anak (opsional)</label><select id="lra"><option value="">Semua anak</option></select></div></div>'
     + '<div class="fd" style="margin-top:14px"><label>Periode</label>' + radioGrup('lpm', [['tanggal', 'Tanggal'], ['bulan', 'Bulan'], ['semester', 'Semester'], ['semua', 'Seluruh periode']], 'bulan', 'lpm') + '</div>'
     + '<div class="filt" style="margin-top:12px"><div class="fg" id="lpt" style="display:none"><div class="fd"><label for="lrd">Dari tanggal</label><input type="date" id="lrd" value="' + hari().slice(0, 8) + '01"></div><div class="fd"><label for="lrs">Sampai tanggal</label><input type="date" id="lrs" value="' + hari() + '"></div></div>'
-    + '<div class="fd" id="lpb"><label for="lrb">Bulan</label><input type="month" id="lrb" value="' + hari().slice(0, 7) + '" style="width:210px"></div>'
+    + '<div class="fd" id="lpb"><label for="lrb">Bulan</label><input type="month" id="lrb" value="' + hari().slice(0, 7) + '"></div>'
     + '<div class="fg" id="lps" style="display:none"><div class="fd"><label for="lrth">Tahun pelajaran</label><select id="lrth">' + tahunList().map(t => '<option' + (t === th ? ' selected' : '') + '>' + E(t) + '</option>').join('') + '</select></div>'
     + '<div class="fd"><label>Semester</label>' + radioGrup('lrsm', [['Ganjil', 'Ganjil (Jul-Des)'], ['Genap', 'Genap (Jan-Jun)']], sm, 'lrsm') + '</div></div></div>'
     + '<small class="sub">Data diambil dari jurnal yang sudah Anda isi, tidak perlu mengisi ulang. Pilih nama anak untuk melihat perkembangan dan kehadiran anak itu saja; catatan tingkat kelas tetap ditampilkan.</small>'
@@ -398,6 +398,46 @@ async function viewLaporan() {
 }
 
 window.viewLaporan = viewLaporan;
+
+/* ---------- Rapikan kartu "Filter laporan" ---------- */
+(function () {
+  if (document.getElementById('lrc-css')) return;
+  const st = document.createElement('style'); st.id = 'lrc-css';
+  st.textContent = `
+#lrc{display:grid;gap:16px}
+#lrc>h3{margin:0}
+#lrc .fd,#lrc .fg,#lrc .filt{margin:0!important;min-width:0}
+#lrc .fd>label:not(.op){margin-bottom:8px}
+/* deretan tombol: kolom sama lebar, tinggi sama */
+#lrc .opts{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+#lrc .op span{min-height:56px;padding:8px 10px;font-size:14px;line-height:1.25;overflow-wrap:anywhere}
+#lrc #lrsm{grid-template-columns:repeat(2,minmax(0,1fr))}
+/* isian: tiga kolom sama lebar, tinggi sama */
+#lrc .fg{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:end}
+#lrc .fg>.fd.full{grid-column:1/-1}
+#lrc input:not([type=radio]),#lrc select{display:block;width:100%!important;max-width:100%;box-sizing:border-box;height:52px;margin:0;padding:0 14px;font:inherit;font-weight:700;border-radius:14px}
+#lrc select{-webkit-appearance:none;appearance:none;padding-right:40px;cursor:pointer;
+background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1.5 1.5 7 7l5.5-5.5' fill='none' stroke='%231e3a8a' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 16px center}
+#lrc input[type=date],#lrc input[type=month]{min-height:52px;-webkit-appearance:none;appearance:none}
+/* baris periode: Bulan sejajar kolom pertama */
+#lrc .filt{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:end}
+#lrc .filt>.fd{grid-column:1}
+#lrc .filt>#lpt,#lrc .filt>#lps{grid-column:1/-1}
+#lrc #lpt{grid-template-columns:repeat(3,minmax(0,1fr))}
+#lrc #lps .fd:last-child{grid-column:span 2}
+#lrc>small.sub{display:block;max-width:760px;margin:0;line-height:1.55}
+#lrc .ukr{margin-top:0}
+@media(max-width:900px){
+ #lrc .opts{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #lrc .fg,#lrc .filt,#lrc #lpt{grid-template-columns:minmax(0,1fr)}
+ #lrc .filt>.fd,#lrc .filt>#lpt,#lrc .filt>#lps{grid-column:1/-1}
+ #lrc #lps .fd:last-child{grid-column:auto}
+}
+@media(max-width:380px){#lrc .opts{grid-template-columns:minmax(0,1fr)}}
+`;
+  document.head.appendChild(st);
+})();
+
 window.__lapBangun = { bangun: bangun, ambilFilter: ambilFilter }; // untuk pengujian
 })();
 
