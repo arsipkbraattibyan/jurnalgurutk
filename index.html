@@ -160,7 +160,7 @@ input:focus,textarea:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 4
 .rt th,.rt td{border:1px solid #333;padding:4px 6px;vertical-align:top;text-align:left}
 .rt th{background:#e8e8e8;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .rt .c{text-align:center}.rt.sm{width:100%}.rt.id td:first-child{width:28%;font-weight:bold}
-.pfr{display:flex;gap:1cm;align-items:flex-start;margin:0 0 6px}.pfr>.pfd{flex:1;min-width:0}.pfr .rt{margin:0;height:6cm;width:100%;table-layout:fixed}.rt.idg td{width:33.33%;vertical-align:middle;word-break:break-word}.rt.idg td.lb{font-weight:bold;background:#f3f3f3}.pfw{flex:0 0 4cm;margin:0}.pfw img{width:4cm;height:6cm;object-fit:cover;border:1px solid #333;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}.idgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}.idgrid h4{margin:0 0 4px}.idgrid>div{min-width:0}.idgrid .rt.id td:first-child{width:42%}
+.pfr{display:flex;gap:1cm;align-items:flex-start;margin:0 0 6px}.pfr>.pfd{flex:1;min-width:0}.pfr .rt{margin:0;height:6cm;width:100%;table-layout:fixed}.rt.idx{table-layout:fixed;width:100%}.rt.idx td{vertical-align:middle;word-break:break-word}.rt.idx td.lb{width:17%;font-weight:bold}.rt.idx td.vl{width:33%}.pfw{flex:0 0 4cm;margin:0}.pfw img{width:4cm;height:6cm;object-fit:cover;border:1px solid #333;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}.idgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}.idgrid h4{margin:0 0 4px}.idgrid>div{min-width:0}.idgrid .rt.id td:first-child{width:42%}
 @media(max-width:600px){.idgrid{grid-template-columns:1fr}}@media print{.idgrid{grid-template-columns:1fr 1fr}}.rt .tt td{font-weight:bold;background:#f3f3f3}
 .rt.ap{font-size:13px;font-family:Nunito,sans-serif}.rt.ap th,.rt.ap td{border-color:var(--ln);padding:8px}.rt.ap th{background:#e8f3fd}.rt.ap .tt td{background:#f3f9ff}
 .ttd{display:flex;justify-content:space-between;gap:20px;margin-top:30px;text-align:center;break-inside:avoid}
@@ -1219,10 +1219,10 @@ im.onerror=()=>ok('');im.src=u}))}
 function dataPaper(jenis){const g=S.guru,P=k=>PROFIL.find(f=>f.k===k)||{k:k,l:k};
 const grp=[].concat(jenis!=='sekolah'?ID_GURU:[],jenis!=='guru'?ID_SEK:[]);
 const mkT=ks=>`<table class="rt id">${ks.map(k=>{const f=P(k);let v=g[k];if(k==='kelas')v=kelNorm(v);else if(f.t==='tgl'&&v)v=tgl(v);return`<tr><td>${esc(f.l)}</td><td>${esc(v||'-')}</td></tr>`}).join('')}</table>`;
-const mkG=ks=>{const L=[];for(let i=0;i<ks.length;i+=3){const c=ks.slice(i,i+3);L.push('<tr>'+c.map(k=>`<td class="lb">${esc(P(k).l.replace(/ \(jika ada\)/,''))}</td>`).join('')+'</tr><tr>'+c.map(k=>{const f=P(k);let v=g[k];if(f.t==='tgl'&&v)v=tgl(v);return`<td class="vl">${esc(v||'-')}</td>`}).join('')+'</tr>')}return`<table class="rt idg">${L.join('')}</table>`};
+const mkX=ks=>{const td=(k,c)=>{const f=P(k);let v=g[k];if(f.t==='tgl'&&v)v=tgl(v);return`<td class="lb">${esc(f.l)}</td><td class="vl"${c?' colspan="3"':''}>${esc(v||'-')}</td>`};let h='';for(let i=0;i<3;i++)h+='<tr>'+td(ks[i])+td(ks[i+3])+'</tr>';ks.slice(6).forEach(k=>{h+='<tr>'+td(k,1)+'</tr>'});return`<table class="rt idx">${h}</table>`};
 const tb=grp.map((x,i)=>{
-if(i===0&&fpAktif(jenis))return`<h3>${String.fromCharCode(65+i)}. ${x[0]}</h3><div class="pfr"><div class="pfw"><img src="${esc(fpSrc())}" alt="Foto profil guru" referrerpolicy="no-referrer"></div><div class="pfd">${mkG(x[1].slice(0,6))}</div></div>${mkT(x[1].slice(6))}`;
-return`<h3>${String.fromCharCode(65+i)}. ${x[0]}</h3>`+mkT(x[1])}).join('');
+if(i===0&&fpAktif(jenis))return`<h3>${String.fromCharCode(65+i)}. ${x[0]}</h3><div class="pfr"><div class="pfw"><img src="${esc(fpSrc())}" alt="Foto profil guru" referrerpolicy="no-referrer"></div><div class="pfd">${mkX(x[1])}</div></div>`;
+return`<h3>${String.fromCharCode(65+i)}. ${x[0]}</h3>`+(i===0&&jenis!=='sekolah'?mkX(x[1]):mkT(x[1]))}).join('');
 const jud={guru:'DATA GURU',sekolah:'DATA SEKOLAH',semua:'DATA GURU DAN SEKOLAH'}[jenis]||'DATA',today=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
 return`<div class="paper"><div class="kop"><img class="kl" src="${logoSek()}" alt=""><div class="kt"><h2>${esc((g.sekolah||'NAMA SEKOLAH').toUpperCase())}</h2><p>${esc(g.jenjang||'')}${g.npsn?' - NPSN '+esc(g.npsn):''}</p>${alamatSek(g)?`<p>${esc(alamatSek(g))}${g.telpsekolah?' | Telp. '+esc(g.telpsekolah):''}</p>`:''}</div></div>
 <h1 class="jd">${jud}</h1><p class="sj">Tahun ajaran ${esc(g.tahun||'-')}, semester ${esc(g.semester||'-')}</p>${tb}
@@ -2140,13 +2140,13 @@ return`<w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent 
 const BD=['top','left','bottom','right','insideH','insideV'].map(s=>`<w:${s} w:val="single" w:sz="4" w:space="0" w:color="444444"/>`).join('');
 const tblX=(rows,widths,bd)=>`<w:tbl><w:tblPr><w:tblW w:w="${widths.reduce((a,b)=>a+b,0)}" w:type="dxa"/>${bd||''}<w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="70" w:type="dxa"/><w:right w:w="70" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${widths.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>${rows}</w:tbl>`;
 const tabelX=(t,cwx,rh)=>{const CW=cwx||cw;const trs=[...t.querySelectorAll('tr')].filter(r=>r.closest('table')===t);if(!trs.length)return'';
-const nc=Math.max.apply(null,trs.map(r=>[...r.children].reduce((a,c)=>a+(c.colSpan||1),0))),isId=t.classList.contains('id'),isG=t.classList.contains('idg'),wt=Array(nc).fill(4);
+const nc=Math.max.apply(null,trs.map(r=>[...r.children].reduce((a,c)=>a+(c.colSpan||1),0))),isId=t.classList.contains('id'),isG=t.classList.contains('idx'),wt=Array(nc).fill(4);
 trs.forEach(r=>{let i=0;[...r.children].forEach(c=>{const sp=c.colSpan||1;if(sp===1)wt[i]=Math.max(wt[i],Math.min(40,selTeks(c.textContent).length));i+=sp})});
-let wd;if(isG){const a=Math.floor(CW/nc);wd=Array(nc).fill(a)}else if(isId&&nc===2){const a=Math.round(CW*.3);wd=[a,CW-a]}else{const tot=wt.reduce((a,b)=>a+b,0);wd=wt.map(w=>Math.max(500,Math.round(CW*w/tot)));const s=wd.reduce((a,b)=>a+b,0);wd=wd.map(w=>Math.floor(w*CW/s))}
+let wd;if(isG){wd=[.17,.33,.17,.33].map(x=>Math.floor(CW*x))}else if(isId&&nc===2){const a=Math.round(CW*.3);wd=[a,CW-a]}else{const tot=wt.reduce((a,b)=>a+b,0);wd=wt.map(w=>Math.max(500,Math.round(CW*w/tot)));const s=wd.reduce((a,b)=>a+b,0);wd=wd.map(w=>Math.floor(w*CW/s))}
 const rows=trs.map(r=>{const head=!!r.closest('thead'),tot=r.classList.contains('tt');let i=0;
 const tcs=[...r.children].map((c,ci)=>{const sp=c.colSpan||1;let w=0;for(let k=0;k<sp;k++)w+=wd[i+k]||0;i+=sp;
 const hd=head||c.tagName==='TH',b=hd||tot||(isId&&ci===0)||c.classList.contains('lb'),jc=hd||c.classList.contains('c')?'center':'left';
-const shd=c.classList.contains('lb')?'<w:shd w:val="clear" w:color="auto" w:fill="F3F3F3"/>':hd?'<w:shd w:val="clear" w:color="auto" w:fill="E3EFFB"/>':tot?'<w:shd w:val="clear" w:color="auto" w:fill="F3F3F3"/>':'';
+const shd=hd?'<w:shd w:val="clear" w:color="auto" w:fill="E3EFFB"/>':tot?'<w:shd w:val="clear" w:color="auto" w:fill="F3F3F3"/>':'';
 return`<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/>${sp>1?`<w:gridSpan w:val="${sp}"/>`:''}${shd}<w:vAlign w:val="center"/></w:tcPr>${P(c,{sz:18,jc:jc,b:b,after:0})}</w:tc>`}).join('');
 return`<w:tr><w:trPr><w:cantSplit/>${rh?`<w:trHeight w:val="${rh}" w:hRule="atLeast"/>`:''}${head?'<w:tblHeader/>':''}</w:trPr>${tcs}</w:tr>`}).join('');
 return tblX(rows,wd,`<w:tblBorders>${BD}</w:tblBorders>`)+spasi};
