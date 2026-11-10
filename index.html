@@ -422,6 +422,18 @@ html{color-scheme:light only}
 input,select,textarea,button{color-scheme:light}
 input[type=date],input[type=month],input[type=time]{color-scheme:light;background-color:#fff;color:var(--ink)}
 select option,datalist option{background:#fff;color:#2b3a67}
+/* Pemilih tanggal/bulan buatan sendiri (selalu terang) untuk HP */
+.dpm{position:fixed;inset:0;background:#243b7b99;display:flex;align-items:center;justify-content:center;z-index:9999;padding:14px}
+.dpc{background:#fff;color:#2b3a67;width:100%;max-width:360px;border-radius:26px;padding:16px 14px 14px;box-shadow:0 18px 50px #0003;font-family:'Nunito',system-ui,sans-serif}
+.dpc .dph{display:flex;align-items:center;gap:6px;margin-bottom:8px}.dpc .dpt{flex:1;text-align:center;font:600 18px Fredoka,Nunito,sans-serif;color:#243b7b}
+.dpc button{font:inherit;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dpc .dpn{width:44px;height:44px;border-radius:50%;background:#eaf3fe;color:#1565c0;font-size:20px;font-weight:800}
+.dpc .dpg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}.dpc .dpw{font-weight:800;font-size:13px;color:#6b7aa6;padding:6px 0}
+.dpc .dpd{height:42px;border-radius:50%;background:#fff;color:#2b3a67;font-size:15px;font-weight:700}
+.dpc .dpd.ni{color:#9aa7c7}.dpc .dpd.td{box-shadow:inset 0 0 0 2px #1e88e5}.dpc .dpd.on{background:#1e88e5;color:#fff;box-shadow:none}
+.dpc .dpb{margin:0}.dpc .dpm12{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.dpc .dpm12 .dpd{height:48px;border-radius:14px}
+.dpc .dpa{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}
+.dpc .dpa button{min-height:46px;border-radius:14px;font-weight:800;font-size:14px;background:#eaf3fe;color:#1565c0}.dpc .dpa .pri{background:#1e88e5;color:#fff}
 .filt.sf{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px;align-items:end}
 .filt.sf>.fd{grid-column:1/-1;min-width:0}.filt.sf>.fd.h{grid-column:auto}
 .filt.sf .fd input,.filt.sf .fd select{display:block;width:100%!important;max-width:100%;min-width:0;box-sizing:border-box;height:50px;padding:0 14px;font:inherit;border-radius:14px}
@@ -2234,6 +2246,50 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))addEventLi
 /* ---------- mulai ---------- */
 try{Object.keys(localStorage).filter(k=>k.indexOf('jgdraf_')===0).forEach(k=>localStorage.removeItem(k))}catch(e){}
 addEventListener('DOMContentLoaded',()=>{ S.token&&S.guru?shell():viewLogin(); });
+</script>
+<script>
+/* Pemilih tanggal/bulan terang untuk layar sentuh (pemilih bawaan HP mengikuti mode gelap sistem) */
+(function(){
+if(!window.matchMedia||!matchMedia('(pointer:coarse)').matches)return;
+var BLN=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],BS=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'],HR=['M','S','S','R','K','J','S'];
+var p2=function(n){return('0'+n).slice(-2)};
+function tgl(){var d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())}
+function kirim(inp,v){inp.value=v;['input','change'].forEach(function(t){inp.dispatchEvent(new Event(t,{bubbles:true}))})}
+function buka(inp){
+ if(document.querySelector('.dpm'))return;
+ var bulan=inp.type==='month',now=tgl(),v=inp.value||'',pv=(bulan?v+'-01':v).match(/^(\d{4})-(\d{2})-(\d{2})/);
+ var th=pv?+pv[1]:+now.slice(0,4),bl=pv?+pv[2]-1:+now.slice(5,7)-1,mode=bulan?'bln':'hari';
+ var m=document.createElement('div');m.className='dpm';document.body.appendChild(m);
+ function tutup(){m.remove()}
+ function gambar(){
+  var h='<div class="dpc"><div class="dph"><button type="button" class="dpn" data-n="-1">‹</button><div class="dpt">'+(mode==='bln'?th:BLN[bl]+' '+th)+'</div><button type="button" class="dpn" data-n="1">›</button></div>';
+  if(mode==='bln'){h+='<div class="dpm12">'+BS.map(function(b,i){var k=th+'-'+p2(i+1);return'<button type="button" class="dpd'+(k===v?' on':(k===now.slice(0,7)?' td':''))+'" data-m="'+i+'">'+b+'</button>'}).join('')+'</div>'}
+  else{
+   h+='<div class="dpg">'+HR.map(function(x){return'<div class="dpw">'+x+'</div>'}).join('')+'</div><div class="dpg dpb">';
+   var aw=new Date(th,bl,1).getDay(),n=new Date(th,bl+1,0).getDate(),i;
+   for(i=0;i<aw;i++)h+='<span></span>';
+   for(i=1;i<=n;i++){var k=th+'-'+p2(bl+1)+'-'+p2(i);h+='<button type="button" class="dpd'+(k===v?' on':(k===now?' td':''))+'" data-d="'+k+'">'+i+'</button>'}
+   h+='</div>';
+  }
+  h+='<div class="dpa"><button type="button" data-a="x">Batal</button><button type="button" data-a="h">'+(bulan?'Bulan ini':'Hari ini')+'</button><button type="button" data-a="k">Kosongkan</button></div></div>';
+  m.innerHTML=h;
+ }
+ m.addEventListener('click',function(e){
+  if(e.target===m)return tutup();
+  var b=e.target.closest('button');if(!b)return;
+  if(b.dataset.n){var n=+b.dataset.n;if(mode==='bln')th+=n;else{bl+=n;if(bl<0){bl=11;th--}if(bl>11){bl=0;th++}}return gambar()}
+  if(b.dataset.d){kirim(inp,b.dataset.d);return tutup()}
+  if(b.dataset.m){kirim(inp,th+'-'+p2(+b.dataset.m+1));return tutup()}
+  if(b.dataset.a==='x')return tutup();
+  if(b.dataset.a==='k'){kirim(inp,'');return tutup()}
+  if(b.dataset.a==='h'){kirim(inp,bulan?now.slice(0,7):now);return tutup()}
+ });
+ gambar();
+}
+function sasar(e){var t=e.target;return t&&t.tagName==='INPUT'&&(t.type==='date'||t.type==='month')&&!t.disabled?t:null}
+document.addEventListener('pointerdown',function(e){var t=sasar(e);if(t)t.readOnly=true},true);
+document.addEventListener('click',function(e){var t=sasar(e);if(!t)return;e.preventDefault();e.stopPropagation();t.blur();buka(t)},true);
+})();
 </script>
 <script src="offline.js"></script>
 <script src="laporan-baru.js"></script>
