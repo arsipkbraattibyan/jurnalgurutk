@@ -434,6 +434,18 @@ select option,datalist option{background:#fff;color:#2b3a67}
 .dpc .dpb{margin:0}.dpc .dpm12{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.dpc .dpm12 .dpd{height:48px;border-radius:14px}
 .dpc .dpa{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}
 .dpc .dpa button{min-height:46px;border-radius:14px;font-weight:800;font-size:14px;background:#eaf3fe;color:#1565c0}.dpc .dpa .pri{background:#1e88e5;color:#fff}
+/* Daftar pilihan (dropdown dan saran nama) buatan sendiri, selalu putih, untuk HP */
+.slm{position:fixed;inset:0;background:#243b7b99;display:flex;align-items:flex-end;justify-content:center;z-index:9999}
+.slc{background:#fff;color:#2b3a67;width:100%;max-width:480px;max-height:78vh;display:flex;flex-direction:column;border-radius:26px 26px 0 0;padding:16px 14px calc(14px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 40px #0003;font-family:'Nunito',system-ui,sans-serif}
+@media(min-width:600px){.slm{align-items:center;padding:14px}.slc{border-radius:26px}}
+.slc .slt{font:600 18px Fredoka,Nunito,sans-serif;color:#243b7b;margin:0 4px 10px}
+.slc .slq{width:100%;box-sizing:border-box;height:48px;margin:0 0 10px;padding:0 14px;border:2px solid #d4e6fb;border-radius:14px;background:#fff;color:#2b3a67;font:inherit;color-scheme:light}
+.slc .sll{overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:6px;margin-bottom:12px;min-height:60px}
+.slc .slo{display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;width:100%;min-height:48px;padding:0 14px;border:0;border-radius:14px;background:#f3f9ff;color:#2b3a67;font:inherit;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.slc .slo.on{background:#1e88e5;color:#fff}.slc .slo.kt{color:#6b7aa6;font-weight:600}.slc .slo.on.kt{color:#fff}
+.slc .slo:active{transform:scale(.98)}.slc .sle{padding:14px;color:#6b7aa6;font-weight:700;text-align:center}
+.slc .sla{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px}
+.slc .sla button{min-height:46px;border:0;border-radius:14px;font:inherit;font-weight:800;font-size:14px;background:#eaf3fe;color:#1565c0;cursor:pointer}.slc .sla .pri{background:#1e88e5;color:#fff}
 .filt.sf{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px;align-items:end}
 .filt.sf>.fd{grid-column:1/-1;min-width:0}.filt.sf>.fd.h{grid-column:auto}
 .filt.sf .fd input,.filt.sf .fd select{display:block;width:100%!important;max-width:100%;min-width:0;box-sizing:border-box;height:50px;padding:0 14px;font:inherit;border-radius:14px}
@@ -2289,6 +2301,50 @@ function buka(inp){
 function sasar(e){var t=e.target;return t&&t.tagName==='INPUT'&&(t.type==='date'||t.type==='month')&&!t.disabled?t:null}
 document.addEventListener('pointerdown',function(e){var t=sasar(e);if(t)t.readOnly=true},true);
 document.addEventListener('click',function(e){var t=sasar(e);if(!t)return;e.preventDefault();e.stopPropagation();t.blur();buka(t)},true);
+})();
+</script>
+<script>
+/* Dropdown dan saran nama berlatar putih untuk layar sentuh (daftar bawaan HP mengikuti mode gelap sistem) */
+(function(){
+if(!window.matchMedia||!matchMedia('(pointer:coarse)').matches)return;
+var esc=function(t){return String(t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+function judul(el){var l=el.id&&document.querySelector('label[for="'+el.id+'"]');if(!l){var f=el.closest('.fd');l=f&&f.querySelector('label')}return l?l.textContent.trim():''}
+function kirim(el,v){el.value=v;['input','change'].forEach(function(t){el.dispatchEvent(new Event(t,{bubbles:true}))})}
+function lembar(el,opsi,cari,bebas){
+ if(document.querySelector('.slm'))return;
+ var m=document.createElement('div');m.className='slm';document.body.appendChild(m);
+ var tj=judul(el)||'Pilih',q=bebas?el.value:'';
+ function tutup(){m.remove()}
+ function daftar(){
+  var qq=q.trim().toLowerCase(),a=opsi.filter(function(o){return!qq||o.t.toLowerCase().indexOf(qq)>=0}),h='';
+  a.forEach(function(o,i){h+='<button type="button" class="slo'+(o.v===el.value?' on':'')+(o.v===''?' kt':'')+'" data-i="'+opsi.indexOf(o)+'"><span>'+esc(o.t||'-')+'</span>'+(o.v===el.value&&o.v!==''?'<span>✓</span>':'')+'</button>'});
+  m.querySelector('.sll').innerHTML=h||'<div class="sle">Tidak ada yang cocok</div>';
+ }
+ m.innerHTML='<div class="slc"><div class="slt">'+esc(tj)+'</div>'+(cari?'<input class="slq" type="text" placeholder="Ketik untuk mencari" autocomplete="off" value="'+esc(q)+'">':'')+'<div class="sll"></div><div class="sla"><button type="button" data-a="x">Batal</button>'+(bebas?'<button type="button" data-a="k">Kosongkan</button><button type="button" class="pri" data-a="p">Pakai</button>':'')+'</div></div>';
+ if(cari){var qi=m.querySelector('.slq');qi.addEventListener('input',function(){q=qi.value;daftar()});}
+ daftar();
+ m.addEventListener('click',function(e){
+  if(e.target===m)return tutup();
+  var o=e.target.closest('.slo');
+  if(o){kirim(el,opsi[+o.dataset.i].v);return tutup()}
+  var b=e.target.closest('button');if(!b)return;
+  if(b.dataset.a==='x')return tutup();
+  if(b.dataset.a==='k'){kirim(el,'');return tutup()}
+  if(b.dataset.a==='p'){kirim(el,m.querySelector('.slq').value.trim());return tutup()}
+ });
+ var on=m.querySelector('.slo.on');if(on&&on.scrollIntoView)try{on.scrollIntoView({block:'center'})}catch(e){}
+}
+function selSasar(t){return t&&t.tagName==='SELECT'&&!t.multiple&&!t.disabled?t:null}
+function listSasar(t){return t&&t.tagName==='INPUT'&&t.getAttribute('list')&&!t.disabled&&!t.readOnly?t:null}
+function listSasar2(t){return t&&t.tagName==='INPUT'&&t.getAttribute('list')&&!t.disabled?t:null}
+document.addEventListener('mousedown',function(e){if(selSasar(e.target))e.preventDefault()},true);
+document.addEventListener('pointerdown',function(e){var t=listSasar(e.target);if(t)t.readOnly=true;t=selSasar(e.target);if(t)t.blur()},true);
+document.addEventListener('click',function(e){
+ var t=selSasar(e.target);
+ if(t){e.preventDefault();e.stopPropagation();t.blur();var o=[].slice.call(t.options).filter(function(x){return!x.disabled}).map(function(x){return{v:x.value,t:x.textContent.trim()}});return lembar(t,o,o.length>12,false)}
+ t=listSasar2(e.target);
+ if(t){e.preventDefault();e.stopPropagation();t.blur();var dl=document.getElementById(t.getAttribute('list')),o2=dl?[].slice.call(dl.options).map(function(x){return{v:x.value,t:x.value}}):[];return lembar(t,o2,true,true)}
+},true);
 })();
 </script>
 <script src="offline.js"></script>
