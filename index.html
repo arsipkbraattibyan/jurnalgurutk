@@ -466,6 +466,17 @@ select option,datalist option{background:#fff;color:#2b3a67}
 @media(min-width:600px){.slc{max-width:440px;padding:20px 20px 18px}.slc .slg{display:none}.slc .slo{min-height:50px;font-size:15px;border-radius:14px}.slc .slo .av{width:34px;height:34px;font-size:15px}.slc .sll{gap:6px}}
 @media(hover:hover){.slc .slo:hover{border-color:#9ccbf7;background:#f0f7ff}.slc .slo.on:hover{background:#e0efff}.slc .slo:hover .rd{border-color:#1e88e5}.slc .slx:hover,.slc .slp:hover{background:#d9eafc}}
 .slc .slo:focus-visible,.slc .slx:focus-visible{outline:3px solid #1e88e555;outline-offset:1px}
+/* Model list view: baris datar dengan garis pemisah, tanda centang untuk yang terpilih */
+.slc .sll{gap:0;border:2px solid #e3eefb;border-radius:18px;padding:0;overflow-x:hidden;background:#fff}
+.slc .slo,.slc .slo.kt,.slc .slo.fr,.slc .slo.on{border:0;border-bottom:1px solid #e8f0fb;border-radius:0;min-height:54px;background:#fff;box-shadow:none;font-weight:700}
+.slc .slo:last-child{border-bottom:0}
+.slc .slo.kt{color:#6b7aa6}
+.slc .slo.on{background:#eaf4ff;color:#0f4c97;font-weight:800}
+.slc .slo.fr{background:#fff8e1;color:#7a5600}
+.slc .slo .rd,.slc .slo.on .rd{width:auto;height:auto;border:0;background:none;border-radius:0;color:#1e88e5;font-size:20px;font-weight:800}
+.slc .slo:active{transform:none;background:#eef6ff}
+@media(min-width:600px){.slc .slo{min-height:48px}}
+@media(hover:hover){.slc .slo:hover{background:#f0f7ff;border-color:#e8f0fb}.slc .slo.on:hover{background:#e0efff}.slc .slo:hover .rd{border:0}}
 .filt.sf{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px;align-items:end}
 .filt.sf>.fd{grid-column:1/-1;min-width:0}.filt.sf>.fd.h{grid-column:auto}
 .filt.sf .fd input,.filt.sf .fd select{display:block;width:100%!important;max-width:100%;min-width:0;box-sizing:border-box;height:50px;padding:0 14px;font:inherit;border-radius:14px}
