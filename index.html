@@ -2133,11 +2133,13 @@ const P=(n,o)=>{o=o||{};const jc=o.jc||(n.classList&&n.classList.contains('sj')?
 const r=runs(n,{b:o.b?1:0,i:0,u:o.u?1:0,sz:o.sz||20,up:o.up}),bf=o.before==null?0:o.before,af=o.after==null?80:o.after;
 return`<w:p><w:pPr>${o.keep?'<w:keepNext/>':''}<w:spacing w:before="${bf}" w:after="${af}"/><w:jc w:val="${jc}"/></w:pPr>${r||'<w:r><w:t></w:t></w:r>'}</w:p>`};
 const spasi='<w:p><w:pPr><w:spacing w:before="0" w:after="0"/><w:rPr><w:sz w:val="8"/></w:rPr></w:pPr></w:p>';
-const gbr=(img,maxW,maxH)=>{const m=/^data:image\/(png|jpe?g|gif);base64,(.+)$/i.exec(img.src||'');if(!m||img.naturalWidth<2)return'';
+const gbr=(img,maxW,maxH,cover)=>{const m=/^data:image\/(png|jpe?g|gif);base64,(.+)$/i.exec(img.src||'');if(!m||img.naturalWidth<2)return'';
 const ext=m[1].toLowerCase().replace('jpeg','jpg'),id=media.length+1,n='image'+id+'.'+ext;media.push({n:n,b:m[2]});
-let w=img.naturalWidth,h=img.naturalHeight;const s=Math.min(1,maxW/w,(maxH||9999)/h);w=Math.max(1,Math.round(w*s));h=Math.max(1,Math.round(h*s));
+let w=img.naturalWidth,h=img.naturalHeight,crop='';
+if(cover&&maxW>0&&maxH>0){const tr=maxW/maxH,sr=w/h;let l=0,tp=0;if(sr>tr)l=Math.round((1-tr/sr)/2*100000);else if(sr<tr)tp=Math.round((1-sr/tr)/2*100000);crop=`<a:srcRect l="${l}" t="${tp}" r="${l}" b="${tp}"/>`;w=Math.round(maxW);h=Math.round(maxH)}
+else{const s=Math.min(1,maxW/w,(maxH||9999)/h);w=Math.max(1,Math.round(w*s));h=Math.max(1,Math.round(h*s))}
 const cx=w*9525,cy=h*9525;
-return`<w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="${id}" name="Gambar ${id}"/><wp:cNvGraphicFramePr><a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/></wp:cNvGraphicFramePr><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="${id}" name="${n}"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rIdImg${id}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing>`};
+return`<w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="${id}" name="Gambar ${id}"/><wp:cNvGraphicFramePr><a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/></wp:cNvGraphicFramePr><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="${id}" name="${n}"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rIdImg${id}"/>${crop}<a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing>`};
 const BD=['top','left','bottom','right','insideH','insideV'].map(s=>`<w:${s} w:val="single" w:sz="4" w:space="0" w:color="444444"/>`).join('');
 const tblX=(rows,widths,bd)=>`<w:tbl><w:tblPr><w:tblW w:w="${widths.reduce((a,b)=>a+b,0)}" w:type="dxa"/>${bd||''}<w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="70" w:type="dxa"/><w:right w:w="70" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${widths.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>${rows}</w:tbl>`;
 const tabelX=(t,cwx,rh)=>{const CW=cwx||cw;const trs=[...t.querySelectorAll('tr')].filter(r=>r.closest('table')===t);if(!trs.length)return'';
@@ -2181,9 +2183,10 @@ const inl=n=>!n.querySelector('table,div,p,h1,h2,h3,h4,figure,ul,ol,img');
 function satu(n,o){o=o||{};const g=n.tagName.toLowerCase(),cl=n.classList;
 if(cl.contains('noprint')||g==='svg'||g==='style'||g==='script')return'';
 if(cl.contains('idgrid'))return idX(n);if(cl.contains('kop'))return kopX(n);if(cl.contains('ttd'))return ttdX(n);if(cl.contains('gal'))return galX(n);
-if(cl.contains('pfr')){const im=n.querySelector('.pfw img'),t=n.querySelector('table'),nr=t?t.querySelectorAll('tr').length:7,ph=Math.round(nr*420/15),pw=Math.round(ph*.76),lw=pw*15+283,rw=cw-lw,x=im?gbr(im,pw,ph):'';
-const left=x?`<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/><w:jc w:val="left"/></w:pPr><w:r>${x}</w:r></w:p>`:'<w:p/>';
-const row=`<w:tr><w:trPr><w:cantSplit/></w:trPr><w:tc><w:tcPr><w:tcW w:w="${lw}" w:type="dxa"/></w:tcPr>${left}</w:tc><w:tc><w:tcPr><w:tcW w:w="${rw}" w:type="dxa"/></w:tcPr>${t?tabelX(t,rw-140,420):'<w:p/>'}</w:tc></w:tr>`;
+if(cl.contains('pfr')){const im=n.querySelector('.pfw img'),t=n.querySelector('table'),nr=t?t.querySelectorAll('tr').length:7,ph=Math.round(nr*420/15),pw=Math.round(ph*.76),lw=pw*15+283,rw=cw-lw,x=im?gbr(im,pw,ph,1):'';
+const left=x?`<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/><w:jc w:val="left"/></w:pPr><w:r><w:rPr><w:sz w:val="2"/></w:rPr>${x}</w:r></w:p>`:'<w:p/>';
+const tx=t?tabelX(t,rw-140,420):'',tk=tx.endsWith(spasi)?tx.slice(0,-spasi.length)+'<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="20" w:lineRule="exact"/><w:rPr><w:sz w:val="2"/></w:rPr></w:pPr></w:p>':tx;
+const row=`<w:tr><w:trPr><w:cantSplit/></w:trPr><w:tc><w:tcPr><w:tcW w:w="${lw}" w:type="dxa"/></w:tcPr>${left}</w:tc><w:tc><w:tcPr><w:tcW w:w="${rw}" w:type="dxa"/></w:tcPr>${tk||'<w:p/>'}</w:tc></w:tr>`;
 return tblX(row,[lw,rw],'')+spasi}
 if(cl.contains('pfw')){const im=n.querySelector('img'),x=im?gbr(im,136,224):'';return x?`<w:p><w:pPr><w:spacing w:before="0" w:after="60"/><w:jc w:val="right"/></w:pPr><w:r>${x}</w:r></w:p>`:''}
 if(cl.contains('sp'))return P({childNodes:[]},{after:0}).repeat(3);
