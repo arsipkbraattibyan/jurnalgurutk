@@ -2363,9 +2363,8 @@ function narasi(nama,per){if(!per.length)return'';
 const kal=per.map(p=>`Pada aspek ${p.aspek.toLowerCase()}, ${nama} saat ini ${LVN[p.last]} (${LVS[p.last]})${p.n>1?(p.last>p.first?`, meningkat dari ${LVS[p.first]}`:p.last<p.first?`, menurun dari ${LVS[p.first]} sehingga perlu pendampingan lebih lanjut`:', dan capaian ini stabil'):''}.`).join(' ');
 const baik=per.filter(p=>p.last>=2).map(p=>p.aspek.toLowerCase()),perlu=per.filter(p=>p.last<2).map(p=>p.aspek.toLowerCase());
 return kal+(baik.length?` ${nama} sudah berkembang baik pada aspek ${gabung(baik)}.`:'')+(perlu.length?` Aspek yang masih memerlukan stimulasi dan pendampingan: ${gabung(perlu)}.`:'')}
-async function viewPortofolio(){const m=$('#main');m.innerHTML=muat();
-try{await loadSiswa();if(!ROWS.perkembangan){const cc=cGet('semua');if(cc&&Array.isArray(cc.perkembangan))ROWS.perkembangan=urut(cc.perkembangan.slice())}
-const r=await api('list',{jenis:'perkembangan'});ROWS.perkembangan=urut(r.rows);cRows('perkembangan');if(S.view!=='portofolio')return;
+async function viewPortofolio(){const m=$('#main');
+const bangun=()=>{const sel=$('#pa')?[$('#pa').value,$('#pd').value,$('#ps').value]:['','',''];
 const kf=klf(),tp=new Map();
 (SISWA||[]).filter(s=>!kf||s.kelas===kf).forEach(s=>tp.set(kunci(s.nama),{nama:s.nama,kelas:s.kelas}));
 ROWS.perkembangan.forEach(x=>{const k=kunci(x.nama);if(k&&!tp.has(k))tp.set(k,{nama:String(x.nama).trim(),kelas:kelNorm(x.kelas)})});
@@ -2377,7 +2376,14 @@ if(!k){$('#lap').innerHTML='<div class="card empty">Pilih nama anak untuk menamp
 const o=L.find(x=>x.k===k);S.pfNama=o.nama;pu.style.display='';$('#lap').innerHTML=portofolio(o,$('#pd').value,$('#ps').value);isiFoto($('#lap'))};
 ['#pa','#pd','#ps'].forEach(x=>$(x).onchange=tampil);
 $('.ukr').onclick=e=>{const b=e.target.closest('[data-ak]');if(b)aksiLap(b.dataset.uk,b.dataset.ak)};
-$('#lap').onclick=e=>{const bf=e.target.closest('img[data-fid]');if(bf&&bf.dataset.loaded)lihatFoto(bf.src)}}
+$('#lap').onclick=e=>{const bf=e.target.closest('img[data-fid]');if(bf&&bf.dataset.loaded)lihatFoto(bf.src)};
+if(sel[0]&&[...$('#pa').options].some(o=>o.value===sel[0])){$('#pa').value=sel[0];$('#pd').value=sel[1];$('#ps').value=sel[2];tampil()}};
+try{if(!SISWA){const cs=cGet('siswa');if(cs)SISWA=cs}
+if(!ROWS.perkembangan){const cc=cGet('semua');if(cc&&Array.isArray(cc.perkembangan))ROWS.perkembangan=urut(cc.perkembangan.slice())}
+if(ROWS.perkembangan&&SISWA){ // tampil langsung dari cache, data terbaru dimuat di latar belakang
+bangun();const sig0=JSON.stringify([ROWS.perkembangan,SISWA]);
+Promise.all([segarSiswa(),api('list',{jenis:'perkembangan'}).then(r=>{ROWS.perkembangan=urut(r.rows);cRows('perkembangan')})]).then(()=>{if(S.view==='portofolio'&&JSON.stringify([ROWS.perkembangan,SISWA])!==sig0)bangun()}).catch(()=>{})}
+else{m.innerHTML=muat();await loadSiswa();const r=await api('list',{jenis:'perkembangan'});ROWS.perkembangan=urut(r.rows);cRows('perkembangan');if(S.view!=='portofolio')return;bangun()}}
 catch(e){m.innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
 function portofolio(o,dari,sampai){const g=S.guru,today=new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
 const rs=(ROWS.perkembangan||[]).filter(r=>kunci(r.nama)===o.k&&(!dari||r.tanggal>=dari)&&(!sampai||r.tanggal<=sampai)).slice().sort((a,b)=>String(a.tanggal).localeCompare(String(b.tanggal)));
