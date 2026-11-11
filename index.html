@@ -2149,7 +2149,7 @@ const tcs=[...r.children].map((c,ci)=>{const sp=c.colSpan||1;let w=0;for(let k=0
 const hd=head||c.tagName==='TH',b=hd||tot||(isId&&ci===0)||c.classList.contains('lb'),jc=hd||c.classList.contains('c')?'center':'left';
 const shd=hd?'<w:shd w:val="clear" w:color="auto" w:fill="E3EFFB"/>':tot?'<w:shd w:val="clear" w:color="auto" w:fill="F3F3F3"/>':'';
 return`<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/>${sp>1?`<w:gridSpan w:val="${sp}"/>`:''}${shd}<w:vAlign w:val="center"/></w:tcPr>${P(c,{sz:18,jc:jc,b:b,after:0})}</w:tc>`}).join('');
-return`<w:tr><w:trPr><w:cantSplit/>${rh?`<w:trHeight w:val="${rh}" w:hRule="atLeast"/>`:''}${head?'<w:tblHeader/>':''}</w:trPr>${tcs}</w:tr>`}).join('');
+return`<w:tr><w:trPr><w:cantSplit/>${rh?`<w:trHeight w:val="${rh}" w:hRule="${isG?'exact':'atLeast'}"/>`:''}${head?'<w:tblHeader/>':''}</w:trPr>${tcs}</w:tr>`}).join('');
 return tblX(rows,wd,`<w:tblBorders>${BD}</w:tblBorders>`)+spasi};
 const idX=g=>{const ds=[...g.children].filter(d=>d.querySelector('table'));if(!ds.length)return'';
 const gap=300,w=Math.floor((cw-gap*(ds.length-1))/ds.length),l=Math.round(w*.42),v=w-l;
@@ -2181,8 +2181,8 @@ const inl=n=>!n.querySelector('table,div,p,h1,h2,h3,h4,figure,ul,ol,img');
 function satu(n,o){o=o||{};const g=n.tagName.toLowerCase(),cl=n.classList;
 if(cl.contains('noprint')||g==='svg'||g==='style'||g==='script')return'';
 if(cl.contains('idgrid'))return idX(n);if(cl.contains('kop'))return kopX(n);if(cl.contains('ttd'))return ttdX(n);if(cl.contains('gal'))return galX(n);
-if(cl.contains('pfr')){const im=n.querySelector('.pfw img'),t=n.querySelector('table'),nr=t?t.querySelectorAll('tr').length:7,ph=Math.round(nr*420/15)-6,pw=Math.round(ph*.76),lw=pw*15+283,rw=cw-lw,x=im?gbr(im,pw,ph):'';
-const left=x?`<w:p><w:pPr><w:spacing w:before="0" w:after="0"/><w:jc w:val="left"/></w:pPr><w:r>${x}</w:r></w:p>`:'<w:p/>';
+if(cl.contains('pfr')){const im=n.querySelector('.pfw img'),t=n.querySelector('table'),nr=t?t.querySelectorAll('tr').length:7,ph=Math.round(nr*420/15),pw=Math.round(ph*.76),lw=pw*15+283,rw=cw-lw,x=im?gbr(im,pw,ph):'';
+const left=x?`<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/><w:jc w:val="left"/></w:pPr><w:r>${x}</w:r></w:p>`:'<w:p/>';
 const row=`<w:tr><w:trPr><w:cantSplit/></w:trPr><w:tc><w:tcPr><w:tcW w:w="${lw}" w:type="dxa"/></w:tcPr>${left}</w:tc><w:tc><w:tcPr><w:tcW w:w="${rw}" w:type="dxa"/></w:tcPr>${t?tabelX(t,rw-140,420):'<w:p/>'}</w:tc></w:tr>`;
 return tblX(row,[lw,rw],'')+spasi}
 if(cl.contains('pfw')){const im=n.querySelector('img'),x=im?gbr(im,136,224):'';return x?`<w:p><w:pPr><w:spacing w:before="0" w:after="60"/><w:jc w:val="right"/></w:pPr><w:r>${x}</w:r></w:p>`:''}
