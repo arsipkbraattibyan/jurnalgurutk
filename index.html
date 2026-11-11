@@ -1748,7 +1748,9 @@ const ct=[['Izin',a.izinNama],['Sakit',a.sakitNama],['Tanpa keterangan',a.alphaN
 setArea('catatan',ct||'Semua hadir');toast('Data absen terisi')}}
 catch(er){toast(er.message,1)}
 rk.disabled=false;return}
-if(t.closest('[data-s]')){const skip=(aktif?tb.hide:[]).slice();if(aktif&&k==='perkembangan'){const nn0=Object.keys(T).filter(n=>T[n]),ct0=md._ct||{};['catatan','tindak'].forEach(f=>{if(nn0.length&&nn0.every(n=>((ct0[n]||{})[f]||'').trim()))skip.push(f)})}const{d,kurang,kk}=ambil(md,j.f.filter(f=>!skip.includes(f.k)));
+if(t.closest('[data-s]')){const skip=(aktif?tb.hide:[]).slice();if(aktif&&k==='perkembangan'){const nn0=Object.keys(T).filter(n=>T[n]),ct0=md._ct||{};['catatan','tindak'].forEach(f=>{if(nn0.length&&nn0.every(n=>((ct0[n]||{})[f]||'').trim()))skip.push(f)})}const{d,kurang:kur0,kk}=ambil(md,j.f.filter(f=>!skip.includes(f.k)));
+let kurang=kur0;if(kur0&&aktif&&k==='perkembangan'&&(kk==='catatan'||kk==='tindak')){const lb=kk==='catatan'?'Catatan pengamatan':'Tindak lanjut',ct1=md._ct||{},ks=Object.keys(T).filter(n=>T[n]&&!((ct1[n]||{})[kk]||'').trim());
+kurang=ks.length?lb+' '+(ks.length<=3?ks.join(', '):ks.slice(0,2).join(', ')+' dan '+(ks.length-2)+' anak lain')+' belum diisi. Isi di bawah nama anak atau di isian umum':kur0}
 if(kurang){const e=E(kk),fd=e&&e.closest('.fd');
 if(fd){if(md._ak)md._ak();if(fd.tagName==='DETAILS')fd.open=true;
 const tg=fd.querySelector(':scope>.ah')||fd;
