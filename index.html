@@ -85,6 +85,8 @@ button{font:inherit;cursor:pointer}h1,h2,h3,p{margin:0}
 .frw{grid-column:1/-1;display:grid;gap:16px;align-items:start}.frw.f2{grid-template-columns:repeat(2,minmax(0,1fr))}.frw.f3{grid-template-columns:repeat(3,minmax(0,1fr))}.frw.f4{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.frw.f4 .ah{font-size:13px;padding:8px}.frw.f4 .ah span{min-width:0}
 .frw>.fd.full{grid-column:auto;min-width:0}.frw .ah{padding:8px 10px;gap:6px}.frw .ah i{max-width:50%}
 .frw:has(>.fd:not([data-m]))>.fd[data-m]{margin-top:23px} /* sejajarkan bilah dengan isian teks/tanggal yang punya label di atas */
+/* kartu catatan ringkas di HP */
+@media(max-width:640px){.card.row.kc{padding:12px 14px;border-left-width:6px}.card.row.kc h3{font-size:16px;line-height:1.3;margin:2px 0 6px}.card.row.kc>small{font-size:12px}.card.row.kc .kv{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;margin:6px 0 8px;font-size:13.5px;line-height:1.35}.card.row.kc .kv small{font-size:11px;margin-bottom:1px}.card.row.kc .kv>.w{grid-column:1/-1}.card.row.kc .rbt{gap:8px;margin-top:2px}.card.row.kc .rbt .btn{min-height:38px;padding:0 10px;font-size:14px}}
 @media(max-width:640px){.frw.f2,.frw.f3,.frw.f4{grid-template-columns:minmax(0,1fr)}.frw>.fd,.frw>.fd[data-m]{margin-top:0;max-width:440px}.frw{gap:12px}}
 input:not([type=radio]):not([type=hidden]),textarea{width:100%;font:inherit;height:48px;padding:0 14px;border:2px solid var(--ln);border-radius:14px;background:#fff;color:var(--ink)}
 textarea{height:auto;min-height:48px;padding:10px 14px}.ex{margin-top:8px}
@@ -1363,7 +1365,7 @@ const cc=cGet('semua');if(!ROWS[k]&&cc&&Array.isArray(cc[k]))ROWS[k]=urut(cc[k].
 try{const r=await api('list',{jenis:k});ROWS[k]=urut(r.rows);cRows(k);if(S.view===k)tampil(k)}
 catch(e){if(!ROWS[k])$('#ls').innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
 function tampil(k){const j=J[k];filSync(k);const rs=filCocok(k);
-$('#ls').innerHTML=rs.length?rs.map(r=>`<div class="card row"><small>${fmt(r.tanggal)}</small><h3>${esc(j.t(r))}</h3><div class="kv">${j.f.filter(f=>f.k!=='tanggal'&&r[f.k]!==''&&r[f.k]!==undefined).map(f=>`<div><small>${f.l}</small>${esc(fv(f,r))}</div>`).join('')}</div>${fotoHtml(r)}<div class="rbt"><button class="btn gh s" data-e="${r.ID}">✏️ Ubah</button><button class="btn rd s" data-d="${r.ID}">🗑️ Hapus</button></div></div>`).join(''):`<div class="card empty">${(ROWS[k]||[]).length?'Data tidak ditemukan':'Belum ada catatan. Ketuk <b>+ Tambah Catatan</b> untuk mengisi jurnal.'}</div>`;
+$('#ls').innerHTML=rs.length?rs.map(r=>`<div class="card row kc"><small>${fmt(r.tanggal)}</small><h3>${esc(j.t(r))}</h3><div class="kv">${j.f.filter(f=>f.k!=='tanggal'&&r[f.k]!==''&&r[f.k]!==undefined&&!(k==='harian'&&['kelas','tema','kegiatan'].includes(f.k))).map(f=>{const v=esc(fv(f,r));return `<div${v.length>26?' class="w"':''}><small>${f.l}</small>${v}</div>`}).join('')}</div>${fotoHtml(r)}<div class="rbt"><button class="btn gh s" data-e="${r.ID}">✏️ Ubah</button><button class="btn rd s" data-d="${r.ID}">🗑️ Hapus</button></div></div>`).join(''):`<div class="card empty">${(ROWS[k]||[]).length?'Data tidak ditemukan':'Belum ada catatan. Ketuk <b>+ Tambah Catatan</b> untuk mengisi jurnal.'}</div>`;
 isiFoto($('#ls'));
 $('#ls').onclick=async e=>{const bf=e.target.closest('img.ft');if(bf&&bf.dataset.loaded)return lihatFoto(bf.src);const be=e.target.closest('[data-e]'),bd=e.target.closest('[data-d]');
 if(be)bukaForm(k,ROWS[k].find(r=>r.ID===be.dataset.e));
