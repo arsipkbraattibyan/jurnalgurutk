@@ -497,8 +497,8 @@ function bagianPorto(rs, o) {
   return h + '<p style="font-size:11px;margin:4px 0 0">Pengamatan autentik tanpa nilai angka, bersumber dari Jurnal Perkembangan dan Jurnal Penilaian.</p>';
 }
 
-window.portofolio = function (o, dari, sampai) {
-  const html = portoAsli(o, dari, sampai);
+window.portofolio = function (o, dari, sampai, tuj) {
+  const html = portoAsli(o, dari, sampai, tuj);
   if (!KBP) return html;
   try {
     const rs = KBP.filter(r => r.anakid && kunci(r.anaknama) === o.k && (!dari || String(r.tanggal) >= dari) && (!sampai || String(r.tanggal) <= sampai))
