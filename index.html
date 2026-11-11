@@ -712,8 +712,8 @@ function cRows(k){const c=cGet('semua')||{};c[k]=ROWS[k]||[];cSet('semua',c)}
 function stale(k){KBDT=0;delete ROWS[k];const c=cGet('semua');if(c){delete c[k];cSet('semua',c)}}
 
 /* ---------- dialog konfirmasi di dalam aplikasi (pengganti popup bawaan browser) ---------- */
-function tanya(judul,pesan,ya,bahaya){return new Promise(ok=>{const md=document.createElement('div');md.className='md';md.style.zIndex=40;
-md.innerHTML=`<div class="sheet" style="max-width:420px"><h2>${esc(judul)}</h2><p class="sub" style="margin-bottom:6px;color:var(--ink)">${esc(pesan)}</p><div class="act"><button class="btn gh" data-n>Batal</button><button class="btn ${bahaya===false?'y':'rd'}" data-y>${esc(ya||'Ya')}</button></div></div>`;
+function tanya(judul,pesan,ya,bahaya,tidak){return new Promise(ok=>{const md=document.createElement('div');md.className='md';md.style.zIndex=40;
+md.innerHTML=`<div class="sheet" style="max-width:420px"><h2>${esc(judul)}</h2><p class="sub" style="margin-bottom:6px;color:var(--ink)">${esc(pesan)}</p><div class="act"><button class="btn gh" data-n>${esc(tidak||'Batal')}</button><button class="btn ${bahaya===false?'y':'rd'}" data-y>${esc(ya||'Ya')}</button></div></div>`;
 const t=x=>{md.remove();ok(x)};md.onclick=e=>{if(e.target===md)return t(false);if(e.target.closest('[data-n]'))return t(false);if(e.target.closest('[data-y]'))t(true)};
 document.body.appendChild(md);const b=md.querySelector('[data-n]');if(b)b.focus()})}
 const urut=a=>a.sort((x,y)=>String(y.tanggal).localeCompare(String(x.tanggal)));
@@ -1782,6 +1782,7 @@ if(row)d.ID=row.ID;
 if(k==='harian'){const wj=[['#kbct','Tujuan penguatan KBC'],['#kbca','Aktivitas implementasi KBC'],['#kbcc','Catatan penerapan KBC']];for(const [id,nm] of wj){const el=md.querySelector(id);if(el&&!el.value.trim()){const b2=md.querySelector('#kbcb');if(b2)b2.open=true;el.scrollIntoView({behavior:'smooth',block:'center'});el.focus();return toast('Lengkapi dulu: '+nm,1)}}}
 if(k==='harian'){const kb=kbcAmbil(md);if(kb){const er=kbcCek(kb);if(er){const b2=md.querySelector('#kbcb');b2.open=true;b2.scrollIntoView({behavior:'smooth',block:'center'});return toast(er,1)}d.kbc=kb}}
 if(k==='penilaian'){if(md._pcpPending&&md._pcpPending()){const pb=md.querySelector('#pcpb');pb.open=true;pb.scrollIntoView({behavior:'smooth',block:'center'});return toast('Pengamatan Panca Cinta belum dimasukkan. Ketuk "Simpan pengamatan anak ini" atau kosongkan isiannya',1)}const pc=md._pcpGet&&md._pcpGet();if(pc!==undefined)d.pcobs=pc}
+if(k==='perkembangan'&&!d.pancacinta&&!(row&&!row.pancacinta)&&!await tanya('Nilai Panca Cinta belum dipilih','Simpan tanpa nilai Panca Cinta?','Simpan saja',false,'Pilih dulu')){const ib=md.querySelector('#pcb');if(ib){ib.open=true;ib.scrollIntoView({behavior:'smooth',block:'center'})}return}
 const b=t.closest('[data-s]');b.disabled=true;b.textContent='Menyimpan...';
 if(k==='perkembangan'){await JRmuat('perkembangan');const dp=cekDup();if(dp){toast('Tidak bisa disimpan: pengamatan '+dp.join(', ')+' tanggal '+tgl(E('tanggal').value)+' sudah ada.',1);b.disabled=false;b.textContent='Simpan';return}}
 if(k==='kehadiran'||k==='harian'){await (md._mu||(k==='harian'?JRmuat('harian'):KHmuat()));const dx=cekDup();if(dx){toast('Tidak bisa disimpan: '+(k==='harian'?'Jurnal Harian ':'Jurnal Kehadiran ')+E('kelas').value+' tanggal '+tgl(E('tanggal').value)+' sudah ada.',1);b.disabled=false;b.textContent='Simpan';return}}
