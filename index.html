@@ -2019,7 +2019,7 @@ const selTeks=t=>String(t==null?'':t).replace(/\s+/g,' ').trim();
 const selNilai=t=>{t=selTeks(t);return /^(-?[1-9]\d{0,8}|0)$/.test(t)?+t:t};
 function tabelAoa(t){const out=[];[...t.querySelectorAll('tr')].filter(r=>r.closest('table')===t).forEach(r=>{const row=[];[...r.children].forEach(c=>{row.push(selNilai(c.textContent));for(let k=1;k<(c.colSpan||1);k++)row.push('')});out.push(row)});return out}
 async function simpanExcel(nama,u,ori){const src=$('#lap .paper');if(!src)throw new Error('Laporan belum siap dimuat.');
-if(S.view!=='identitas')return simpanExcelLap(src,nama,u,ori);
+return simpanExcelLap(src,nama,u,ori);
 await loadJs(XLS_URL);const wb=XLSX.utils.book_new(),pakai=new Set();
 const lebar=a=>{const n=a.reduce((m,r)=>Math.max(m,r.length),0),w=Array(n).fill(8);a.forEach(r=>r.forEach((v,i)=>{w[i]=Math.min(60,Math.max(w[i],String(v).length+2))}));return w.map(x=>({wch:x}))};
 const els=[...src.querySelectorAll('h3,h4,table')];
@@ -2111,7 +2111,7 @@ const sheet='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet x
 const HD='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',z=new JSZip();
 z.file('[Content_Types].xml',HD+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>');
 z.file('_rels/.rels',HD+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>');
-z.file('xl/workbook.xml',HD+'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="'+(S.view==='portofolio'?'Portofolio':S.view==='kalender'?'Kalender':'Laporan')+'" sheetId="1" r:id="rId1"/></sheets></workbook>');
+z.file('xl/workbook.xml',HD+'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="'+(S.view==='portofolio'?'Portofolio':S.view==='kalender'?'Kalender':S.view==='identitas'?'Data':'Laporan')+'" sheetId="1" r:id="rId1"/></sheets></workbook>');
 z.file('xl/_rels/workbook.xml.rels',HD+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>');
 z.file('xl/styles.xml',styles);z.file('xl/worksheets/sheet1.xml',sheet);
 const blob=await z.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',compression:'DEFLATE'});
