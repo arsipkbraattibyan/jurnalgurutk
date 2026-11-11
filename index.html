@@ -607,6 +607,44 @@ html[data-tema=main] .hero.hf>div:first-child{padding-bottom:0}
 .dd-l li.on .dd-k{display:block}
 @media(prefers-reduced-motion:reduce){.dd-c{transition:none}}
 
+
+/* ===== Desain 2 (Kindergarten Ceria) - gaya dashboard: menu samping ungu lembut, latar lavender, kartu putih bulat, banner pink ===== */
+html[data-tema=main]{--blue:#6d5ef0;--blued:#5446d6;--navy:#2a2d6b;--ink:#2b3060;--mut:#7a7fb0;--ln:#e6e3fb;--soft:#eeeaff;--sh:0 6px 20px #6d5ef021}
+html[data-tema=main] body{background:linear-gradient(135deg,#e4e8ff,#efe7ff 52%,#fde8f3) fixed;font-family:'Plus Jakarta Sans','Nunito',system-ui,sans-serif}
+html[data-tema=main] :is(h1,h2,h3,.btn,.nv,.pad button,.tabs button){font-family:'Plus Jakarta Sans','Nunito',sans-serif}
+html[data-tema=main] .btn{background:linear-gradient(#8b7cf8,#6d5ef0);box-shadow:0 6px 14px #6d5ef044}
+html[data-tema=main] .btn.y{background:linear-gradient(#ffa13a,#f7871c);box-shadow:0 6px 14px #f7871c55}
+html[data-tema=main] .btn.gh{background:var(--soft);color:var(--blued);box-shadow:none}
+html[data-tema=main] .btn.o{color:var(--navy);border-color:var(--navy)}
+html[data-tema=main] .nv.on{background:linear-gradient(#8b7cf8,#6d5ef0);box-shadow:0 6px 14px #6d5ef04d}
+html[data-tema=main] .top{box-shadow:0 4px 18px #6d5ef01c}
+html[data-tema=main] .menu{box-shadow:var(--sh)}
+html[data-tema=main] .card{border-radius:22px;border-color:transparent;box-shadow:var(--sh)}
+html[data-tema=main] .hero{background:linear-gradient(120deg,#ffdfec,#ffe7d8 58%,#fff0c8);border-radius:30px}
+html[data-tema=main] .hero.hf{background:#1e3a8a}
+html[data-tema=main] .scene::before,html[data-tema=main] .scene .hill{display:none}
+html[data-tema=main] .strip{background:#fff;border:0;border-radius:24px;box-shadow:var(--sh)}
+@media(min-width:861px){
+html[data-tema=main] #app{padding:12px 12px 12px 272px;min-height:100vh}
+html[data-tema=main] #app::before{content:"";position:fixed;left:12px;top:12px;bottom:12px;width:244px;border-radius:28px;z-index:1;background:linear-gradient(170deg,#7a69f4,#9a7cf7 55%,#b48cf6);box-shadow:var(--sh)}
+html[data-tema=main] .top{display:contents}
+html[data-tema=main] .brand{position:fixed;left:12px;top:12px;width:244px;padding:18px 20px 8px;z-index:3}
+html[data-tema=main] .brand img.lg{height:40px}
+html[data-tema=main] .brand b{font:800 18px 'Plus Jakarta Sans',sans-serif;letter-spacing:.3px;background:none;-webkit-text-fill-color:#fff;color:#fff}
+html[data-tema=main] .brand small{color:#e7defe;letter-spacing:.4px;font-size:10.5px}
+html[data-tema=main] .menu{position:fixed;left:12px;top:78px;bottom:12px;width:244px;z-index:3;flex-wrap:nowrap;flex-direction:column;justify-content:flex-start;align-items:stretch;gap:2px;max-width:none;margin:0;padding:8px 12px 12px;overflow-y:auto;background:none;box-shadow:none;border-radius:0}
+html[data-tema=main] .nv{display:flex;flex-direction:row;align-items:center;gap:10px;width:100%;max-width:none;min-width:0;border:0;background:none;color:#f3eeff;border-radius:14px;padding:9px 12px;font:600 13px 'Plus Jakarta Sans',sans-serif;text-align:left;box-shadow:none}
+html[data-tema=main] .nv .ni{display:grid;place-items:center;width:26px;height:26px;margin:0;font-size:16px}
+html[data-tema=main] .nv:hover{background:#ffffff26}
+html[data-tema=main] .nv.on{background:#fff;color:#5446d6;box-shadow:0 6px 14px #4a3bc433}
+html[data-tema=main] .nv:not(.on) .ni,html[data-tema=main] .lo2 .ni{filter:grayscale(1) brightness(2.6)}
+html[data-tema=main] .sbx{display:block;margin-top:auto;padding-top:10px}
+html[data-tema=main] .lo2{display:flex;align-items:center;gap:10px;width:100%;margin-top:6px;border:0;background:none;color:#f3eeff;padding:9px 12px;font:600 13px 'Plus Jakarta Sans',sans-serif;border-radius:14px}
+html[data-tema=main] .lo2:hover{background:#ffffff26}
+html[data-tema=main] .promo{display:none}
+html[data-tema=main] .cu{display:flex;justify-content:flex-end;padding:4px 10px 12px;color:var(--navy)}
+html[data-tema=main] .cu .btn{display:none}
+}
 </style>
 </head>
 <body>
