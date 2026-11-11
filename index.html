@@ -1542,7 +1542,7 @@ const fs=E('subtema').closest('.fd'),ops=fs.querySelector('.opts'),h=document.cr
 h.className='sub';h.style.cssText='display:block;margin:-2px 0 8px;font-size:12px';fs.querySelector('label').after(h);
 const urut=[...ops.children].map((l,i)=>({l,i,v:l.querySelector('input').value}));
 const terapkan=bersih=>{const tm=E('tema').value,bol=SUBTEMA[tm];let ubah=false;
-h.textContent=!tm?'Pilih tema dulu. Subtema yang sesuai akan aktif, yang lain tampil abu-abu.':bol?'Subtema yang sesuai tema "'+tm+'" ada di atas dan bisa dipilih. Yang lain tidak bisa dipilih.':'';
+h.textContent=!tm?'Pilih tema dulu. Subtema yang sesuai akan aktif, yang lain tampil abu-abu.':bol?'':'';
 urut.forEach(o=>{o.ok=!tm?false:!bol||bol.includes(o.v);const r=o.l.querySelector('input');
 o.l.classList.toggle('dis',!o.ok);r.disabled=!o.ok;if(!o.ok&&bersih&&r.checked){r.checked=false;ubah=true}});
 urut.slice().sort((a,b)=>(b.ok-a.ok)||(a.i-b.i)).forEach(o=>ops.appendChild(o.l));
