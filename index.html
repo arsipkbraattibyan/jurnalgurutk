@@ -1531,7 +1531,7 @@ function bukaForm(k,row){const j=J[k],tb=((!row||k==='kehadiran')&&TB[k])||null,
 const rkBtn=k==='kehadiran'?`<div class="fd full" id="rkw"><button type="button" class="btn y s" data-rk>Isi otomatis dari Rekap Absen</button> <small class="sub">${klf()?'Pilih tanggal dulu.':'Pilih tanggal dan kelompok dulu.'}</small></div>`:'';
 md.innerHTML=`<div class="sheet frm${DOKK.includes(k)?' dok':''}"><h2>${row?'Ubah':'Tambah'} ${j.n}${klf()?`<span class="bdg">${klf()}</span>`:''}</h2><div class="fg"><div class="abn dup" id="dupw" style="display:none"></div>${k==='harian'&&!row?'<div class="fd full"><button type="button" class="btn y s" data-sl>📋 Salin dari kemarin</button> <small class="sub">Mengisi tema, subtema, sentra, dan metode dari jurnal terakhir.</small></div>':''}${rkBtn}${k==='perkembangan'?'<div class="fd full"><small class="sub" id="hhi">Tema, subtema, dan kegiatan terisi otomatis sesuai Jurnal Harian pada tanggal dan kelompok yang dipilih.</small></div>':''}${j.f.map(f=>f.k==='kelas'&&klf()?`<input type="hidden" name="kelas" value="${esc((row&&row.kelas)||klf())}">`:fld(f,row?row[f.k]:'')).join('')}${FOTO[k]?(DOKK.includes(k)?dokBlok(k):fotoBlok(k)):''}${k==='harian'?kbcBlok():''}${k==='penilaian'?pcpBlok():''}</div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn" data-s>Simpan</button></div></div>`;
 document.body.appendChild(md);
-const E=n=>md.querySelector(`[name=${n}]`),T={},FA={};let FN='';let aktif=false,auto='';
+const E=n=>md.querySelector(`[name=${n}]`),T={},FA={};let FN='';let aktif=false,auto='';md._au=new Set();
 const Fo={lama:row&&row.foto?String(row.foto).split(/\s+/).filter(Boolean):[],baru:[]};
 const gFoto=()=>{const c=md.querySelector('#fot');if(!c)return;
 c.innerHTML=Fo.lama.map((id,i)=>`<div class="fth"><img class="ft" data-fid="${esc(id)}" src="${BLANK}" alt="Foto"><button type="button" data-fl="${i}" aria-label="Hapus foto">×</button></div>`).join('')+Fo.baru.map((s,i)=>`<div class="fth"><img class="ft" data-loaded="1" src="${s}" alt="Foto"><button type="button" data-fb="${i}" aria-label="Hapus foto">×</button></div>`).join('');
@@ -1579,6 +1579,12 @@ if(k==='perkembangan')cekDup();const sm=md.querySelector('#sm');if(sm)sm.textCon
 const isiNama=()=>{const dl=md.querySelector('#dl_nama');if(!dl||!SISWA)return;const kl=E('kelas').value;dl.innerHTML=SISWA.filter(s=>!kl||s.kelas===kl).map(s=>`<option value="${esc(s.nama)}">`).join('')};
 const gPk=n=>{const c=[...md.querySelectorAll('.pk')].find(x=>x.dataset.pk===n);if(!c)return;const a=FA[n]||{lama:[],baru:[]},tot=a.lama.length+a.baru.length;
 c.innerHTML=`<button type="button" class="btn o s" data-pkb="${esc(n)}">📷 ${tot?'Tambah foto':'Foto '+esc(n)}</button>`+a.lama.map((id,i)=>`<div class="fth"><img class="ft" data-fid="${esc(id)}" src="${BLANK}" alt="Foto"><button type="button" data-pl="${i}" aria-label="Hapus foto">×</button></div>`).join('')+a.baru.map((s,i)=>`<div class="fth"><img class="ft" data-loaded="1" src="${s}" alt="Foto"><button type="button" data-pb="${i}" aria-label="Hapus foto">×</button></div>`).join('');isiFoto(c)};
+const pkRows=()=>{if(k!=='penilaian'||row)return[];const tg=E('tanggal').value,kl=kelNorm(E('kelas').value),asp=String(E('aspek').value||'').trim().toLowerCase();if(!tg||!kl||!asp)return[];
+const cocok=a=>{a=String(a||'').trim().toLowerCase();return a===asp||(a.indexOf('dasar-dasar literasi')===0&&['literasi','matematika dan sains','teknologi dan rekayasa','seni'].includes(asp))};
+return(ROWS.perkembangan||[]).filter(r=>String(r.tanggal).slice(0,10)===tg&&kelNorm(r.kelas)===kl&&cocok(r.aspek)&&lvl(r)>=0)};
+const pkInfo=n=>{if(k!=='penilaian'||row)return;let w=md.querySelector('#pki');if(!w){w=document.createElement('div');w.id='pki';w.className='abn';w.style.display='none';const bx=md.querySelector('#tbl');if(bx)bx.before(w);else return}
+w.style.display=n?'':'none';w.textContent=n?'✅ Terisi otomatis dari Jurnal Perkembangan Anak ('+n+' anak, tanggal dan aspek yang sama). Boleh diubah sebelum disimpan.':''};
+const pkReset=()=>{if(k!=='penilaian')return;md._au.forEach(n=>delete T[n]);md._au.clear()};
 const gambar=()=>{if(!tb)return;let box=md.querySelector('#tbl');
 if(!box){box=document.createElement('div');box.id='tbl';box.className='fd full';E(klf()&&tb.after==='kelas'?'tanggal':tb.after).closest('.fd').after(box)}
 const names=daftar();aktif=names.length>0;
@@ -1586,22 +1592,24 @@ const names=daftar();aktif=names.length>0;
 {const rw=md.querySelector('#rkw');if(rw)rw.style.display=aktif?'none':''}
 tb.hide.forEach(n=>{E(n).closest('.fd').style.display=(aktif||SISWA===null)?'none':''});
 const pT={...T},pFA={...FA};Object.keys(T).forEach(n=>delete T[n]);Object.keys(FA).forEach(n=>delete FA[n]);
-if(!aktif){box.innerHTML=`<small class="sub">${SISWA===null?'Memuat daftar anak...':'Pilih kelompok untuk menampilkan daftar anak. Jika daftar tidak muncul, isi kolom secara manual.'}</small>`;return}
+if(!aktif){if(k==='penilaian'&&!row){const pr=pkRows();if(pr.length){const c=[0,0,0,0];pr.forEach(r=>c[lvl(r)]++);setV('peserta',pr.length);['bb','mb','bsh','bsb'].forEach((n,i)=>setV(n,c[i]))}pkInfo(pr.length)}box.innerHTML=`<small class="sub">${SISWA===null?'Memuat daftar anak...':'Pilih kelompok untuk menampilkan daftar anak. Jika daftar tidak muncul, isi kolom secara manual.'}</small>`;return}
 if(tb.def)names.forEach(n=>T[n]=tb.def);
 if(row&&k==='kehadiran'&&String(row.tanggal).slice(0,10)===E('tanggal').value&&kelNorm(row.kelas)===kelNorm(E('kelas').value)){ // Ubah: tampilkan status yang tersimpan (jurnal + perubahan manual)
 const ab=absenDari(row),mn=parseManual(row.manual),mk={};Object.keys(mn).forEach(x=>mk[kunci(x)]=mn[x]);
 names.forEach(n=>{const v=mk[kunci(n)]||ab[n.trim().toLowerCase()];if(v)T[n]=v});if(!auto)auto=String(row.catatan||'')}
 const AB=absenHari(),sb=n=>AB.m[n.trim().toLowerCase()]||'';
 if(!tb.def)names.forEach(n=>{if(!sb(n)){if(pT[n])T[n]=pT[n];if(pFA[n])FA[n]=pFA[n]}});
+if(k==='penilaian'&&!row){const pm={};pkRows().forEach(r=>pm[kunci(r.nama)]=lvl(r));names.forEach(n=>{if(!sb(n)&&!T[n]&&pm[kunci(n)]!==undefined){T[n]=TKT[pm[kunci(n)]];md._au.add(n)}});pkInfo(names.filter(n=>md._au.has(n)&&T[n]).length)}
 const ord=names.map((n,ix)=>({n,ix})).sort((a,b)=>!!sb(a.n)-!!sb(b.n)||a.ix-b.ix),abN=ord.filter(o=>sb(o.n)).length,fa=ord.findIndex(o=>sb(o.n));
 const ringkas=['sakit','izin','alpha'].map(c=>[ABL[c].slice(3),ord.filter(o=>sb(o.n)===c).length]).filter(x=>x[1]).map(x=>x.join(' ')).join(', ');
 const banner=tb.cls!=='nl'?'':AB.ada?(abN?`<div class="abn">${abN} anak tidak hadir pada ${tgl(E('tanggal').value)} (${ringkas}). Ditandai di bagian bawah dan tidak perlu dinilai.</div>`:'<div class="abn">Semua anak hadir pada tanggal ini.</div>'):'<div class="abn k0">Jurnal Kehadiran tanggal ini belum diisi, jadi semua anak tampil. Isi dulu Jurnal Kehadiran agar anak yang tidak hadir ditandai otomatis.</div>';
 box.innerHTML=`<label>Daftar anak (${names.length})</label><div class="tba">${tb.def?'<button type="button" class="btn o s" data-all>Semua hadir</button>'+(k==='kehadiran'?' <button type="button" class="btn y s" data-rk>Isi otomatis dari Rekap Absen</button>':''):'<button type="button" class="btn o s" data-clr>Kosongkan pilihan</button>'}</div>${banner}<div class="ta ${tb.cls}">${ord.map(({n,ix},p)=>`${p===fa&&fa>=0?`<div class="abh">Tidak hadir pada tanggal ini (${abN})</div>`:''}<div class="tr${sb(n)?' ab':''}" data-n="${esc(n)}"><span>${esc(n)}</span>${sb(n)?`<span class="abg ${sb(n)}">${ABL[sb(n)]}</span><button type="button" class="btn gh s" data-ov>Tetap nilai</button>`:''}<div class="opts">${tb.lab.map(([c,l],i)=>`<label class="op" data-i="${i}"><input type="radio" name="c_${ix}" value="${esc(c)}"${T[n]===c?' checked':''}><span>${l}</span></label>`).join('')}</div>${k==='perkembangan'?`<div class="pk" data-pk="${esc(n)}"></div>`:''}</div>`).join('')}</div>${k==='perkembangan'?'<input type="file" id="fin2" accept="image/*" multiple style="display:none">':''}<small class="sub" id="sm"></small>${tb.cls==='nl'?'<br><small class="sub">BB = Belum Berkembang, MB = Mulai Berkembang, BSH = Berkembang Sesuai Harapan, BSB = Berkembang Sangat Baik</small>':''}`;if(k==='perkembangan')names.forEach(gPk)};
 if(k==='perkembangan')E('nama').placeholder='Pilih nama anak atau ketik';
 md.addEventListener('change',e=>{const t=e.target;
-if(t.name==='kelas'){isiNama();gambar();hitung();cekDup(1)}
-else if(t.name==='tanggal'){gambar();hitung();cekDup(1)}
-else if(t.matches('.tr input[type=radio]')){T[t.closest('.tr').dataset.n]=t.value;hitung()}
+if(t.name==='kelas'){isiNama();pkReset();gambar();hitung();cekDup(1)}
+else if(t.name==='tanggal'){pkReset();gambar();hitung();cekDup(1)}
+else if(t.name==='aspek'&&k==='penilaian'){pkReset();gambar();hitung()}
+else if(t.matches('.tr input[type=radio]')){const nn=t.closest('.tr').dataset.n;T[nn]=t.value;md._au.delete(nn);hitung()}
 else if(t.id==='fin2'){const fs=[...t.files],n=FN;t.value='';
 (async()=>{const a=FA[n]||(FA[n]={lama:[],baru:[]});for(const f of fs){if(a.lama.length+a.baru.length>=MAXF){toast('Maksimal '+MAXF+' foto per anak',1);break}
 try{a.baru.push(await kecil(f,1000))}catch(er){toast(er.message==='bukan gambar'?'Berkas bukan gambar yang valid':er.message,1)}}
@@ -1666,6 +1674,7 @@ if(tb||k==='perkembangan')loadSiswa().then(()=>{isiNama();gambar();hitung()});
 cekDup();
 if(k==='harian'){md.addEventListener('change',e=>{if(e.target.name==='tanggal'||e.target.name==='kelas')setTimeout(()=>cekDup(1),0)});(md._mu=JRmuat('harian')).then(()=>cekDup())}
 if(k==='perkembangan'){['input','change'].forEach(ev=>md.addEventListener(ev,e=>{if(e.target.name==='nama')cekDup()}));JRmuat('perkembangan').then(()=>cekDup())}
+if(k==='penilaian'&&!row)JRmuat('perkembangan').then(()=>{if(md.isConnected){gambar();hitung()}});
 if(['kehadiran','perkembangan','penilaian'].includes(k))(md._mu=KHmuat()).then(()=>{if(k!=='kehadiran'){gambar();hitung()}cekDup()});
 if(!row&&k==='harian'){pilih(md,'kendala','Tidak ada kendala');pilih(md,'capaian','Sebagian besar antusias')}
 akordeon(md);
