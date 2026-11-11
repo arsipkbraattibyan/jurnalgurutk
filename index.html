@@ -1624,7 +1624,7 @@ try{Fo.baru.push(await kecil(f,1000))}catch(er){toast(er.message==='bukan gambar
 gFoto()})()}});
 if(tb&&!tb.def){ // ketuk lagi pilihan yang sudah terpilih = batalkan pilihan, kolom catatan anak menutup
 md.addEventListener('pointerdown',e=>{const l=e.target.closest&&e.target.closest('.tr label.op'),r=l&&l.querySelector('input[type=radio]');md._pre=r&&r.checked?r:null},true);
-md.addEventListener('click',e=>{const t=e.target,pre=md._pre;md._pre=null;if(pre&&t===pre){setTimeout(()=>{if(!pre.isConnected)return;pre.checked=false;const nn=pre.closest('.tr').dataset.n;T[nn]='';md._au&&md._au.delete(nn);hitung();pnTampil()},0)}})}
+md.addEventListener('click',e=>{const t=e.target,pre=md._pre;if(pre&&t===pre){md._pre=null;setTimeout(()=>{if(!pre.isConnected)return;pre.checked=false;const nn=pre.closest('.tr').dataset.n;T[nn]='';md._au&&md._au.delete(nn);hitung();pnTampil()},0)}})}
 md.addEventListener('input',e=>{const t=e.target;if(t.dataset&&t.dataset.ct){const c=md._ct||(md._ct={});(c[t.dataset.ct]||(c[t.dataset.ct]={}))[t.dataset.cf]=t.value;pnTampil()}});
 if(DOKK.includes(k)){
 const ed=k==='perkembangan'&&!!row,PH=[];
