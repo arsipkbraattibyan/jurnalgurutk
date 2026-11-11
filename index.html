@@ -90,6 +90,7 @@ button{font:inherit;cursor:pointer}h1,h2,h3,p{margin:0}
 @media(max-width:640px){.frw.f2,.frw.f3,.frw.f4{grid-template-columns:minmax(0,1fr)}.frw>.fd,.frw>.fd[data-m]{margin-top:0;max-width:440px}.frw{gap:12px}}
 input:not([type=radio]):not([type=hidden]),textarea{width:100%;font:inherit;height:48px;padding:0 14px;border:2px solid var(--ln);border-radius:14px;background:#fff;color:var(--ink)}
 textarea{height:auto;min-height:48px;padding:10px 14px}.ex{margin-top:8px}
+.sheet textarea{resize:none;overflow:hidden}
 input:focus,textarea:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 4px #1e88e533}
 .opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:8px}
 .op{display:block;position:relative;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -1404,6 +1405,12 @@ let _ls=null;
 function segarSiswa(){return _ls||(_ls=api('siswa').then(j=>{SISWA=j.siswa;cSet('siswa',j.siswa)}).catch(()=>{if(!SISWA)SISWA=[]}).finally(()=>{_ls=null}))}
 async function loadSiswa(){if(SISWA){return SISWA}const c=cGet('siswa');if(c){SISWA=c;segarSiswa();return SISWA}await segarSiswa();return SISWA}
 async function simpanBanyak(k,list){try{return await api('simpanBanyak',{jenis:k,data:list})}catch(e){if(!/tidak dikenal/i.test(e.message))throw e;for(const d of list)await api('simpan',{jenis:k,data:d})}}
+/* kotak isian teks: tidak bisa digeser, tinggi menyesuaikan isi */
+(()=>{const tumbuh=t=>{if(!t||t.tagName!=='TEXTAREA'||!t.closest('.sheet')||!t.offsetParent)return;t.style.height='auto';t.style.height=(t.scrollHeight+4)+'px'},
+semua=()=>document.querySelectorAll('.sheet textarea').forEach(tumbuh);let tm=0;
+document.addEventListener('input',e=>tumbuh(e.target));document.addEventListener('focusin',e=>tumbuh(e.target));
+document.addEventListener('click',()=>setTimeout(semua,90));window.addEventListener('resize',()=>setTimeout(semua,90));
+new MutationObserver(()=>{clearTimeout(tm);tm=setTimeout(semua,60)}).observe(document.body,{childList:true,subtree:true})})();
 function akordeon(md){
 const fds=[...md.querySelectorAll('.fd[data-m]')],val=f=>f.querySelector('input[type=hidden]').value,ok=f=>f.style.display!=='none';
 const segar=f=>{const b=f.querySelector('.ah'),v=val(f);b.querySelector('i').textContent=v||'Belum dipilih';b.classList.toggle('kosong',!v)};
