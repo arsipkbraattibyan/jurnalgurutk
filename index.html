@@ -1419,8 +1419,13 @@ const nx=kids.slice(i+1).find(g=>g.offsetParent!==null&&(!g.classList.contains('
 setTimeout(()=>{const h=nx.querySelector(':scope>.ah')||nx,a=h.getBoundingClientRect(),b=sh.getBoundingClientRect();
 sh.scrollTo({top:sh.scrollTop+(a.top-b.top)-70,behavior:'smooth'})},320)};
 md.addEventListener('change',e=>{const f=e.target.closest&&e.target.closest('.fd.acc');if(!f)return;segar(f);
-if(e.target.type==='radio'&&!e.target.disabled){buka(null);lanjut(f)}
+if(e.target.type==='radio'&&!e.target.disabled){buka(null);if(e.target.checked)lanjut(f)}
 else if(e.target.classList&&e.target.classList.contains('ex')&&e.target.tagName==='INPUT'&&e.target.value.trim())lanjut(f)});
+/* ketuk lagi pilihan yang sudah terpilih = batal memilih */
+let pre=null;
+md.addEventListener('pointerdown',e=>{const l=e.target.closest&&e.target.closest('.fd.acc .op'),r=l&&l.querySelector('input[type=radio]');pre=r?{r,c:r.checked}:null});
+md.addEventListener('click',e=>{if(!pre||e.target!==pre.r)return;const{r,c}=pre;pre=null;
+if(c&&r.checked&&!r.disabled){r.checked=false;r.dispatchEvent(new Event('change',{bubbles:true}))}});
 md.addEventListener('click',e=>{const b=e.target.closest('.ah');if(!b||b.tagName!=='BUTTON')return;const f=b.parentNode;buka(f.classList.contains('open')?null:f)})}
 /* ---------- KBC (Panca Cinta) di Jurnal Harian Mengajar ---------- */
 const KBCN0=[['PC1','Cinta Allah dan Rasul-Nya'],['PC2','Cinta Ilmu'],['PC3','Cinta Lingkungan'],['PC4','Cinta Diri dan Sesama Manusia'],['PC5','Cinta Tanah Air']];
