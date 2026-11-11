@@ -655,6 +655,135 @@ html[data-tema=main] .md{background:#2d2a6e99}
 html[data-tema=main] input:focus,html[data-tema=main] textarea:focus{box-shadow:0 0 0 4px #7a3fe033}
 html[data-tema=main] .foot{background:linear-gradient(#6cbf3f,#3f8f2f)}
 @media(max-width:820px){html[data-tema=main] .hero:not(.hf)>div:first-child{padding-top:40px}html[data-tema=main] .hero:not(.hf) .scene{margin-bottom:18px}html[data-tema=main] .menu{padding:10px 12px}html[data-tema=main] .nv{padding:8px 14px;font-size:13px}}
+
+/* ===== Desain 4 (Portal Ujian) v2: modern, bersih, cerah, mudah dipakai siapa saja ===== */
+html[data-tema=ujian]{--blue:#1676e6;--blued:#0f5bb8;--navy:#15305a;--yel:#ffb020;--pink:#ff5d8f;--grn:#16a05a;--ink:#22364f;--mut:#5d7190;--ln:#e1ebf7;--soft:#e8f3ff;--sh:0 6px 20px #1676e61a;--sh2:0 12px 28px #1676e630}
+html[data-tema=ujian] body{background:linear-gradient(#e6f2ff,#f5f9ff 340px,#f7faff) fixed;font-size:15.5px;line-height:1.55;color:var(--ink)}
+html[data-tema=ujian] :focus-visible{outline:3px solid #1676e655;outline-offset:2px}
+html[data-tema=ujian] #app::before{background:#fff;border:1px solid var(--ln);box-shadow:0 10px 30px #1676e61c;overflow:hidden}
+html[data-tema=ujian] .brand{padding:20px 20px 10px;gap:10px}
+html[data-tema=ujian] .brand b{font-size:19px;color:var(--blue);letter-spacing:-.2px}
+html[data-tema=ujian] .brand small{color:var(--mut);font-weight:700}
+/* menu samping: ikon berwarna, mudah dikenali */
+html[data-tema=ujian] .menu{gap:2px;padding:8px 12px 12px;scrollbar-width:thin}
+html[data-tema=ujian] .nv{min-height:42px;padding:5px 10px;border-radius:14px;color:#2b4166;font-size:14px;font-weight:600;transition:background .15s,transform .15s}
+html[data-tema=ujian] .nv:hover{background:var(--soft)}
+html[data-tema=ujian] .nv .ni{width:30px;height:30px;border-radius:10px;font-size:17px;background:#e3f0ff;flex:none}
+html[data-tema=ujian] .nv:nth-child(6n+2) .ni{background:#fff0d1}
+html[data-tema=ujian] .nv:nth-child(6n+3) .ni{background:#dcf6e6}
+html[data-tema=ujian] .nv:nth-child(6n+4) .ni{background:#ffe3ee}
+html[data-tema=ujian] .nv:nth-child(6n+5) .ni{background:#eee5ff}
+html[data-tema=ujian] .nv:nth-child(6n) .ni{background:#d8f5f7}
+html[data-tema=ujian] .nv:not(.on) .ni,html[data-tema=ujian] .lo2 .ni{filter:none}
+html[data-tema=ujian] .nv.on{background:linear-gradient(135deg,#2a8cff,#1676e6);color:#fff;font-weight:700;box-shadow:0 8px 18px #1676e64d}
+html[data-tema=ujian] .nv.on .ni{background:#ffffff38}
+html[data-tema=ujian] .sbx{border-top:1px solid var(--ln);margin-top:auto;padding-top:12px}
+html[data-tema=ujian] .promo{background:linear-gradient(135deg,#ffe08a,#ffb020);border-radius:18px;padding:14px;color:#4a3000;box-shadow:0 8px 18px #ffb02040;transition:transform .15s}
+html[data-tema=ujian] .promo:hover{transform:translateY(-2px)}
+html[data-tema=ujian] .promo::before{content:"✏️ 📒 ⭐";font-size:22px;letter-spacing:2px;margin-bottom:6px}
+html[data-tema=ujian] .promo b{color:#3d2700;font-size:15px;font-weight:800}
+html[data-tema=ujian] .promo small{color:#6b4800;font-weight:600}
+html[data-tema=ujian] .promo::after{content:"Isi sekarang →";display:inline-block;margin-top:10px;background:#fff;color:#a85d00;font-weight:800;font-size:12.5px;border-radius:99px;padding:6px 14px}
+html[data-tema=ujian] .lo2{min-height:44px;color:#51637f;font-weight:600}
+html[data-tema=ujian] .lo2:hover{background:#ffe9ee;color:#c2253f}
+/* akun guru di pojok kanan atas */
+html[data-tema=ujian] .cu{width:fit-content;margin:0 8px 14px auto;padding:5px 16px 5px 5px;background:#fff;border:1px solid var(--ln);border-radius:99px;box-shadow:var(--sh);font-weight:700;color:var(--navy)}
+html[data-tema=ujian] .av{background:linear-gradient(135deg,#2a8cff,#38bdf8);box-shadow:0 0 0 3px #e3f0ff}
+/* judul */
+html[data-tema=ujian] .pt{font:800 26px/1.2 'Plus Jakarta Sans',sans-serif;color:var(--navy);margin:4px 0 16px;letter-spacing:-.3px}
+html[data-tema=ujian] .sec{display:flex;align-items:center;gap:10px;font:800 19px 'Plus Jakarta Sans',sans-serif;margin:8px 0 14px}
+html[data-tema=ujian] .sec::before{content:"";display:block;width:6px;height:22px;border-radius:6px;background:linear-gradient(#38bdf8,#1676e6)}
+html[data-tema=ujian] .sec.w{color:var(--navy)}
+/* tombol */
+html[data-tema=ujian] .btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:linear-gradient(#2a8cff,#1676e6);color:#fff;border-radius:14px;font-weight:700;font-size:15px;box-shadow:0 6px 14px #1676e638;transition:transform .12s,box-shadow .12s,filter .12s}
+html[data-tema=ujian] .btn:hover{filter:brightness(1.05)}
+html[data-tema=ujian] .btn:active{transform:scale(.97);box-shadow:none}
+html[data-tema=ujian] .btn.s{min-height:36px;padding:6px 14px;font-size:13px;border-radius:11px}
+html[data-tema=ujian] .btn.y{background:linear-gradient(#ffc84a,#ffb020);color:#3d2700;box-shadow:0 6px 14px #ffb02050}
+html[data-tema=ujian] .btn.o{background:#fff;color:var(--blued);border:2px solid var(--blue);box-shadow:none}
+html[data-tema=ujian] .btn.gh{background:var(--soft);color:var(--blued);box-shadow:none}
+html[data-tema=ujian] .btn.rd{background:#ffe6ec;color:#c2253f;box-shadow:none}
+html[data-tema=ujian] .btn:disabled{opacity:.55;filter:none}
+/* banner sapaan cerah */
+html[data-tema=ujian] .hero:not(.hf){background:linear-gradient(120deg,#1a86ff 0%,#2fa8f7 55%,#5fd3f3 100%);border-radius:28px;padding:30px 34px;min-height:220px;margin:0 0 20px;box-shadow:var(--sh2)}
+html[data-tema=ujian] .hero:not(.hf)::before{content:"";position:absolute;right:-60px;top:-80px;width:260px;height:260px;border-radius:50%;background:#ffffff26;z-index:0}
+html[data-tema=ujian] .hero:not(.hf)::after{content:"";position:absolute;left:38%;bottom:-90px;width:200px;height:200px;border-radius:50%;background:#ffffff1a;z-index:0}
+html[data-tema=ujian] .hero h1{font:800 32px/1.2 'Plus Jakarta Sans',sans-serif;letter-spacing:-.4px;color:#fff}
+html[data-tema=ujian] .hero .c2{color:#ffe066}
+html[data-tema=ujian] .hero p{color:#eaf6ff;font-size:15.5px;font-weight:500;max-width:480px;margin:10px 0 18px}
+html[data-tema=ujian] .hero .btn.y{background:linear-gradient(#ffd25e,#ffb82e);color:#3d2700;box-shadow:0 8px 18px #b3690040}
+html[data-tema=ujian] .hero .btn.o{background:#ffffff2e;color:#fff;border:2px solid #ffffffaa}
+html[data-tema=ujian] .hero .btn.o:hover{background:#ffffff45}
+html[data-tema=ujian] .scene{height:190px;border-radius:24px;overflow:hidden;background:linear-gradient(#bfe7ff,#eaf8ff);border:4px solid #ffffffb3;box-shadow:0 8px 22px #0b4fa826;z-index:1}
+html[data-tema=ujian] .scene::before{display:none}
+html[data-tema=ujian] .scene .hill{display:block;background:linear-gradient(#8fd84f,#5fb83c)}
+/* ringkasan */
+html[data-tema=ujian] .strip{border:1px solid var(--ln);border-radius:22px;padding:18px;gap:12px;box-shadow:var(--sh)}
+html[data-tema=ujian] .strip::before{font:800 17px 'Plus Jakarta Sans',sans-serif}
+html[data-tema=ujian] .sti{border:0;border-radius:18px;padding:14px;gap:12px}
+html[data-tema=ujian] .sti:nth-child(1){background:#e3f1ff}
+html[data-tema=ujian] .sti:nth-child(2){background:#dff6e8}
+html[data-tema=ujian] .sti:nth-child(3){background:#f0e8ff}
+html[data-tema=ujian] .sti:nth-child(4){background:#fff0d4}
+html[data-tema=ujian] .sti:nth-child(n) i{background:#fff!important;border-radius:14px;box-shadow:0 3px 8px #0b4fa81a}
+html[data-tema=ujian] .sti b{font:800 26px/1.1 'Plus Jakarta Sans',sans-serif;color:var(--navy)}
+html[data-tema=ujian] .sti small{color:#46597a;font-weight:700}
+/* kartu menu jurnal */
+html[data-tema=ujian] .pgs{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+html[data-tema=ujian] .pg{--ac:#1676e6;padding:18px;border-radius:22px;border:0;box-shadow:var(--sh);transition:transform .15s,box-shadow .15s}
+html[data-tema=ujian] .pg:hover{transform:translateY(-4px);box-shadow:var(--sh2)}
+html[data-tema=ujian] .pg.c0{background:#e3f1ff}
+html[data-tema=ujian] .pg.c1{--ac:#16a05a;background:#dff6e8}
+html[data-tema=ujian] .pg.c2{--ac:#7c4de0;background:#f0e8ff}
+html[data-tema=ujian] .pg.c3{--ac:#cf6f00;background:#fff0d4}
+html[data-tema=ujian] .pg .em{width:56px;height:56px;border-radius:16px;background:#fff;display:grid;place-items:center;font-size:30px;margin:0 0 12px;box-shadow:0 4px 10px #0b4fa81a}
+html[data-tema=ujian] .pg b{font:800 15.5px/1.3 'Plus Jakarta Sans',sans-serif;color:var(--navy)}
+html[data-tema=ujian] .pg small{color:#46597a;font-weight:600;font-size:12.5px}
+html[data-tema=ujian] .pg .nn{color:var(--ac);font-weight:800;font-size:12.5px;margin-top:4px}
+html[data-tema=ujian] .pg .ln,html[data-tema=ujian] .pg.c0 .ln,html[data-tema=ujian] .pg.c1 .ln,html[data-tema=ujian] .pg.c2 .ln,html[data-tema=ujian] .pg.c3 .ln{background:var(--ac);color:#fff;border-radius:12px;padding:10px;margin-top:14px;font-weight:700;font-size:13.5px}
+/* kartu isi */
+html[data-tema=ujian] .card{border:1px solid var(--ln);border-radius:20px;padding:20px;box-shadow:var(--sh)}
+html[data-tema=ujian] .card h3{font:800 16px 'Plus Jakarta Sans',sans-serif;color:var(--navy)}
+html[data-tema=ujian] .card.row{border-left:6px solid var(--blue)}
+html[data-tema=ujian] .jh{background:linear-gradient(90deg,#e3f1ff,#fff 70%);border:1px solid var(--ln);border-radius:20px}
+html[data-tema=ujian] .jh h2{font:800 21px 'Plus Jakarta Sans',sans-serif}
+html[data-tema=ujian] .rc{border-top:1px solid var(--ln);border-radius:12px;padding:12px 8px;transition:background .12s}
+html[data-tema=ujian] .rc:hover{background:#f2f8ff}
+html[data-tema=ujian] .rc .ico{border-radius:14px}
+/* isian formulir */
+html[data-tema=ujian] input:not([type=radio]):not([type=hidden]),html[data-tema=ujian] textarea,html[data-tema=ujian] select{border:1.5px solid #cfdef2;border-radius:12px;font-size:15px}
+html[data-tema=ujian] input:focus,html[data-tema=ujian] textarea:focus,html[data-tema=ujian] select:focus{border-color:var(--blue);box-shadow:0 0 0 4px #1676e62b}
+html[data-tema=ujian] .fd label{font-weight:700;color:var(--navy);font-size:13.5px}
+html[data-tema=ujian] .op span{border:1.5px solid #cfdef2;border-radius:12px;font-weight:700;min-height:46px}
+html[data-tema=ujian] .op:hover span{border-color:var(--blue);background:#f4f9ff}
+html[data-tema=ujian] .op input:checked+span{background:linear-gradient(#2a8cff,#1676e6);border-color:var(--blue)}
+html[data-tema=ujian] .tabs{background:#e8f1fc;border-radius:16px}
+html[data-tema=ujian] .tabs button{border-radius:12px;font-weight:700}
+html[data-tema=ujian] .tabs button.on{background:#fff;color:var(--blued);box-shadow:0 3px 10px #1676e626}
+html[data-tema=ujian] .md{background:#0f2a5266;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+html[data-tema=ujian] .sheet{border-radius:24px}
+html[data-tema=ujian] #toast{border-radius:14px;box-shadow:0 10px 26px #0f2a5240}
+/* HP dan tablet */
+@media(max-width:820px){
+html[data-tema=ujian] body{background:linear-gradient(#e6f2ff,#f7faff 260px) fixed}
+html[data-tema=ujian] .top{background:#fff;box-shadow:0 2px 14px #1676e61f;position:sticky;top:0;z-index:8;padding:10px 14px;justify-content:space-between}
+html[data-tema=ujian] .brand{padding:0}
+html[data-tema=ujian] .cu{width:auto;margin:0;padding:0;background:none;border:0;box-shadow:none}
+html[data-tema=ujian] .menu{position:sticky;top:62px;z-index:7;background:#fff;border-bottom:1px solid var(--ln);padding:8px 10px;gap:6px;scroll-snap-type:x proximity;scroll-padding:0 10px}
+html[data-tema=ujian] .nv{scroll-snap-align:start;min-height:42px;padding:5px 12px 5px 6px;border:1.5px solid var(--ln);border-radius:99px;background:#fff}
+html[data-tema=ujian] .nv .ni{width:28px;height:28px;font-size:15px}
+html[data-tema=ujian] .nv.on{border-color:var(--blue)}
+html[data-tema=ujian] .pt{font-size:22px}
+html[data-tema=ujian] .hero:not(.hf){padding:22px 20px;min-height:0;border-radius:24px}
+html[data-tema=ujian] .hero h1{font-size:25px}
+html[data-tema=ujian] .pgs{grid-template-columns:1fr 1fr;gap:12px}
+html[data-tema=ujian] .pg{padding:14px;border-radius:18px}
+html[data-tema=ujian] .pg .em{width:48px;height:48px;font-size:26px;margin-bottom:8px}
+html[data-tema=ujian] .sec{font-size:17px}
+}
+@media(max-width:380px){html[data-tema=ujian] .pgs{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){html[data-tema=ujian] *{transition:none!important}}
+@media print{html[data-tema=ujian] body{background:#fff}}
 </style>
 </head>
 <body>
@@ -680,7 +809,7 @@ const simpanSesi=()=>{try{localStorage.setItem('jg',JSON.stringify({token:S.toke
 
 /* ---------- suara tombol dan pilihan ---------- */
 const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('jgset')||'{}')}catch(e){}return{suara:o.suara!==false,vol:[1,2,3].includes(o.vol)?o.vol:2,tema:['ceria','main','belajar','ujian'].includes(o.tema)?o.tema:'ceria',foto:/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(o.foto||'')?o.foto:'',fmode:'isi',fgel:typeof o.fgel==='number'?Math.min(85,Math.max(0,o.fgel)):55,fx:typeof o.fx==='number'?Math.min(100,Math.max(0,o.fx)):50,fy:typeof o.fy==='number'?Math.min(100,Math.max(0,o.fy)):50}})();
-const applyTema=()=>{document.documentElement.dataset.tema=SET.tema;const m=document.querySelector('meta[name=theme-color]');if(m)m.content={ceria:'#1e88e5',main:'#7a3fe0',belajar:'#0c2a72',ujian:'#1a47c9'}[SET.tema]};applyTema();
+const applyTema=()=>{document.documentElement.dataset.tema=SET.tema;const m=document.querySelector('meta[name=theme-color]');if(m)m.content={ceria:'#1e88e5',main:'#7a3fe0',belajar:'#0c2a72',ujian:'#1676e6'}[SET.tema]};applyTema();
 const simpanSet=()=>{try{localStorage.setItem('jgset',JSON.stringify(SET));return true}catch(e){return false}};
 const fotoLatar=()=>`<img class="hbg" src="${SET.foto}" alt="" style="object-position:${SET.fx}% ${SET.fy}%"><div class="hov" style="--ov:${SET.fgel/100}"></div>`;
 function fotoBeranda(f){return new Promise((ok,no)=>{if(!/^image\//.test(f.type))return no(new Error('Pilih berkas gambar.'));
@@ -2521,7 +2650,7 @@ const cara=pw?'<p class="sub">Aplikasi sudah terpasang di perangkat ini.</p>'
 const TM3=[['ceria','Ceria Biru','Desain bawaan: biru, kuning, dan hijau yang ceria.',['#1e88e5','#fdb913','#ee4f9a','#7cc243'],'linear-gradient(#a9d8ff,#e4f4ff)'],
 ['main','Kindergarten Ceria','Header putih, menu pil pelangi, banner lavender dengan pelangi, serta kartu gradasi ungu, oranye, hijau, dan biru seperti situs TK.',['#7a3fe0','#f7871c','#5cb82f','#2f8fe8'],'linear-gradient(#efe3ff,#fff1dc)'],
 ['belajar','LMS Sekolah','Menu samping biru tua, kartu putih rapi, dan kartu ringkasan pastel ala dashboard Learning Management System.',['#0c2a72','#2f6df0','#22b573','#f5a623'],'linear-gradient(90deg,#0c2a72 28%,#eef3fc 28%)'],
-['ujian','Portal Ujian','Menu samping putih, banner biru besar, dan kartu menu berwarna dengan tombol ala portal ujian online.',['#1a47c9','#16a34a','#7c3aed','#f59e0b'],'linear-gradient(90deg,#fff 28%,#dfe8fd 28%)']];
+['ujian','Portal Ujian','Modern dan cerah: menu samping putih dengan ikon warna-warni, banner biru langit, kartu menu besar dengan tombol yang jelas.',['#1676e6','#16a05a','#7c4de0','#ffb020'],'linear-gradient(90deg,#fff 28%,#d9ecff 28%)']];
 $('#main').innerHTML=`<div class="card"><h3>🎨 Ganti desain</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Pilih tampilan aplikasi. Pilihan tersimpan di perangkat ini.</p>
 <div class="tmg" id="tmg">${TM3.map(([v,n,k,c,bg])=>`<button type="button" class="tmc${SET.tema===v?' on':''}" data-tm="${v}"><div class="tmv" style="background:${bg}">${c.map((x,i)=>`<i style="background:${x};height:${[70,46,58,34][i]}%"></i>`).join('')}</div><b>${n}</b><small>${k}</small></button>`).join('')}</div></div>
 <div class="card"><h3>🖼️ Foto beranda</h3><p class="sub" style="font-size:13px;margin:-6px 0 12px">Pasang foto sendiri (misalnya foto sekolah atau kelas) sebagai latar kartu beranda. Berlaku untuk desain Ceria Biru, Kindergarten Ceria, dan Portal Ujian. Tersimpan di perangkat ini.${SET.tema==='belajar'?' Desain LMS Sekolah tidak menampilkan gambar di kartu beranda.':''}</p>
