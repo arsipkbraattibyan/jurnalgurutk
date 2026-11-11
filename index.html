@@ -1257,7 +1257,7 @@ ${sek('🧑‍💼','E. Kepala sekolah','Nama, NIP, dan nomor HP kepala sekolah 
 const cards=[...$('#pf').children];cards.forEach((c,i)=>c.dataset.g=[0,1,2,3].includes(i)?'guru':'sekolah');
 if(!boleh('sekolah.ubah'))cards.filter(c=>c.dataset.g==='sekolah').forEach(c=>{c.querySelectorAll('input,select,textarea').forEach(x=>{x.disabled=true});c.querySelectorAll('#lgb,#lgh,#lgz').forEach(x=>{x.style.display='none'});c.title='Hanya Admin Sekolah yang dapat mengubah data sekolah'}); // tampilan saja; server tetap memeriksa izin 'sekolah.ubah'
 const fl=()=>{const j=nilai('dj')||'guru';cards.forEach(c=>c.style.display=(j==='semua'||c.dataset.g===j)?'':'none');const ak=$('#akc');if(ak)ak.style.display=j==='guru'?'none':''}; // Pengaturan Akademik milik sekolah: tampil di Data sekolah dan Data guru + sekolah
-const fh=()=>{const j=nilai('dj')||'guru',w=$('#fpw'),h=$('#fph');if(!w)return;w.style.display=j==='sekolah'?'none':'';if(h)h.textContent=!fpAda()?'Belum ada foto profil. Unggah dulu di bagian D. Data akun, lalu pilih Dengan foto profil. Foto tampil di Cetak, PDF, dan Word (Excel hanya memuat teks).':nilai('fp')==='ya'?'Foto profil dipasang di bagian Data pribadi pada hasil cetak, PDF, dan Word. Excel hanya memuat teks.':'';};
+const fh=()=>{const j=nilai('dj')||'guru',w=$('#fpw'),h=$('#fph');if(!w)return;w.style.display=j==='sekolah'?'none':'';if(h)h.textContent=!fpAda()?'Belum ada foto profil. Unggah dulu di bagian D. Data akun, lalu pilih Dengan foto profil. Foto tampil di Cetak, PDF, Word, dan Excel.':nilai('fp')==='ya'?'Foto profil dipasang di bagian Data pribadi pada hasil cetak, PDF, Word, dan Excel.':'';};
 const rl=()=>{fl();fh();const j=nilai('dj')||'guru';$('#lap').innerHTML=dataPaper(j);if(fpAktif(j)&&!FPD.d)fpMuat().then(d=>{if(d&&$('#lap')&&(nilai('dj')||'guru')===j)$('#lap').innerHTML=dataPaper(j)})};rl();$('#fp').onchange=()=>{try{localStorage.setItem('jgfp',nilai('fp')==='ya'?'ya':'tidak')}catch(e){}rl()};akordeon($('#pf'));$('#dj').onchange=rl;if(!AKAD)AKAD=cGet('akad'); // tampil langsung dari data terakhir di perangkat, lalu disegarkan diam-diam
 akadIsi();{const lm=JSON.stringify(AKAD);if(Date.now()-_akF>15000){_akF=Date.now();akadMuat().then(()=>{const b=$('#akd');if(b&&!b.dataset.t&&JSON.stringify(AKAD)!==lm)akadIsi()})}}$('#gp').onclick=()=>dialogPin(false);$('#fpb').onclick=()=>$('#fpi').click();
 $('#fpi').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let d;try{d=await pangkas(f,{judul:'Atur foto profil',out:400})}catch(er){return toast('Berkas bukan gambar yang valid',1)}if(!d)return;const b=$('#fpb');b.disabled=true;b.textContent='Mengunggah...';
@@ -2045,24 +2045,24 @@ const cellTeks=c=>{const k=c.cloneNode(true);k.querySelectorAll('img,svg,script,
 const ncOf=t=>{let m=0;[...t.querySelectorAll('tr')].filter(r=>r.closest('table')===t).forEach(r=>{m=Math.max(m,[...r.children].reduce((a,c)=>a+(c.colSpan||1),0))});return m};
 let G=13;src.querySelectorAll('table').forEach(t=>{if(!t.closest('.idgrid'))G=Math.max(G,ncOf(t))});
 const ST={ctr:1,ctrB:2,ttl:3,sec:4,sub:5,hd:6,bL:7,bC:8,tL:9,tC:10,iL:11,iV:12};
-const rows=[];let R=0,tabelN=0;
+const rows=[],fx=[];let R=0,tabelN=0;
 const lin=(v,sp)=>{const w=Math.max(4,sp*CWD*1.12);return String(v).split('\n').reduce((a,l)=>a+Math.max(1,Math.ceil(l.length*1.05/w)),0)};
 const addRow=(cells,minH)=>{R++;let ln=1;cells.forEach(c=>{ln=Math.max(ln,lin(c.v,c.s))});rows.push({r:R,ht:Math.min(409,Math.max(minH||16,ln*13.5+4)),cells:cells})};
 const blank=()=>{R++};
 const pend=[];
 const flush=()=>{if(pend.length){pend.forEach((q,i)=>{if(i===0||q.sec)blank();addRow([{c:0,s:G,v:q.t,st:q.st}])});pend.length=0}else if(tabelN>0)blank()};
 const num=t=>/^(-?[1-9]\d{0,8}|0)$/.test(t)?+t:t;
-const tabel=t=>{const trs=[...t.querySelectorAll('tr')].filter(r=>r.closest('table')===t);if(!trs.length)return;
+const tabel=(t,off,ph)=>{off=off||0;const trs=[...t.querySelectorAll('tr')].filter(r=>r.closest('table')===t);if(!trs.length)return;
 const nc=ncOf(t),wt=Array(nc).fill(3);
 trs.forEach(r=>{let i=0;[...r.children].forEach(c=>{const sp=c.colSpan||1;if(sp===1)wt[i]=Math.max(wt[i],Math.min(36,Math.max.apply(null,cellTeks(c).split('\n').map(x=>x.length).concat([1]))));i+=sp})});
-const sp=Array(nc).fill(1);let rest=G-nc;while(rest>0){let b=0,bv=-1;for(let i=0;i<nc;i++){const q=wt[i]/sp[i];if(q>bv){bv=q;b=i}}sp[b]++;rest--}
-const st0=[];let p=0;sp.forEach(x=>{st0.push(p);p+=x});
-flush();
+const sp=Array(nc).fill(1);let rest=G-off-nc;while(rest>0){let b=0,bv=-1;for(let i=0;i<nc;i++){const q=wt[i]/sp[i];if(q>bv){bv=q;b=i}}sp[b]++;rest--}
+const st0=[];let p=off;sp.forEach(x=>{st0.push(p);p+=x});
+flush();const i0=rows.length;
 trs.forEach(r=>{const head=!!r.closest('thead'),tot=r.classList.contains('tt');let i=0;const cells=[];
 [...r.children].forEach(c=>{const cs=c.colSpan||1,a=st0[Math.min(i,nc-1)],e=Math.min(nc-1,i+cs-1),span=st0[e]+sp[e]-a;i+=cs;
 const hd=head||c.tagName==='TH',v=cellTeks(c),ctr=hd||c.classList.contains('c');
 cells.push({c:a,s:span,v:num(v),st:hd?ST.hd:tot?(ctr?ST.tC:ST.tL):(ctr?ST.bC:ST.bL)})});
-addRow(cells)});tabelN++};
+addRow(cells)});if(ph&&rows.length>i0){ph.r0=rows[i0].r;ph.r1=rows[rows.length-1].r;ph.h=rows.slice(i0).reduce((a,r)=>a+r.ht,0)}tabelN++};
 const ident=g=>{const ds=[...g.children].filter(d=>d.querySelector('table'));if(!ds.length)return;flush();
 const pos=[[0,2,4],[2+4+1,2,4]];
 const tb=ds.slice(0,2).map(d=>{const t=d.querySelector('table');return{h:d.querySelector('h4'),r:[...t.querySelectorAll('tr')].filter(x=>x.closest('table')===t).map(r=>[...r.children].map(cellTeks))}});
@@ -2077,6 +2077,7 @@ const m=Math.max.apply(null,info.map(x=>x.l.length));
 for(let i=0;i<m;i++)addRow(info.map((x,j)=>({c:pos[j][0],s:pos[j][1],v:x.l[i]||'',st:ST.ctr})));
 blank();blank();blank();
 addRow(info.map((x,j)=>({c:pos[j][0],s:pos[j][1],v:x.n,st:ST.ctrB})))};
+const pim=src.querySelector('.pfr .pfw img');if(pim&&pim.decode)await pim.decode().catch(()=>{});
 // kepala surat + judul
 const kt=src.querySelector('.kop .kt');
 if(kt)[...kt.children].forEach((e,i)=>{const t=tx(e.innerHTML);if(t)addRow([{c:0,s:G,v:t.replace(/\n/g,' '),st:i?ST.ctr:ST.ttl}])});
@@ -2087,12 +2088,14 @@ const walk=n=>[...n.children].forEach(e=>{const g=e.tagName.toLowerCase(),cl=e.c
 if(cl.contains('noprint')||cl.contains('kop')||cl.contains('gal')||g==='svg'||g==='img'||g==='script'||g==='style'||g==='h1'||cl.contains('sj'))return;
 if(g==='h3'){pend.push({t:selTeks(e.textContent),st:ST.sec,sec:1});return}
 if(g==='h4'){pend.push({t:selTeks(e.textContent),st:ST.sub});return}
+if(cl.contains('pfr')){const im=e.querySelector('.pfw img'),t=e.querySelector('table');if(t&&im&&/^data:image\/(jpeg|png);base64,/.test(im.src||'')&&im.naturalWidth>1){const ph={im:im};fx.push(ph);tabel(t,1,ph)}else walk(e);return}
 if(g==='table'){tabel(e);return}
 if(cl.contains('idgrid')){ident(e);return}
 if(cl.contains('ttd')){ttd(e);return}
 walk(e)});
 walk(src);
 if(!tabelN)throw new Error('Tidak ada tabel untuk disimpan.');
+const foto=fx[0]&&fx[0].r0?fx[0]:null;
 const bor='<border><left style="thin"><color rgb="FF444444"/></left><right style="thin"><color rgb="FF444444"/></right><top style="thin"><color rgb="FF444444"/></top><bottom style="thin"><color rgb="FF444444"/></bottom><diagonal/></border>';
 const xf=(f,fi,bd,h,w)=>`<xf numFmtId="0" fontId="${f}" fillId="${fi}" borderId="${bd}" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="${h}" vertical="center"${w?' wrapText="1"':''}/></xf>`;
 const fnt=(sz,b)=>`<font>${b?'<b/>':''}<sz val="${sz}"/><name val="Calibri"/></font>`;
@@ -2107,13 +2110,19 @@ else if(typeof c.v==='number')cx+=`<c r="${ref}" s="${c.st}"><v>${c.v}</v></c>`;
 else cx+=`<c r="${ref}" s="${c.st}" t="inlineStr"><is><t xml:space="preserve">${xe(String(c.v).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,''))}</t></is></c>`}
 if(c.s>1)mer.push(`<mergeCell ref="${colL(c.c)}${r.r}:${colL(c.c+c.s-1)}${r.r}"/>`)});
 sd+=`<row r="${r.r}" ht="${r.ht.toFixed(1)}" customHeight="1">${cx}</row>`});
-const sheet='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView showGridLines="0" workbookViewId="0"/></sheetViews><sheetFormatPr defaultRowHeight="15"/><cols><col min="1" max="'+G+'" width="'+CWD+'" customWidth="1"/></cols><sheetData>'+sd+'</sheetData>'+(mer.length?`<mergeCells count="${mer.length}">${mer.join('')}</mergeCells>`:'')+'<pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/><pageSetup paperSize="'+(u&&u.n==='HVS'?14:9)+'" orientation="'+(ori==='landscape'?'landscape':'portrait')+'" fitToWidth="1" fitToHeight="0"/></worksheet>';
+const sheet='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView showGridLines="0" workbookViewId="0"/></sheetViews><sheetFormatPr defaultRowHeight="15"/><cols><col min="1" max="'+G+'" width="'+CWD+'" customWidth="1"/></cols><sheetData>'+sd+'</sheetData>'+(mer.length?`<mergeCells count="${mer.length}">${mer.join('')}</mergeCells>`:'')+'<pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/><pageSetup paperSize="'+(u&&u.n==='HVS'?14:9)+'" orientation="'+(ori==='landscape'?'landscape':'portrait')+'" fitToWidth="1" fitToHeight="0"/>'+(foto?'<drawing r:id="rId1"/>':'')+'</worksheet>';
 const HD='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',z=new JSZip();
-z.file('[Content_Types].xml',HD+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>');
+z.file('[Content_Types].xml',HD+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>'+(foto?'<Default Extension="jpg" ContentType="image/jpeg"/><Default Extension="png" ContentType="image/png"/><Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>':'')+'<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>');
 z.file('_rels/.rels',HD+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>');
 z.file('xl/workbook.xml',HD+'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="'+(S.view==='portofolio'?'Portofolio':S.view==='kalender'?'Kalender':S.view==='identitas'?'Data':'Laporan')+'" sheetId="1" r:id="rId1"/></sheets></workbook>');
 z.file('xl/_rels/workbook.xml.rels',HD+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>');
 z.file('xl/styles.xml',styles);z.file('xl/worksheets/sheet1.xml',sheet);
+if(foto){const m=/^data:image\/(png|jpe?g);base64,(.+)$/i.exec(foto.im.src),ext=m[1].toLowerCase().replace('jpeg','jpg'),wpx=CWD*7+5,hpx=Math.max(20,foto.h*96/72),tr=wpx/hpx,sr=foto.im.naturalWidth/foto.im.naturalHeight;
+let cl=0,ct=0;if(sr>tr)cl=Math.round((1-tr/sr)/2*100000);else if(sr<tr)ct=Math.round((1-sr/tr)/2*100000);
+z.file('xl/worksheets/_rels/sheet1.xml.rels',HD+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing1.xml"/></Relationships>');
+z.file('xl/drawings/_rels/drawing1.xml.rels',HD+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image1.'+ext+'"/></Relationships>');
+z.file('xl/drawings/drawing1.xml',HD+'<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><xdr:twoCellAnchor editAs="oneCell"><xdr:from><xdr:col>0</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>'+(foto.r0-1)+'</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:to><xdr:col>1</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>'+foto.r1+'</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="2" name="Foto profil"/><xdr:cNvPicPr/></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="rId1"/><a:srcRect l="'+cl+'" t="'+ct+'" r="'+cl+'" b="'+ct+'"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="'+Math.round(wpx*9525)+'" cy="'+Math.round(hpx*9525)+'"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:ln w="9525"><a:solidFill><a:srgbClr val="333333"/></a:solidFill></a:ln></xdr:spPr></xdr:pic><xdr:clientData/></xdr:twoCellAnchor></xdr:wsDr>');
+z.file('xl/media/image1.'+ext,m[2],{base64:true})}
 const blob=await z.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',compression:'DEFLATE'});
 const url=URL.createObjectURL(blob);unduh(url,nama+'.xlsx');setTimeout(()=>URL.revokeObjectURL(url),5000)}
 
@@ -2221,7 +2230,7 @@ if(S.view==='portofolio')return'Portofolio-'+String(S.pfNama||'anak').replace(/[
 if(S.view==='identitas')return'Data-'+({guru:'Guru',sekolah:'Sekolah',semua:'Guru-dan-Sekolah'}[nilai('dj')]||'Data')+'-'+nmGuru()+'-'+u.n;
 return'Laporan-Jurnal-'+nmGuru()+'-'+u.n}
 async function aksiLap(c,ak){if(!c){c=await pilihKertas(ak);if(!c)return}const u=UK[c];if(!u)return;let ori=await pilihOrientasi(u,ak);if(!ori)return;const ls=ori==='landscape',ue=ls?{n:u.n,w:u.h,h:u.w}:u;if(document.querySelector('#prs[data-w]'))return toast('Data presensi masih dimuat, tunggu sebentar',1);
-if(S.view==='identitas'&&fpAktif(nilai('dj')||'guru')&&ak!=='xls'){const d=await fpMuat(),pl=$('#lap');if(pl)pl.innerHTML=dataPaper(nilai('dj')||'guru');if(!d&&ak!=='cetak')toast('Foto profil tidak bisa dimuat, file dibuat tanpa foto',1)}
+if(S.view==='identitas'&&fpAktif(nilai('dj')||'guru')){const d=await fpMuat(),pl=$('#lap');if(pl)pl.innerHTML=dataPaper(nilai('dj')||'guru');if(!d&&ak!=='cetak')toast('Foto profil tidak bisa dimuat, file dibuat tanpa foto',1)}
 if(ak==='cetak'){if(!$('#lap .paper'))return toast('Laporan belum siap dimuat',1);setKertas(ue);await siapFoto();window.print();return}
 const bt=document.querySelectorAll('.ukr button');bt.forEach(b=>b.disabled=true);
 const lb={pdf:'PDF',xls:'Excel',doc:'Word'}[ak]||ak;toast('Menyiapkan '+lb+' '+u.n+(ls?' lanskap':'')+'...');
