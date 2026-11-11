@@ -608,38 +608,53 @@ html[data-tema=main] .hero.hf>div:first-child{padding-bottom:0}
 @media(prefers-reduced-motion:reduce){.dd-c{transition:none}}
 
 
-/* ===== Desain 2 (Kindergarten Ceria) - gaya situs TK: bilah ungu, menu pil, banner krem dengan gumpalan ungu, kartu pastel, pita ungu ===== */
-html[data-tema=main]{--blue:#6b3fd4;--blued:#5428b8;--navy:#2d1b69;--yel:#ffc933;--pink:#ff5c8a;--grn:#59c27a;--ink:#2f2a5a;--mut:#7d77a8;--ln:#e9e0ff;--soft:#f1eaff;--sh:0 8px 22px #6b3fd41f}
-html[data-tema=main] body{background:linear-gradient(#fff3df,#fffaf0 420px,#fff) fixed}
-html[data-tema=main] .top{background:#fff;border-top:30px solid #5b2fc9;box-shadow:0 4px 18px #6b3fd41a}
+/* ===== Desain 2 (Kindergarten Ceria) - mengikuti gambar referensi: header putih, menu pil pelangi, banner lavender dengan pelangi, kartu gradasi ungu/oranye/hijau/biru, pita krem, footer rumput ===== */
+html[data-tema=main]{--blue:#7a3fe0;--blued:#5a28b0;--navy:#2d2a6e;--yel:#ffb400;--pink:#ee4f9a;--grn:#5cb82f;--ink:#2f2a5a;--mut:#7d77a8;--ln:#e6dcfa;--soft:#f3ecff;--sh:0 8px 22px #7a3fe01f}
+html[data-tema=main] body{background:linear-gradient(#f4ecff,#fff7ee 420px,#fff) fixed}
+html[data-tema=main] .top{background:#fff;border-top:0;box-shadow:0 4px 18px #7a3fe01a}
 html[data-tema=main] .brand b{background:none;-webkit-text-fill-color:var(--blue);color:var(--blue);text-transform:none;letter-spacing:.5px}
 html[data-tema=main] .brand small{color:var(--pink)}
-html[data-tema=main] .menu{background:#fff;border-radius:99px;box-shadow:var(--sh);padding:6px 10px;gap:4px}
-html[data-tema=main] .nv{flex-direction:row;gap:6px;min-width:0;max-width:none;padding:8px 16px;border-radius:99px;font:700 13.5px Fredoka,sans-serif;color:var(--navy)}
+html[data-tema=main] .menu{background:none;box-shadow:none;border-radius:0;padding:12px 14px;gap:8px}
+html[data-tema=main] .nv{--pc:#7a3fe0;flex-direction:row;gap:6px;min-width:0;max-width:none;padding:9px 18px;border-radius:99px;font:600 14px Fredoka,sans-serif;color:#fff;background:var(--pc);box-shadow:0 4px 0 #00000026;transition:.15s}
+html[data-tema=main] .nv:nth-child(7n+1){--pc:#5cb82f}html[data-tema=main] .nv:nth-child(7n+2){--pc:#7a3fe0}html[data-tema=main] .nv:nth-child(7n+3){--pc:#f7871c}html[data-tema=main] .nv:nth-child(7n+4){--pc:#2f8fe8}html[data-tema=main] .nv:nth-child(7n+5){--pc:#ee4b4b}html[data-tema=main] .nv:nth-child(7n+6){--pc:#ee4f9a}html[data-tema=main] .nv:nth-child(7n){--pc:#1fb5a8}
 html[data-tema=main] .nv .ni{margin:0;font-size:17px}
-html[data-tema=main] .nv:hover{background:var(--soft)}
-html[data-tema=main] .nv.on{background:var(--blue);color:#fff;box-shadow:0 6px 14px #6b3fd44d}
-html[data-tema=main] .btn{background:linear-gradient(#8156e8,#6b3fd4);box-shadow:0 6px 14px #6b3fd44d}
-html[data-tema=main] .btn.y{background:linear-gradient(#ffd75a,#ffc22e);color:var(--navy);box-shadow:0 6px 14px #ffc93366}
+html[data-tema=main] .nv:hover{background:var(--pc);filter:brightness(1.08);transform:translateY(-2px)}
+html[data-tema=main] .nv.on{background:var(--pc);color:#fff;box-shadow:0 0 0 3px #fff,0 0 0 5px var(--pc),0 6px 12px #0000002e}
+html[data-tema=main] .btn{background:linear-gradient(#8a55ec,#6b3fd4);box-shadow:0 6px 14px #7a3fe04d}
+html[data-tema=main] .btn.y{background:linear-gradient(#ffc933,#ffb400);color:var(--navy);box-shadow:0 6px 14px #ffb40066}
 html[data-tema=main] .btn.gh{background:var(--soft);color:var(--blued);box-shadow:none}
 html[data-tema=main] .btn.o{background:#fff;color:var(--blue);border:2px solid var(--blue);box-shadow:none}
-html[data-tema=main] .cu .btn{background:var(--pink);color:#fff;box-shadow:0 6px 14px #ff5c8a55}
+html[data-tema=main] .cu .btn{background:linear-gradient(#8a55ec,#6b3fd4);color:#fff;box-shadow:0 6px 14px #7a3fe055}
 html[data-tema=main] .card{border-radius:24px;border:2px solid #f0e9ff;box-shadow:var(--sh)}
-html[data-tema=main] .hero{background:#fffaf0;border-radius:36px;box-shadow:none;overflow:hidden}
+html[data-tema=main] .hero{background:linear-gradient(120deg,#efe3ff,#ffe9f3 58%,#fff1dc);border-radius:36px;box-shadow:var(--sh);overflow:hidden}
 html[data-tema=main] .hero.hf{background:#1e3a8a}
+html[data-tema=main] .hero:not(.hf)::before{content:"";position:absolute;left:26px;top:16px;width:96px;height:48px;border-radius:96px 96px 0 0;background:radial-gradient(circle at 50% 100%,#0000 0 14px,#ff6b6b 14px 20px,#ffa94d 20px 26px,#ffe36b 26px 32px,#7ad98c 32px 38px,#4fb6f5 38px 44px,#0000 44px);z-index:2}
+html[data-tema=main] .hero:not(.hf)>div:first-child{padding-top:46px}
 html[data-tema=main] .hero::after{content:"✨";position:absolute;left:47%;top:16px;font-size:26px}
 html[data-tema=main] .hero h1{color:var(--navy)}
 html[data-tema=main] .hero .c1,html[data-tema=main] .hero .c2{color:var(--blue);background:linear-gradient(transparent 72%,#ffd75a 72%)}
-html[data-tema=main] .hero .btn.y{background:linear-gradient(#8156e8,#6b3fd4);color:#fff;box-shadow:0 6px 14px #6b3fd44d}
-html[data-tema=main] .scene::before{left:auto;right:18px;bottom:-70px;width:340px;height:340px;transform:none;border-radius:46% 54% 50% 50%/55% 45% 55% 45%;background:linear-gradient(#8156e8,#6b3fd4)}
-html[data-tema=main] .scene .hill{display:none}
+html[data-tema=main] .hero .btn.y{background:linear-gradient(#8a55ec,#6b3fd4);color:#fff;box-shadow:0 6px 14px #7a3fe04d}
+html[data-tema=main] .scene{background:linear-gradient(#bfe6ff,#fff0f7);border:6px solid #fff;border-radius:32px;overflow:hidden;box-shadow:var(--sh)}
+html[data-tema=main] .hero:not(.hf) .scene{margin-bottom:28px}
+html[data-tema=main] .scene::before{display:none}
+html[data-tema=main] .scene .hill{display:block;background:linear-gradient(#8fd84f,#5fb83c)}
 html[data-tema=main] .strip{background:#fff;border:2px solid var(--ln);border-radius:28px;box-shadow:var(--sh)}
+html[data-tema=main] .strip::before{border-right-color:#e6dcfa}
+html[data-tema=main] .sti:nth-child(1) i{background:#7a3fe0!important}html[data-tema=main] .sti:nth-child(2) i{background:#f7871c!important}html[data-tema=main] .sti:nth-child(3) i{background:#5cb82f!important}html[data-tema=main] .sti:nth-child(4) i{background:#2f8fe8!important}
 html[data-tema=main] .sec{text-align:center;color:var(--navy)}
-html[data-tema=main] .pg{border:0;border-radius:26px}
-html[data-tema=main] .pg.c0{background:#ece4ff}html[data-tema=main] .pg.c1{background:#e3f5e0}html[data-tema=main] .pg.c2{background:#ffead6}html[data-tema=main] .pg.c3{background:#ffe0ea}
-html[data-tema=main] .pg .ln{color:var(--blue)}
-html[data-tema=main] .band{background:var(--blue)}
-html[data-tema=main] .band .wv path{fill:var(--blue)}
+html[data-tema=main] .pg{border:0;border-radius:26px;color:#fff}
+html[data-tema=main] .pg.c0{background:linear-gradient(160deg,#8a55ec,#6232c4)}html[data-tema=main] .pg.c0 .ln{color:#6232c4}
+html[data-tema=main] .pg.c1{background:linear-gradient(160deg,#ffa13a,#f7871c)}html[data-tema=main] .pg.c1 .ln{color:#d9700a}
+html[data-tema=main] .pg.c2{background:linear-gradient(160deg,#7fd04f,#4fae3b)}html[data-tema=main] .pg.c2 .ln{color:#3d9a2b}
+html[data-tema=main] .pg.c3{background:linear-gradient(160deg,#3da5f5,#2478d9)}html[data-tema=main] .pg.c3 .ln{color:#2478d9}
+html[data-tema=main] .band{background:#fff3d6}
+html[data-tema=main] .band .wv path{fill:#fff3d6}
+html[data-tema=main] .sec.w{color:var(--navy)}
+html[data-tema=main] .tabs{background:var(--soft)}html[data-tema=main] .tabs button.on{background:var(--blue);box-shadow:none}
+html[data-tema=main] .md{background:#2d2a6e99}
+html[data-tema=main] input:focus,html[data-tema=main] textarea:focus{box-shadow:0 0 0 4px #7a3fe033}
+html[data-tema=main] .foot{background:linear-gradient(#6cbf3f,#3f8f2f)}
+@media(max-width:820px){html[data-tema=main] .hero:not(.hf)>div:first-child{padding-top:40px}html[data-tema=main] .hero:not(.hf) .scene{margin-bottom:18px}html[data-tema=main] .menu{padding:10px 12px}html[data-tema=main] .nv{padding:8px 14px;font-size:13px}}
 </style>
 </head>
 <body>
@@ -665,7 +680,7 @@ const simpanSesi=()=>{try{localStorage.setItem('jg',JSON.stringify({token:S.toke
 
 /* ---------- suara tombol dan pilihan ---------- */
 const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('jgset')||'{}')}catch(e){}return{suara:o.suara!==false,vol:[1,2,3].includes(o.vol)?o.vol:2,tema:['ceria','main','belajar','ujian'].includes(o.tema)?o.tema:'ceria',foto:/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(o.foto||'')?o.foto:'',fmode:'isi',fgel:typeof o.fgel==='number'?Math.min(85,Math.max(0,o.fgel)):55,fx:typeof o.fx==='number'?Math.min(100,Math.max(0,o.fx)):50,fy:typeof o.fy==='number'?Math.min(100,Math.max(0,o.fy)):50}})();
-const applyTema=()=>{document.documentElement.dataset.tema=SET.tema;const m=document.querySelector('meta[name=theme-color]');if(m)m.content={ceria:'#1e88e5',main:'#2f8fe8',belajar:'#0c2a72',ujian:'#1a47c9'}[SET.tema]};applyTema();
+const applyTema=()=>{document.documentElement.dataset.tema=SET.tema;const m=document.querySelector('meta[name=theme-color]');if(m)m.content={ceria:'#1e88e5',main:'#7a3fe0',belajar:'#0c2a72',ujian:'#1a47c9'}[SET.tema]};applyTema();
 const simpanSet=()=>{try{localStorage.setItem('jgset',JSON.stringify(SET));return true}catch(e){return false}};
 const fotoLatar=()=>`<img class="hbg" src="${SET.foto}" alt="" style="object-position:${SET.fx}% ${SET.fy}%"><div class="hov" style="--ov:${SET.fgel/100}"></div>`;
 function fotoBeranda(f){return new Promise((ok,no)=>{if(!/^image\//.test(f.type))return no(new Error('Pilih berkas gambar.'));
@@ -2504,7 +2519,7 @@ const cara=pw?'<p class="sub">Aplikasi sudah terpasang di perangkat ini.</p>'
 :ios?'<p class="sub" style="font-size:13px">Di iPhone/iPad (buka dengan Safari): ketuk tombol Bagikan, lalu pilih <b>Tambah ke Layar Utama</b>.</p>'
 :'<p class="sub" style="font-size:13px">Buka menu browser (titik tiga), lalu pilih <b>Instal aplikasi</b> atau <b>Tambahkan ke layar utama</b>. Di Chrome/Edge komputer, klik ikon pasang di kanan bilah alamat.</p>';
 const TM3=[['ceria','Ceria Biru','Desain bawaan: biru, kuning, dan hijau yang ceria.',['#1e88e5','#fdb913','#ee4f9a','#7cc243'],'linear-gradient(#a9d8ff,#e4f4ff)'],
-['main','Kindergarten Ceria','Menu ikon di atas, langit dengan pelangi dan awan, serta kartu warna-warni biru, pink, hijau, dan oranye seperti situs TK.',['#2f8fe8','#ee4f9a','#6cc04a','#f7871c'],'linear-gradient(#78c8fb,#eaf8ff)'],
+['main','Kindergarten Ceria','Header putih, menu pil pelangi, banner lavender dengan pelangi, serta kartu gradasi ungu, oranye, hijau, dan biru seperti situs TK.',['#7a3fe0','#f7871c','#5cb82f','#2f8fe8'],'linear-gradient(#efe3ff,#fff1dc)'],
 ['belajar','LMS Sekolah','Menu samping biru tua, kartu putih rapi, dan kartu ringkasan pastel ala dashboard Learning Management System.',['#0c2a72','#2f6df0','#22b573','#f5a623'],'linear-gradient(90deg,#0c2a72 28%,#eef3fc 28%)'],
 ['ujian','Portal Ujian','Menu samping putih, banner biru besar, dan kartu menu berwarna dengan tombol ala portal ujian online.',['#1a47c9','#16a34a','#7c3aed','#f59e0b'],'linear-gradient(90deg,#fff 28%,#dfe8fd 28%)']];
 $('#main').innerHTML=`<div class="card"><h3>🎨 Ganti desain</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Pilih tampilan aplikasi. Pilihan tersimpan di perangkat ini.</p>
