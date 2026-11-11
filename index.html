@@ -1413,8 +1413,14 @@ f.scrollIntoView({behavior:'smooth',block:h>vh?'start':'nearest'})},60)};
 md._bk=buka;
 fds.forEach(f=>{f.classList.add('acc');const b=document.createElement('button');b.type='button';b.className='ah';b.innerHTML='<span>'+f.querySelector('label').innerHTML+'</span><i></i><em>›</em>';f.prepend(b);segar(f)});
 md._ak=()=>buka(null);
+const lanjut=f=>{const sh=md.querySelector('.sheet.frm');if(!sh)return;
+const kids=[...sh.querySelectorAll('.fg>.fd')],i=kids.indexOf(f);if(i<0)return;
+const nx=kids.slice(i+1).find(g=>g.offsetParent!==null&&(!g.classList.contains('acc')||!val(g)));if(!nx)return;
+setTimeout(()=>{const h=nx.querySelector(':scope>.ah')||nx,a=h.getBoundingClientRect(),b=sh.getBoundingClientRect();
+sh.scrollTo({top:sh.scrollTop+(a.top-b.top)-70,behavior:'smooth'})},320)};
 md.addEventListener('change',e=>{const f=e.target.closest&&e.target.closest('.fd.acc');if(!f)return;segar(f);
-if(e.target.type==='radio'&&!e.target.disabled)buka(null)});
+if(e.target.type==='radio'&&!e.target.disabled){buka(null);lanjut(f)}
+else if(e.target.classList&&e.target.classList.contains('ex')&&e.target.tagName==='INPUT'&&e.target.value.trim())lanjut(f)});
 md.addEventListener('click',e=>{const b=e.target.closest('.ah');if(!b||b.tagName!=='BUTTON')return;const f=b.parentNode;buka(f.classList.contains('open')?null:f)})}
 /* ---------- KBC (Panca Cinta) di Jurnal Harian Mengajar ---------- */
 const KBCN0=[['PC1','Cinta Allah dan Rasul-Nya'],['PC2','Cinta Ilmu'],['PC3','Cinta Lingkungan'],['PC4','Cinta Diri dan Sesama Manusia'],['PC5','Cinta Tanah Air']];
@@ -1748,7 +1754,8 @@ const ct=[['Izin',a.izinNama],['Sakit',a.sakitNama],['Tanpa keterangan',a.alphaN
 setArea('catatan',ct||'Semua hadir');toast('Data absen terisi')}}
 catch(er){toast(er.message,1)}
 rk.disabled=false;return}
-if(t.closest('[data-s]')){const skip=(aktif?tb.hide:[]).slice();if(aktif&&k==='perkembangan'){const nn0=Object.keys(T).filter(n=>T[n]),ct0=md._ct||{};['catatan','tindak'].forEach(f=>{if(nn0.length&&nn0.every(n=>((ct0[n]||{})[f]||'').trim()))skip.push(f)})}const{d,kurang:kur0,kk}=ambil(md,j.f.filter(f=>!skip.includes(f.k)));
+if(t.closest('[data-s]')){const skip=(aktif?tb.hide:[]).slice();if(aktif&&k==='perkembangan'){const nn0=Object.keys(T).filter(n=>T[n]),ct0=md._ct||{};['catatan','tindak'].forEach(f=>{if(nn0.length&&nn0.every(n=>((ct0[n]||{})[f]||'').trim()))skip.push(f)})}let{d,kurang:kur0,kk}=ambil(md,j.f.filter(f=>!skip.includes(f.k)));
+if(k==='perkembangan'&&!skip.includes('catatan')&&!d.catatan&&(!kur0||kk==='tindak')){kur0='Catatan pengamatan';kk='catatan'}
 let kurang=kur0;if(kur0&&aktif&&k==='perkembangan'&&(kk==='catatan'||kk==='tindak')){const lb=kk==='catatan'?'Catatan pengamatan':'Tindak lanjut',ct1=md._ct||{},ks=Object.keys(T).filter(n=>T[n]&&!((ct1[n]||{})[kk]||'').trim());
 kurang=ks.length?lb+' '+(ks.length<=3?ks.join(', '):ks.slice(0,2).join(', ')+' dan '+(ks.length-2)+' anak lain')+' belum diisi. Isi di bawah nama anak atau di isian umum':kur0}
 if(kurang){const e=E(kk),fd=e&&e.closest('.fd');
