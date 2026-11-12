@@ -1028,7 +1028,7 @@ const KEYS=ORDER.slice(1);
 const opts=(name,o,sel)=>`<div class="opts">${o.map(x=>`<label class="op"><input type="radio" name="r_${name}" value="${esc(x)}"${String(x)===String(sel)?' checked':''}><span>${esc(x)}</span></label>`).join('')}</div>`;
 function fld(f,v){v=String(v??'');const L=`<label>${f.l}</label>`;
 if(f.t==='txa')return`<div class="fd full">${L}<textarea name="${f.k}" rows="3" maxlength="1000" placeholder="${esc(f.ph||'')}">${esc(v)}</textarea></div>`;if(f.t==='tuj')return`<details class="fd full" id="tujb"><summary class="ah kosong"><span>📌 Pilih tujuan pembelajaran</span><i>Belum dipilih</i><em>›</em></summary><p class="sub" id="tujh" style="font-size:12px;margin:-2px 0 8px"></p><div class="opts" id="tujl"></div>${boleh('tp.ubah')?'<button type="button" class="btn gh s" data-tk style="margin-top:10px">⚙️ Kelola daftar tujuan pembelajaran sekolah</button>':''}</details><div class="fd full">${L}<textarea name="${f.k}" rows="2" maxlength="500" placeholder="Pilih dari daftar di atas, atau tulis sendiri. Contoh: Anak mampu mengenal kebutuhan tubuh dan merawatnya">${esc(v)}</textarea></div>`;
-if(f.t==='ind')return`<details class="fd full" id="indb"><summary class="ah kosong"><span>🎯 ${f.l}</span><i>Belum dipilih</i><em>›</em></summary><input type="hidden" name="${f.k}" value="${esc(v)}"><p class="sub" id="indh" style="font-size:12px;margin:-2px 0 8px"></p><div class="opts" id="indl"></div><div class="fup" style="margin-top:10px"><input id="indx" maxlength="200" placeholder="Tulis indikator sendiri sesuai tujuan pembelajaran" style="flex:1 1 220px;width:auto" autocomplete="off"><button type="button" class="btn o s" data-ia>+ Tambah</button></div></details>`;
+if(f.t==='ind')return`<details class="fd full" id="indb"><summary class="ah kosong"><span>🎯 ${f.l}</span><i>Belum dipilih</i><em>›</em></summary><input type="hidden" name="${f.k}" value="${esc(v)}"><p class="sub" id="indh" style="font-size:12px;margin:-2px 0 8px"></p><div class="opts" id="indl"></div><div class="fup" style="margin-top:10px"><input id="indx" maxlength="200" placeholder="Tulis indikator sendiri sesuai tujuan pembelajaran" style="flex:1 1 220px;width:auto" autocomplete="off"><button type="button" class="btn o s" data-ia>+ Tambah</button></div>${boleh('tp.ubah')?'<button type="button" class="btn gh s" data-ik style="margin-top:10px">⚙️ Kelola daftar indikator sekolah</button>':''}</details>`;
 if(f.t==='pc')return`<details class="fd full" id="pcb"><summary class="ah kosong"><span>💗 ${f.l}</span><i>Belum dipilih</i><em>›</em></summary><input type="hidden" name="${f.k}" value="${esc(v)}"><p class="sub" style="font-size:12px;margin:-2px 0 8px">${esc(f.ph||'Panca Cinta melengkapi, bukan pengganti, elemen CP. Pilih nilai yang tampak atau relevan pada pengamatan ini (boleh lebih dari satu).')}</p><div class="opts" id="pcl">${KBCN0.map(([id,n])=>`<label class="op"><input type="checkbox" name="pcc" value="${id}"><span>${esc(n)}</span></label>`).join('')}</div></details>`;
 if(f.t==='date'){const dv=v||hari();return`<div class="fd">${L}<div class="dtw"><input type="date" name="${f.k}" value="${esc(dv)}"><span class="dv">${esc(tgl(dv))}</span></div></div>`}
 if(f.t==='txt')return`<div class="fd">${L}<input name="${f.k}" value="${esc(v)}" autocomplete="off"></div>`;
@@ -1633,8 +1633,15 @@ const tpRows=()=>TPD||(TPD=cGet('tp')||[]);
 async function tpMuat(){try{const j=await api('tpDaftar');TPD=j.rows||[];cSet('tp',TPD);return true}catch(e){return false}}
 const tpGalat=er=>/tidak dikenal/i.test(er.message)?'Backend belum diperbarui. Pasang TP.gs dan Code.gs terbaru.':er.message;
 // daftar TP yang berlaku untuk satu elemen: bawaan (kecuali yang dihapus sekolah, dengan teks yang diubah sekolah) + tambahan sekolah
-function tpGabung(i){const rs=tpRows(),out=[];
+function tpGabung(i){const rs=tpRows().filter(r=>r.jenis!=='ind'),out=[];
 (TP_BAWAAN[i]||[]).forEach((t,n)=>{const bid='b'+i+'_'+n,ov=rs.find(r=>r.bid===bid);
+if(ov&&ov.aktif==='tidak')return;
+out.push({bid,id:ov?ov.id:'',teks:ov&&ov.teks?ov.teks:t,diubah:!!(ov&&ov.teks)})});
+rs.filter(r=>!r.bid&&r.aktif!=='tidak'&&+r.elemen===i).forEach(r=>out.push({bid:'',id:r.id,teks:r.teks,tambah:true}));
+return out}
+// daftar indikator yang berlaku untuk satu elemen (templat, boleh memuat {sub}): bawaan kecuali yang dihapus sekolah, dengan teks yang diubah sekolah + tambahan sekolah
+function indGabung(i){const rs=tpRows().filter(r=>r.jenis==='ind'),out=[];
+(INDIKATOR[i]||[]).forEach((t,n)=>{const bid='i'+i+'_'+n,ov=rs.find(r=>r.bid===bid);
 if(ov&&ov.aktif==='tidak')return;
 out.push({bid,id:ov?ov.id:'',teks:ov&&ov.teks?ov.teks:t,diubah:!!(ov&&ov.teks)})});
 rs.filter(r=>!r.bid&&r.aktif!=='tidak'&&+r.elemen===i).forEach(r=>out.push({bid:'',id:r.id,teks:r.teks,tambah:true}));
@@ -1658,57 +1665,64 @@ if(prev>=0&&i!==prev){const lama=daf.map(d=>d.teks),p=parts(),sisa=p.filter(x=>l
 prev=i;render()});
 b.addEventListener('click',e=>{if(e.target.closest('[data-tk]'))tpKelola(Math.max(0,idx()),render)});
 render();
-tpMuat().then(ok=>{if(ok&&document.body.contains(md))render()})}
+tpMuat().then(ok=>{if(ok&&document.body.contains(md)){render();if(md._indRender)md._indRender()}})}
 // kelola daftar TP sekolah: tambah, ubah, hapus, pulihkan bawaan (hanya akun berizin tp.ubah; server memeriksa lagi)
-function tpKelola(i0,onTutup){const md=document.createElement('div');md.className='md';md.style.zIndex=35;
-md.innerHTML=`<div class="sheet" style="max-height:90vh;overflow:auto"><h2>⚙️ Kelola Tujuan Pembelajaran</h2><p class="sub" style="font-size:13px;margin-bottom:8px">Perubahan berlaku untuk semua guru di sekolah ini. Jurnal yang sudah tersimpan tidak ikut berubah.</p><div class="fd full"><label>Elemen CP</label><select id="tke">${ELEMEN_CP.map((x,n)=>`<option value="${n}"${n===i0?' selected':''}>${esc(x)}</option>`).join('')}</select></div><div id="tkl" style="margin:10px 0"></div><div class="fd full"><label id="tkt">Tambah tujuan pembelajaran</label><input id="tkx" maxlength="200" autocomplete="off" placeholder="Tulis tujuan pembelajaran"></div><div class="fup" style="margin-top:8px;gap:8px"><button type="button" class="btn y s" data-ts>+ Tambah</button><button type="button" class="btn gh s" data-tb hidden>Batal ubah</button><button type="button" class="btn gh s" data-tp hidden>↩️ Pulihkan bawaan</button></div><div class="act"><button class="btn gh" data-x>Tutup</button></div></div>`;
-const Q=s=>md.querySelector(s),sel=()=>+Q('#tke').value;let edit=null;
-const render=()=>{const i=sel(),daf=tpGabung(i),rs=tpRows().filter(r=>String(r.bid||'').indexOf('b'+i+'_')===0);
-Q('#tkl').innerHTML=daf.length?daf.map((d,n)=>`<div style="display:flex;gap:6px;align-items:center;padding:8px 0;border-top:1px solid var(--ln)"><span style="flex:1;min-width:0;font-size:14px">${esc(d.teks)}${d.diubah?' <small class="sub">(diubah)</small>':d.tambah?' <small class="sub">(tambahan)</small>':''}</span><button type="button" class="btn gh s" data-e="${n}">Ubah</button><button type="button" class="btn gh s" data-d="${n}">Hapus</button></div>`).join(''):'<div class="empty">Belum ada tujuan pembelajaran.</div>';
+function tpKelola(i0,onTutup,j0){const md=document.createElement('div');md.className='md';md.style.zIndex=35;
+md.innerHTML=`<div class="sheet" style="max-height:90vh;overflow:auto"><h2>⚙️ Kelola Daftar Sekolah</h2><p class="sub" style="font-size:13px;margin-bottom:8px">Perubahan berlaku untuk semua guru di sekolah ini. Jurnal yang sudah tersimpan tidak ikut berubah.</p><div class="fd full"><label>Daftar yang dikelola</label><select id="tkj"><option value="tp">Tujuan pembelajaran</option><option value="ind">Indikator yang diamati</option></select></div><div class="fd full" style="margin-top:10px"><label>Elemen CP</label><select id="tke">${ELEMEN_CP.map((x,n)=>`<option value="${n}"${n===i0?' selected':''}>${esc(x)}</option>`).join('')}</select></div><p class="sub" id="tkh" style="font-size:12px;margin:8px 0 0"></p><div id="tkl" style="margin:10px 0"></div><div class="fd full"><label id="tkt"></label><input id="tkx" maxlength="200" autocomplete="off"></div><div class="fup" style="margin-top:8px;gap:8px"><button type="button" class="btn y s" data-ts>+ Tambah</button><button type="button" class="btn gh s" data-tb hidden>Batal ubah</button><button type="button" class="btn gh s" data-tp hidden>↩️ Pulihkan bawaan</button></div><div class="act"><button class="btn gh" data-x>Tutup</button></div></div>`;
+const Q=s=>md.querySelector(s),sel=()=>+Q('#tke').value;let edit=null,J=j0==='ind'?'ind':'tp';Q('#tkj').value=J;
+const gab=i=>J==='ind'?indGabung(i):tpGabung(i),nm=()=>J==='ind'?'indikator':'tujuan pembelajaran';
+const render=()=>{const i=sel(),daf=gab(i),pre=(J==='ind'?'i':'b')+i+'_',rs=tpRows().filter(r=>String(r.bid||'').indexOf(pre)===0);
+Q('#tkh').textContent=J==='ind'?'Tulis {sub} bila ingin otomatis diganti nama subtema atau tema yang dipilih guru. Contoh: Menyebutkan benda yang berkaitan dengan {sub}.':'';
+Q('#tkx').placeholder='Tulis '+nm();
+Q('#tkl').innerHTML=daf.length?daf.map((d,n)=>`<div style="display:flex;gap:6px;align-items:center;padding:8px 0;border-top:1px solid var(--ln)"><span style="flex:1;min-width:0;font-size:14px">${esc(d.teks)}${d.diubah?' <small class="sub">(diubah)</small>':d.tambah?' <small class="sub">(tambahan)</small>':''}</span><button type="button" class="btn gh s" data-e="${n}">Ubah</button><button type="button" class="btn gh s" data-d="${n}">Hapus</button></div>`).join(''):`<div class="empty">Belum ada ${nm()}.</div>`;
 const pul=Q('[data-tp]');pul.hidden=!rs.length;pul.textContent='↩️ Pulihkan bawaan ('+rs.length+')';
-Q('#tkt').textContent=edit?'Ubah tujuan pembelajaran':'Tambah tujuan pembelajaran';Q('[data-ts]').textContent=edit?'Simpan perubahan':'+ Tambah';Q('[data-tb]').hidden=!edit};
+Q('#tkt').textContent=(edit?'Ubah ':'Tambah ')+nm();Q('[data-ts]').textContent=edit?'Simpan perubahan':'+ Tambah';Q('[data-tb]').hidden=!edit};
 const kirim=async(act,data,ok)=>{try{const j=await api(act,{data});TPD=j.rows||[];cSet('tp',TPD);edit=null;Q('#tkx').value='';render();toast(ok)}catch(er){toast(tpGalat(er),1)}};
 md.onclick=async e=>{if(e.target===md||e.target.closest('[data-x]')){md.remove();if(onTutup)onTutup();return}
-const i=sel(),daf=tpGabung(i),X=Q('#tkx');
-if(e.target.closest('[data-ts]')){const v=X.value.trim().replace(/\s+/g,' ');
-if(v.length<3)return toast('Tulis tujuan pembelajarannya dulu',1);
-if(/;/.test(v))return toast('Tanda titik koma (;) tidak boleh dipakai',1);
+const i=sel(),daf=gab(i),X=Q('#tkx');
+if(e.target.closest('[data-ts]')){let v=X.value.trim().replace(/\s+/g,' ');
+if(J==='ind')v=v.replace(/\s*\|\s*/g,' ');
+if(v.length<3)return toast('Tulis '+nm()+'nya dulu',1);
+if(J==='tp'&&/;/.test(v))return toast('Tanda titik koma (;) tidak boleh dipakai',1);
 if(/^[=+\-@]/.test(v))return toast('Tidak boleh diawali tanda = + - @',1);
-if(daf.some(d=>d.teks.toLowerCase()===v.toLowerCase()&&!(edit&&d.bid===edit.bid&&d.id===edit.id)))return toast('Tujuan itu sudah ada pada elemen ini',1);
-const data=edit?(edit.id?{id:edit.id,teks:v}:{bid:edit.bid,teks:v}):{elemen:i,teks:v};
-return kirim('tpSimpan',data,edit?'Perubahan tersimpan':'Tujuan ditambahkan')}
+if(daf.some(d=>d.teks.toLowerCase()===v.toLowerCase()&&!(edit&&d.bid===edit.bid&&d.id===edit.id)))return toast('Isian itu sudah ada pada elemen ini',1);
+const data=edit?(edit.id?{id:edit.id,teks:v}:{bid:edit.bid,teks:v}):{jenis:J,elemen:String(i),teks:v};
+return kirim('tpSimpan',data,edit?'Perubahan tersimpan':'Ditambahkan')}
 const be=e.target.closest('[data-e]');if(be){edit=daf[+be.dataset.e];X.value=edit.teks;render();X.focus();return}
 if(e.target.closest('[data-tb]')){edit=null;X.value='';render();return}
 const bd=e.target.closest('[data-d]');if(bd){const d=daf[+bd.dataset.d];
-if(!await tanya('Hapus tujuan pembelajaran?',d.teks+(d.bid?' (TP bawaan, bisa dipulihkan lewat tombol Pulihkan bawaan).':''),'Ya, hapus',true))return;
-return kirim('tpHapus',d.id?{id:d.id}:{bid:d.bid},'Tujuan dihapus')}
-if(e.target.closest('[data-tp]')){if(!await tanya('Pulihkan TP bawaan?','Perubahan dan penghapusan TP bawaan pada elemen ini dikembalikan seperti semula. Tambahan sekolah tidak dihapus.','Ya, pulihkan'))return;
-return kirim('tpPulihkan',{semua:true,elemen:i},'TP bawaan dipulihkan')}};
-md.addEventListener('change',e=>{if(e.target.id==='tke'){edit=null;Q('#tkx').value='';render()}});
+if(!await tanya('Hapus '+nm()+'?',d.teks+(d.bid?' (bawaan aplikasi, bisa dipulihkan lewat tombol Pulihkan bawaan).':''),'Ya, hapus',true))return;
+return kirim('tpHapus',d.id?{id:d.id}:{bid:d.bid},'Dihapus')}
+if(e.target.closest('[data-tp]')){if(!await tanya('Pulihkan bawaan?','Perubahan dan penghapusan '+nm()+' bawaan pada elemen ini dikembalikan seperti semula. Tambahan sekolah tidak dihapus.','Ya, pulihkan'))return;
+return kirim('tpPulihkan',{semua:true,elemen:i,jenis:J},'Bawaan dipulihkan')}};
+md.addEventListener('change',e=>{if(e.target.id==='tke'||e.target.id==='tkj'){if(e.target.id==='tkj')J=e.target.value==='ind'?'ind':'tp';edit=null;Q('#tkx').value='';render()}});
 md.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='tkx'){e.preventDefault();Q('[data-ts]').click()}});
 document.body.appendChild(md);render()}
 // daftar indikator menyesuaikan elemen CP + tema/subtema; bisa tambah indikator sendiri (disimpan di perangkat guru)
 function indInit(md,row){const b=md.querySelector('#indb');if(!b)return;
 const E=n=>md.querySelector(`[name=${n}]`),H=E('indikator'),L=b.querySelector('#indl'),Hn=b.querySelector('#indh'),X=b.querySelector('#indx');
 const ctx=()=>E('subtema').value||E('tema').value||'tema ini',idx=()=>elemenIdx(E('aspek').value),isi=(t,c)=>t.replace(/\{sub\}/g,c);
-const kc=()=>'jgind_'+((S.guru&&S.guru.id)||'')+'_'+idx(),base=()=>{const i=idx();return i<0?[]:INDIKATOR[i]};
+const kc=()=>'jgind_'+((S.guru&&S.guru.id)||'')+'_'+idx(),base=()=>{const i=idx();return i<0?[]:indGabung(i).map(d=>d.teks)};
 const getC=()=>{try{return JSON.parse(localStorage.getItem(kc())||'[]')}catch(e){return[]}};
 let sel=String(H.value||'').split(' | ').filter(Boolean),lama=ctx(),prev=idx();
 const ring=()=>{H.value=sel.join(' | ');const a=b.querySelector('.ah');a.querySelector('i').textContent=sel.length?sel.length+' indikator':'Belum dipilih';a.classList.toggle('kosong',!sel.length)};
 const render=()=>{const i=idx(),c=ctx(),bs=base().map(t=>isi(t,c)),cs=getC(),ek=sel.filter(s=>bs.indexOf(s)<0&&cs.indexOf(s)<0),all=bs.concat(cs,ek);
 Hn.textContent=i<0?'Pilih Elemen CP dulu. Daftar indikator menyesuaikan elemen, tema, dan subtema yang dipilih.':'Indikator menyesuaikan elemen CP dan "'+c+'". Centang yang diamati, atau tulis indikator sendiri sesuai tujuan pembelajaran.';
 L.innerHTML=all.length?all.map(x=>`<label class="op"><input type="checkbox" name="indc" value="${esc(x)}"${sel.indexOf(x)>=0?' checked':''}><span>${esc(x)}</span></label>`).join(''):'<span class="sub">Belum ada indikator.</span>';ring()};
-const tambah=()=>{const v=X.value.trim().replace(/\s*\|\s*/g,' ');if(!v)return toast('Tulis indikatornya dulu',1);if(idx()<0)return toast('Pilih Elemen CP dulu',1);
-const c=ctx(),cs=getC();if(cs.indexOf(v)<0&&base().every(t=>isi(t,c)!==v)){cs.push(v);try{localStorage.setItem(kc(),JSON.stringify(cs.slice(-30)))}catch(er){}}
+const tambah=async()=>{const v=X.value.trim().replace(/\s*\|\s*/g,' ');if(!v)return toast('Tulis indikatornya dulu',1);if(idx()<0)return toast('Pilih Elemen CP dulu',1);
+const c=ctx(),cs=getC();if(cs.indexOf(v)<0&&base().every(t=>isi(t,c)!==v)){
+let server=false;
+if(boleh('tp.ubah')){try{const j=await api('tpSimpan',{data:{jenis:'ind',elemen:String(idx()),teks:v}});TPD=j.rows||[];cSet('tp',TPD);server=true;toast('Indikator ditambahkan ke daftar sekolah')}catch(er){toast(tpGalat(er)+' Indikator disimpan di perangkat ini saja.',1)}}
+if(!server){cs.push(v);try{localStorage.setItem(kc(),JSON.stringify(cs.slice(-30)))}catch(er){}}}
 if(sel.indexOf(v)<0)sel.push(v);X.value='';render()};
 L.style.gridTemplateColumns='1fr';
 b.addEventListener('change',e=>{if(e.target.name!=='indc')return;const v=e.target.value;sel=e.target.checked?sel.filter(x=>x!==v).concat(v):sel.filter(x=>x!==v);ring()});
-b.addEventListener('click',e=>{if(e.target.closest('[data-ia]'))tambah()});
+b.addEventListener('click',e=>{if(e.target.closest('[data-ia]'))tambah();else if(e.target.closest('[data-ik]'))tpKelola(Math.max(0,idx()),render,'ind')});
 X.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();tambah()}});
 md.addEventListener('change',e=>{const n=e.target.name;
 if(n==='aspek'){const i=idx();if(prev>=0&&i!==prev&&sel.length){sel=[];toast('Indikator dikosongkan karena Elemen CP diganti')}prev=i;render()}
 else if(n==='tema'||n==='subtema'){const c=ctx();sel=sel.map(s=>{const t=base().find(t=>isi(t,lama)===s);return t?isi(t,c):s});lama=c;render()}});
-render()}
+md._indRender=render;render()}
 function pcInit(md,row){const b=md.querySelector('#pcb');if(!b)return;const H=md.querySelector('[name=pancacinta]');
 const sel=String(H.value||'').split(',').map(x=>x.trim()).filter(Boolean);
 b.querySelectorAll('input[name=pcc]').forEach(c=>c.checked=sel.indexOf(c.value)>=0);
