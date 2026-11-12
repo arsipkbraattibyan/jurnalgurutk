@@ -1813,7 +1813,7 @@ return{nilai:[...b.querySelectorAll('input[name=kbcnilai]:checked')].map(c=>c.va
 function kpSeg(md){md.querySelectorAll('.kp').forEach(g=>{const ta=md.querySelector('#'+g.dataset.for);if(!ta)return;const it=ta.value.split(/\s*;\s*/);g.querySelectorAll('button').forEach(b=>b.classList.toggle('on',it.includes(b.dataset.v)))})}
 function kbcCek(kb){if(!kb.nilai.length&&(kb.tujuan||kb.aktivitas||kb.catatan))return'Pilih minimal satu nilai Panca Cinta (KBC)';
 if(kb.nilai.length&&!kb.aktivitas)return'Lengkapi dulu: Aktivitas implementasi KBC';return''}
-function bukaForm(k,row){const j=J[k],tb=((!row||k==='kehadiran')&&TB[k])||null,md=document.createElement('div');md.className='md';
+function bukaForm(k,row){const j=J[k],tb=((!row||k==='kehadiran'||k==='penilaian')&&TB[k])||null,md=document.createElement('div');md.className='md';
 const rkBtn=k==='kehadiran'?`<div class="fd full" id="rkw"><button type="button" class="btn y s" data-rk>Isi otomatis dari Rekap Absen</button> <small class="sub">${klf()?'Pilih tanggal dulu.':'Pilih tanggal dan kelompok dulu.'}</small></div>`:'';
 md.innerHTML=`<div class="sheet frm${DOKK.includes(k)?' dok':''}"><h2>${row?'Ubah':'Tambah'} ${j.n}${klf()?`<span class="bdg">${kelTampil(klf())}</span>`:''}</h2><div class="fg"><div class="abn dup" id="dupw" style="display:none"></div>${k==='harian'&&!row?'<div class="fd full"><button type="button" class="btn y s" data-sl>📋 Salin dari kemarin</button> <small class="sub">Mengisi tema, subtema, sentra, dan metode dari jurnal terakhir.</small></div>':''}${rkBtn}${k==='perkembangan'?'<div class="fd full"><small class="sub" id="hhi">Tema, subtema, dan kegiatan terisi otomatis sesuai Jurnal Harian pada tanggal dan kelompok yang dipilih.</small></div>':k==='penilaian'&&!row?'<div class="fd full"><small class="sub" id="hhi">Tema terisi otomatis sesuai Jurnal Harian pada tanggal dan kelompok yang dipilih.</small></div>':''}${j.f.map(f=>f.k==='kelas'&&klf()?`<input type="hidden" name="kelas" value="${esc((row&&row.kelas)||klf())}">`:fld(f,row?row[f.k]:'')).join('')}${FOTO[k]?(DOKK.includes(k)?dokBlok(k):fotoBlok(k)):''}${k==='harian'?kbcBlok():''}${k==='penilaian'?pcpBlok():''}</div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn" data-s>Simpan</button></div></div>`;
 document.body.appendChild(md);
@@ -1849,8 +1849,23 @@ const b=pilih_.filter(n=>ada.has(kunci(n)));
 if(!b.length){w.style.display='none';return null}
 w.style.display='';w.innerHTML=`⚠️ Pengamatan ${esc(b.join(', '))} tanggal ${tgl(tg)} (${esc(kl)}) sudah ada, jadi tidak bisa disimpan lagi. Ubah catatan yang sudah ada atau pilih tanggal lain.`;
 if(aw)toast('Pengamatan tanggal ini sudah ada untuk '+b.join(', '),1);return b};
-const cekDup=aw=>{if(k==='perkembangan')return cekDupP(aw);if(k!=='kehadiran'&&k!=='harian')return null;const nj=k==='harian'?'Jurnal Harian':'Jurnal Kehadiran',tg=E('tanggal').value,kl=E('kelas').value,w=md.querySelector('#dupw');
-if(row&&String(row.tanggal).slice(0,10)===tg&&kelNorm(row.kelas)===kelNorm(kl)){w.style.display='none';return null} // mengubah catatan lama tanpa ganti tanggal/kelompok
+const cekDup=aw=>{
+if(k==='perkembangan')return cekDupP(aw);
+if(k==='penilaian'){
+ const tg=String(E('tanggal').value||'').slice(0,10),kl=E('kelas').value,asp=String(E('aspek').value||'').trim();
+ const w=md.querySelector('#dupw');
+ if(!tg||!kl||!asp||!w)return null;
+ const x=(ROWS.penilaian||[]).find(r=>String(r.tanggal).slice(0,10)===tg&&kelNorm(r.kelas)===kelNorm(kl)&&String(r.aspek||'').trim().toLowerCase()===asp.toLowerCase()&&(!row||String(r.ID)!==String(row.ID)));
+ if(x){
+  w.style.display='';
+  w.innerHTML=`⚠️ Penilaian ${esc(asp)} untuk ${esc(kl)} tanggal ${tgl(tg)} sudah ada. Jurnal yang sudah ada akan dibuka untuk diedit. <button type="button" class="btn gh s" data-ed="${esc(x.ID)}">Buka jurnal yang sudah ada</button>`;
+  if(aw)toast('Jurnal penilaian sudah ada. Buka jurnal tersebut untuk mengedit.',1);
+ }else w.style.display='none';
+ return x;
+}
+if(k!=='kehadiran'&&k!=='harian')return null;
+const nj=k==='harian'?'Jurnal Harian':'Jurnal Kehadiran',tg=E('tanggal').value,kl=E('kelas').value,w=md.querySelector('#dupw');
+if(row&&String(row.tanggal).slice(0,10)===tg&&kelNorm(row.kelas)===kelNorm(kl)){w.style.display='none';return null}
 const x=(ROWS[k]||[]).find(r=>String(r.tanggal).slice(0,10)===tg&&kelNorm(r.kelas)===kelNorm(kl)&&(!row||r.ID!==row.ID));
 w.style.display=x?'':'none';if(x){w.innerHTML=`⚠️ ${nj} ${esc(kl)} tanggal ${tgl(tg)} sudah ada, jadi tidak bisa disimpan lagi. <button type="button" class="btn gh s" data-ed="${x.ID}">Ubah yang sudah ada</button>`;if(aw)toast('Sudah ada. Ubah catatan yang ada.',1)}return x};
 const absenHari=()=>{if(tb.cls!=='nl')return{m:{},ada:true};const tg=E('tanggal').value,kl=kelNorm(E('kelas').value),rs=(ROWS.kehadiran||[]).filter(r=>String(r.tanggal).slice(0,10)===tg&&kelNorm(r.kelas)===kl),m={};rs.forEach(r=>Object.assign(m,absenDari(r)));return{m,ada:rs.length>0}};
@@ -1884,13 +1899,21 @@ w.style.display=n?'':'none';w.textContent=n?'✅ Terisi otomatis dari Jurnal Per
 const pkReset=()=>{if(k!=='penilaian')return;md._au.forEach(n=>delete T[n]);md._au.clear()};
 const gambar=()=>{if(!tb)return;let box=md.querySelector('#tbl');
 if(!box){box=document.createElement('div');box.id='tbl';box.className='fd full';E(klf()&&tb.after==='kelas'?'tanggal':tb.after).closest('.fd').after(box)}
-const names=daftar();aktif=names.length>0;
+const names=daftar();aktif=names.length>0&&!(row&&k==='penilaian'&&!String(row.anak||'').trim());
 {const fb=md.querySelector('#fot');if(fb&&k==='perkembangan')fb.closest('.fd').style.display=aktif?'none':''}
 {const rw=md.querySelector('#rkw');if(rw)rw.style.display=aktif?'none':''}
 tb.hide.forEach(n=>{E(n).closest('.fd').style.display=(aktif||SISWA===null)?'none':''});
 const pT={...T},pFA={...FA};Object.keys(T).forEach(n=>delete T[n]);Object.keys(FA).forEach(n=>delete FA[n]);
-if(!aktif){{const cn0=md.querySelector('#cnote');if(cn0)cn0.style.display='none'}if(k==='penilaian'&&!row){const pr=pkRows();if(pr.length){const c=[0,0,0,0];pr.forEach(r=>c[lvl(r)]++);setV('peserta',pr.length);['bb','mb','bsh','bsb'].forEach((n,i)=>setV(n,c[i]))}pkInfo(pr.length)}box.innerHTML=`<small class="sub">${SISWA===null?'Memuat daftar anak...':'Pilih kelompok untuk menampilkan daftar anak. Jika daftar tidak muncul, isi kolom secara manual.'}</small>`;return}
+if(!aktif){{const cn0=md.querySelector('#cnote');if(cn0)cn0.style.display='none'}if(k==='penilaian'&&!row){const pr=pkRows();if(pr.length){const c=[0,0,0,0];pr.forEach(r=>c[lvl(r)]++);setV('peserta',pr.length);['bb','mb','bsh','bsb'].forEach((n,i)=>setV(n,c[i]))}pkInfo(pr.length)}box.innerHTML=`<small class="sub">${row&&k==='penilaian'&&!String(row.anak||'').trim()?'Catatan ini dibuat sebelum rincian capaian per anak disimpan. Jumlah BB/MB/BSH/BSB di atas tetap dipertahankan sebagai rekap lama. Rincian anak tidak dapat dipulihkan dari data lama.':SISWA===null?'Memuat daftar anak...':'Pilih kelompok untuk menampilkan daftar anak. Jika daftar tidak muncul, isi kolom secara manual.'}</small>`;return}
 if(tb.def)names.forEach(n=>T[n]=tb.def);
+if(row&&k==='penilaian'){
+ try{
+  const detail=JSON.parse(String(row.anak||'[]'));
+  if(Array.isArray(detail))detail.forEach(x=>{
+   if(x&&x.nama&&TKT.includes(x.tingkat)&&names.includes(x.nama))T[x.nama]=x.tingkat;
+  });
+ }catch(e){}
+}
 if(row&&k==='kehadiran'&&String(row.tanggal).slice(0,10)===E('tanggal').value&&kelNorm(row.kelas)===kelNorm(E('kelas').value)){ // Ubah: tampilkan status yang tersimpan (jurnal + perubahan manual)
 const ab=absenDari(row),mn=parseManual(row.manual),mk={};Object.keys(mn).forEach(x=>mk[kunci(x)]=mn[x]);
 names.forEach(n=>{const v=mk[kunci(n)]||ab[n.trim().toLowerCase()];if(v)T[n]=v});if(!auto)auto=String(row.catatan||'')}
@@ -1977,6 +2000,20 @@ cekDup();
 if(k==='harian'){md.addEventListener('change',e=>{if(e.target.name==='tanggal'||e.target.name==='kelas')setTimeout(()=>cekDup(1),0)});(md._mu=JRmuat('harian')).then(()=>cekDup())}
 if(k==='perkembangan'){['input','change'].forEach(ev=>md.addEventListener(ev,e=>{if(e.target.name==='nama')cekDup()}));JRmuat('perkembangan').then(()=>cekDup())}
 if(k==='penilaian'&&!row)JRmuat('perkembangan').then(()=>{if(md.isConnected){gambar();hitung()}});
+if(k==='penilaian'){
+ md.addEventListener('change',e=>{
+  if(['tanggal','kelas','aspek'].includes(e.target.name))setTimeout(()=>{
+   if(!md.isConnected)return;
+   const dp=cekDup();
+   if(dp&&!row){md.remove();toast('Jurnal pada tanggal dan Elemen CP ini sudah ada. Membuka data untuk diedit.');bukaForm('penilaian',dp)}
+  },0);
+ });
+ (md._pm=JRmuat('penilaian')).then(()=>{
+  if(!md.isConnected)return;
+  const dp=cekDup();
+  if(dp&&!row){md.remove();toast('Jurnal pada tanggal dan Elemen CP ini sudah ada. Membuka data untuk diedit.');bukaForm('penilaian',dp)}
+ });
+}
 if(['kehadiran','perkembangan','penilaian'].includes(k))(md._mu=KHmuat()).then(()=>{if(k!=='kehadiran'){gambar();hitung()}cekDup()});
 if(!row&&k==='harian'){pilih(md,'kendala','Tidak ada kendala');pilih(md,'capaian','Sebagian besar antusias')}
 akordeon(md);
@@ -2060,6 +2097,10 @@ if(k==='refleksi'&&/^(Sudah|Sebagian)/.test(d.pcterap)&&!d.pancacinta){const pb=
 if(aktif){const nm=Object.keys(T).filter(n=>T[n]);if(!nm.length)return toast('Pilih tingkat capaian untuk minimal satu anak',1);
 if(k==='perkembangan'){const tanpa=Object.keys(FA).filter(n=>!T[n]&&(FA[n].lama.length+FA[n].baru.length));if(tanpa.length)return toast('Pilih tingkat capaian untuk '+tanpa.join(', ')+' agar fotonya ikut tersimpan',1);list=nm.map(n=>{const c=(md._ct||{})[n]||{},x={...d,nama:n,tingkat:T[n]},ca=(c.catatan||'').trim(),ti=(c.tindak||'').trim();if(ca)x.catatan=ca;if(ti)x.tindak=ti;return x})}else{tb.hide.forEach(n=>d[n]=E(n).value);if(k==='kehadiran')d.absen=Object.keys(T).filter(n=>T[n]&&T[n]!=='hadir').map(n=>n.replace(/[|:]/g,' ')+':'+T[n]).join('|')}}
 if(k==='kehadiran'&&aktif)d.manual=await manualKehadiran(d.tanggal,d.kelas,T,row);
+if(k==='penilaian'&&aktif){
+ tb.hide.forEach(n=>d[n]=E(n).value);
+ d.anak=JSON.stringify(Object.keys(T).filter(n=>T[n]).map(n=>({nama:n,tingkat:T[n]})));
+}
 if(row)d.ID=row.ID;
 if(k==='harian'){const wj=[['#kbct','Tujuan penguatan KBC'],['#kbca','Aktivitas implementasi KBC'],['#kbcc','Catatan penerapan KBC']];for(const [id,nm] of wj){const el=md.querySelector(id);if(el&&!el.value.trim()){const b2=md.querySelector('#kbcb');if(b2)b2.open=true;el.scrollIntoView({behavior:'smooth',block:'center'});el.focus();return toast('Lengkapi dulu: '+nm,1)}}}
 if(k==='harian'){const kb=kbcAmbil(md);if(kb){const er=kbcCek(kb);if(er){const b2=md.querySelector('#kbcb');b2.open=true;b2.scrollIntoView({behavior:'smooth',block:'center'});return toast(er,1)}d.kbc=kb}}
@@ -2067,6 +2108,15 @@ if(k==='penilaian'){if(md._pcpPending&&md._pcpPending()){const pb=md.querySelect
 if(k==='perkembangan'&&!d.pancacinta&&!(row&&!row.pancacinta)&&!await tanya('Nilai Panca Cinta belum dipilih','Simpan tanpa nilai Panca Cinta?','Simpan saja',false,'Pilih dulu')){const ib=md.querySelector('#pcb');if(ib){ib.open=true;ib.scrollIntoView({behavior:'smooth',block:'center'})}return}
 const b=t.closest('[data-s]');b.disabled=true;b.textContent='Menyimpan...';
 if(k==='perkembangan'){await JRmuat('perkembangan');const dp=cekDup();if(dp){toast('Tidak bisa disimpan: pengamatan '+dp.join(', ')+' tanggal '+tgl(E('tanggal').value)+' sudah ada.',1);b.disabled=false;b.textContent='Simpan';return}}
+if(k==='penilaian'){
+ await JRmuat('penilaian');
+ const dp=cekDup();
+ if(dp){
+  b.disabled=false;b.textContent='Simpan';
+  if(!row){md.remove();bukaForm('penilaian',dp)}
+  return;
+ }
+}
 if(k==='kehadiran'||k==='harian'){await (md._mu||(k==='harian'?JRmuat('harian'):KHmuat()));const dx=cekDup();if(dx){toast('Tidak bisa disimpan: '+(k==='harian'?'Jurnal Harian ':'Jurnal Kehadiran ')+E('kelas').value+' tanggal '+tgl(E('tanggal').value)+' sudah ada.',1);b.disabled=false;b.textContent='Simpan';return}}
 try{if(DOKK.includes(k)&&md._dokSimpan){await md._dokSimpan(b,list,d)}else if(FOTO[k]){if(list&&k==='perkembangan'){for(const x of list){const a=FA[x.nama];x.foto='';if(a){await kirimFoto(a,b);x.foto=a.lama.join(' ')}}}
 else{await kirimFoto(Fo,b);d.foto=Fo.lama.join(' ');if(list)list.forEach(x=>x.foto=d.foto)}}
