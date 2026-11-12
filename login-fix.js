@@ -6,7 +6,7 @@
 'use strict';
 if (typeof api !== 'function' || typeof muatGuruLogin !== 'function') return;
 
-const ULANG = { daftarGuru: 3, login: 3, profil: 3 }; // hanya aksi yang aman diulang
+const ULANG = { daftarGuru: 4, login: 4, profil: 4 }; // hanya aksi yang aman diulang
 const jeda = ms => new Promise(ok => setTimeout(ok, ms));
 const jaringan = m => { const e = new Error(m); e.net = true; return e; };
 
@@ -15,7 +15,7 @@ window.api = async function (action, p) {
   const n = ULANG[action] || 1;
   let galat;
   for (let i = 0; i < n; i++) {
-    const ac = new AbortController(), tm = setTimeout(() => ac.abort(), n > 1 ? 15000 : 25000);
+    const ac = new AbortController(), tm = setTimeout(() => ac.abort(), n > 1 ? 10000 : 25000);
     try {
       let r;
       try {
