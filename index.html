@@ -1417,6 +1417,7 @@ const SEK_ALL=ID_SEK.reduce((a,x)=>a.concat(x[1]),[]);
 /* pilihan foto profil pada cetak/simpan data guru (bawaan: tanpa foto, pilihan diingat di perangkat) */
 const fpPref=()=>{try{return localStorage.getItem('jgfp')==='ya'?'ya':'tidak'}catch(e){return'tidak'}};
 let FPD={u:'',d:''};
+const tanggalDMY=v=>{const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?m[3]+'/'+m[2]+'/'+m[1]:String(v||'')};
 const fpAda=()=>!!(S.guru&&S.guru.foto);
 const fpAktif=jenis=>jenis!=='sekolah'&&nilai('fp')==='ya'&&fpAda();
 const fpSrc=()=>FPD.d||fu(S.guru.foto);
@@ -1427,8 +1428,8 @@ im.onload=()=>{try{const c=document.createElement('canvas');c.width=im.naturalWi
 im.onerror=()=>ok('');im.src=u}))}
 function dataPaper(jenis){const g=S.guru,P=k=>PROFIL.find(f=>f.k===k)||{k:k,l:k};
 const grp=[].concat(jenis!=='sekolah'?ID_GURU:[],jenis!=='guru'?ID_SEK:[]);
-const mkT=ks=>`<table class="rt id">${ks.map(k=>{const f=P(k);let v=g[k];if(k==='kelas')v=kelTampil(v);else if(f.t==='tgl'&&v)v=dmyTampil(v);return`<tr><td>${esc(f.l)}</td><td>${esc(v||'-')}</td></tr>`}).join('')}</table>`;
-const mkX=ks=>{const td=(k,c)=>{const f=P(k);let v=g[k];if(f.t==='tgl'&&v)v=dmyTampil(v);return`<td class="lb">${esc(f.l)}</td><td class="vl"${c?' colspan="3"':''}>${esc(v||'-')}</td>`};let h='';for(let i=0;i<3;i++)h+='<tr>'+td(ks[i])+td(ks[i+3])+'</tr>';ks.slice(6).forEach(k=>{h+='<tr>'+td(k,1)+'</tr>'});return`<table class="rt idx">${h}</table>`};
+const mkT=ks=>`<table class="rt id">${ks.map(k=>{const f=P(k);let v=g[k];if(k==='kelas')v=kelTampil(v);else if(f.t==='tgl'&&v)v=tanggalDMY(v);return`<tr><td>${esc(f.l)}</td><td>${esc(v||'-')}</td></tr>`}).join('')}</table>`;
+const mkX=ks=>{const td=(k,c)=>{const f=P(k);let v=g[k];if(f.t==='tgl'&&v)v=tanggalDMY(v);return`<td class="lb">${esc(f.l)}</td><td class="vl"${c?' colspan="3"':''}>${esc(v||'-')}</td>`};let h='';for(let i=0;i<3;i++)h+='<tr>'+td(ks[i])+td(ks[i+3])+'</tr>';ks.slice(6).forEach(k=>{h+='<tr>'+td(k,1)+'</tr>'});return`<table class="rt idx">${h}</table>`};
 const tb=grp.map((x,i)=>{
 if(i===0&&fpAktif(jenis))return`<h3>${String.fromCharCode(65+i)}. ${x[0]}</h3><div class="pfr"><div class="pfw"><img src="${esc(fpSrc())}" alt="Foto profil guru" referrerpolicy="no-referrer"></div><div class="pfd">${mkX(x[1])}</div></div>`;
 return`<h3>${String.fromCharCode(65+i)}. ${x[0]}</h3>`+(i===0&&jenis!=='sekolah'?mkX(x[1]):mkT(x[1]))}).join('');
