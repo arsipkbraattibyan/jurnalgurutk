@@ -2848,7 +2848,17 @@ const o=L.find(x=>x.k===k);if(!o)return;
 S.pfNama=o.nama;pu.style.display='';S.pfTuj=$('#ptj').checked;
 const pakaiFoto=nilai('pfp')==='ya';
 let foto=pakaiFoto?faGet(o.nama):'';
-// Jika foto belum ada di penyimpanan lokal, tunggu sinkronisasi server dahulu.
+// Ambil langsung dari server bila cache perangkat belum memiliki foto.
+if(pakaiFoto&&!foto){
+  try{
+    const hasil=await api('fotoAnak');
+    const peta=hasil&&hasil.foto?hasil.foto:{};
+    foto=peta[kunci(o.nama)]||'';
+    if(foto)faSet(o.nama,foto);
+  }catch(e){console.warn('Foto anak belum berhasil diambil dari server:',e)}
+  if(id!==PF_RENDER_ID||!$('#pa')||$('#pa').value!==k)return;
+}
+// Sinkronisasi tetap dijalankan untuk memperbarui cache perangkat.
 if(pakaiFoto&&!foto){
   try{
     const daftar=(SISWA||[]).map(s=>[s.nama]);
@@ -2857,7 +2867,7 @@ if(pakaiFoto&&!foto){
   if(id!==PF_RENDER_ID||!$('#pa')||$('#pa').value!==k)return;
   foto=faGet(o.nama);
 }
-// Cari nama resmi dari daftar siswa sebagai cadangan jika ejaan nama di catatan berbeda.
+// Cadangan nama resmi dari daftar siswa jika ejaan catatan berbeda.
 if(pakaiFoto&&!foto){
   const siswa=(SISWA||[]).find(s=>kunci(s.nama)===o.k);
   if(siswa)foto=faGet(siswa.nama);
