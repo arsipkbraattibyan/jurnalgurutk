@@ -2242,95 +2242,91 @@ const faPendSet=o=>{try{if(Object.keys(o).length)localStorage.setItem(faPK(),JSO
 let FA_ERR='';
 const faAlasan=m=>/tidak dikenal|unknown/i.test(m)?'Backend belum diperbarui: tambahkan kode foto siswa (fotoAnakSimpan, fotoAnak) ke Code.gs lalu deploy versi baru':/failed to fetch|networkerror|load failed/i.test(m)?'Tidak ada koneksi internet atau server tidak terjangkau':m;
 async function faKirim(n,d){const k=kunci(n),p=faPend();FA_ERR='';try{await api('fotoAnakSimpan',{nama:n,foto:d});if(p[k]){delete p[k];faPendSet(p)}return true}catch(e){FA_ERR=faAlasan(String((e&&e.message)||e));console.warn('fotoAnakSimpan gagal:',e);p[k]=1;faPendSet(p);return false}}
-let FA_JALAN = false;
+let FA_PROMISE = null;
 
-async function faSinkron(rows, iNama) {
-  if (FA_JALAN || !rows || !rows.length) return;
+// Sinkronisasi foto dibuat berbagi satu Promise.
+// Jika Data Siswa dan Portofolio meminta foto bersamaan, pemanggil kedua
+// menunggu proses yang sama (tidak langsung lanjut sebelum foto selesai dimuat).
+function faSinkron(rows, iNama) {
+  if (!rows || !rows.length) return Promise.resolve();
+  if (FA_PROMISE) return FA_PROMISE;
 
-  FA_JALAN = true;
+  FA_PROMISE = (async () => {
+    try {
+      const j = await api('fotoAnak');
+      const sv = j.foto || {};
+      const pend = faPend();
 
-  try {
-    const j = await api('fotoAnak');
-    const sv = j.foto || {};
-    const pend = faPend();
+      let ubah = false;
+      let gagal = false;
 
-    let ubah = false;
-    let gagal = false;
+      for (const r of rows) {
+        const nm = String(r[iNama] || '').trim();
+        const k = kunci(nm);
+        if (!k) continue;
 
-    for (const r of rows) {
-      const nm = String(r[iNama] || '').trim();
-      const k = kunci(nm);
+        const lo = faGet(nm);
+        const se = sv[k] || '';
 
-      if (!k) continue;
-
-      const lo = faGet(nm);
-      const se = sv[k] || '';
-
-      // Foto yang belum berhasil disinkronkan
-      if (pend[k]) {
-        if (!await faKirim(nm, lo)) {
-          gagal = true;
+        // Foto yang sebelumnya gagal dikirim: coba kirim ulang.
+        if (pend[k]) {
+          if (lo) {
+            if (!await faKirim(nm, lo)) gagal = true;
+          } else {
+            // Tidak ada foto lokal untuk dikirim; jangan kirim string kosong
+            // karena itu berarti menghapus foto di server.
+            delete pend[k];
+            faPendSet(pend);
+          }
+          continue;
         }
-        continue;
+
+        // Foto server adalah sumber utama untuk perangkat yang belum punya foto.
+        if (se) {
+          if (se !== lo) {
+            if (faSet(nm, se)) ubah = true;
+            else console.warn('Foto anak tidak dapat disimpan ke perangkat:', nm);
+          }
+          continue;
+        }
+
+        // Server belum punya foto: pertahankan foto lokal dan kirim bila ada.
+        if (lo && !await faKirim(nm, lo)) gagal = true;
       }
 
-      // Server memiliki foto terbaru
-      if (se) {
-        if (se !== lo) {
-          faSet(nm, se);
-          ubah = true;
-        }
-        continue;
+      if (!gagal) {
+        try {
+          localStorage.setItem('jgfas_' + ((S.guru && S.guru.id) || ''), '1');
+        } catch (e) {}
       }
 
-      // Server belum memiliki foto:
-      // JANGAN HAPUS FOTO LOKAL.
-      // Kirim ulang foto lokal ke server.
-      if (lo) {
-        if (!await faKirim(nm, lo)) {
-          gagal = true;
+      // Segarkan tampilan setelah foto dari server benar-benar selesai dimuat.
+      if (ubah) {
+        if (S.view === 'siswa' && SISTAB === 'data' && SD) {
+          renderDataSiswa();
+        }
+
+        if (S.view === 'portofolio' && $('#pa') && $('#pa').value) {
+          const pilih = $('#pa');
+          const namaAnak = (SISWA || []).find(
+            x => kunci(x.nama) === pilih.value
+          );
+          const fotoDipilih = document.querySelector(
+            'input[name="pfp"]:checked'
+          );
+          if (namaAnak && fotoDipilih && fotoDipilih.value === 'ya') {
+            pilih.dispatchEvent(new Event('change'));
+          }
         }
       }
+    } catch (e) {
+      console.warn('Sinkronisasi foto gagal:', e);
     }
+  })().finally(() => {
+    FA_PROMISE = null;
+  });
 
-    if (!gagal) {
-      try {
-        localStorage.setItem(
-          'jgfas_' + ((S.guru && S.guru.id) || ''),
-          '1'
-        );
-      } catch (e) {}
-    }
-
-    // Perbarui tampilan jika foto berubah
-    if (ubah) {
-      if (S.view === 'siswa' &&
-          SISTAB === 'data' && SD) {
-        renderDataSiswa();
-      }
-
-      if (S.view === 'portofolio' &&
-          $('#pa') && $('#pa').value) {
-        const pilih = $('#pa');
-        const namaAnak = (SISWA || []).find(
-          x => kunci(x.nama) === pilih.value
-        );
-        const fotoDipilih = document.querySelector(
-          'input[name="pfp"]:checked'
-        );
-
-        // Bangun ulang portofolio hanya jika opsi Dengan Foto Anak aktif.
-        if (namaAnak && fotoDipilih && fotoDipilih.value === 'ya') {
-          pilih.dispatchEvent(new Event('change'));
-        }
-      }
-    }
-
-  } catch (e) {
-    console.warn('Sinkronisasi foto gagal:', e);
-  } finally {
-    FA_JALAN = false;
-  }
+  return FA_PROMISE;
 }
 
 const FA_WARNA=['#4aa6f7','#ee6c85','#4fb37e','#f0a020','#9b7be0','#26b5b0','#ef8a4c','#5c7cfa'];
@@ -2850,8 +2846,10 @@ if(!k){$('#lap').innerHTML='<div class="card empty">Pilih nama anak untuk menamp
 const o=L.find(x=>x.k===k);S.pfNama=o.nama;pu.style.display='';S.pfTuj=$('#ptj').checked;pfInfo(o);$('#lap').innerHTML=portofolio(o,$('#pd').value,$('#ps').value,S.pfTuj,nilai('pfp')==='ya');isiFoto($('#lap'))};
 ['#pa','#pd','#ps','#ptj'].forEach(x=>$(x).onchange=tampil);
 $('#pfp').onchange=()=>{try{localStorage.setItem('jgpf',nilai('pfp')==='ya'?'ya':'tidak')}catch(e){}tampil()};
-{const fk=()=>{const a=$('#pa'),o=a&&a.value?L.find(x=>x.k===a.value):null;return o?faGet(o.nama):''},f0=fk(); // foto anak dari server (jika perangkat ini belum punya)
-faSinkron((SISWA||[]).map(s=>[s.nama]),0).then(()=>{if(S.view==='portofolio'&&$('#pa')&&$('#pa').value&&fk()!==f0)tampil()}).catch(()=>{})}
+{const fk=()=>{const a=$('#pa'),o=a&&a.value?L.find(x=>x.k===a.value):null;return o?faGet(o.nama):''},f0=fk();
+faSinkron((SISWA||[]).map(s=>[s.nama]),0).then(()=>{
+  if(S.view==='portofolio'&&$('#pa')&&$('#pa').value&&nilai('pfp')==='ya'&&fk()!==f0)tampil();
+}).catch(e=>console.warn('Foto portofolio belum tersinkron:',e))}
 $('.ukr').onclick=e=>{const b=e.target.closest('[data-ak]');if(b)aksiLap(b.dataset.uk,b.dataset.ak)};
 $('#lap').onclick=e=>{const bf=e.target.closest('img[data-fid]');if(bf&&bf.dataset.loaded)lihatFoto(bf.src)};
 if(sel[0]&&[...$('#pa').options].some(o=>o.value===sel[0])){$('#pa').value=sel[0];$('#pd').value=sel[1];$('#ps').value=sel[2];tampil()}};
