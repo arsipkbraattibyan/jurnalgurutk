@@ -928,7 +928,7 @@ const SUBTEMA={
 'Budayaku':['Pakaian adat','Rumah adat','Makanan tradisional','Tarian dan lagu daerah','Permainan tradisional'],
 'Pengalaman dan peristiwa':['Ulang tahun','Hari besar keagamaan','Hari kemerdekaan','Pengalaman menyenangkan','Kegiatan bersama']};
 const SUBTEMA_SEMUA=[...new Set(Object.values(SUBTEMA).flat())];
-const ASPEK=['Nilai agama dan budi pekerti','Jati diri','Literasi','Matematika dan sains','Teknologi dan rekayasa','Seni','Fisik motorik']; // lama, dipakai Jurnal Penilaian dan data lama
+const ASPEK=['Nilai agama dan budi pekerti','Jati diri','Literasi','Matematika dan sains','Teknologi dan rekayasa','Seni','Fisik motorik']; // kategori lama: dipertahankan untuk membaca portofolio dan data historis
 /* Tiga elemen CP Fase Fondasi (disimpan di kolom "aspek" Jurnal Perkembangan) */
 const ELEMEN_CP=['Nilai Agama dan Budi Pekerti','Jati Diri','Dasar-Dasar Literasi, Matematika, Sains, Teknologi, Rekayasa, dan Seni'];
 /* Bank indikator per TP bawaan. Kode stabil: i<elemen>_<nomorTP>_<nomorIndikator>. {sub} diganti tema/subtema. */
@@ -997,9 +997,9 @@ f:[{k:'tanggal',l:'Tanggal pengamatan',t:'date'},K,{...TM,opt:1},
 {k:'pancacinta',l:'Nilai Panca Cinta yang relevan',t:'pc',opt:1}],
 t:r=>`${r.nama||''} (${kelTampil(r.kelas)})`},
 penilaian:{n:'Jurnal Penilaian Pembelajaran',no:5,ic:'📝',per:'Harian/Berkala',
-f:[TGL,K,TM,{k:'aspek',l:'Aspek yang dinilai',t:'sel',o:ASPEK},
+f:[TGL,K,TM,{k:'aspek',l:'Elemen CP yang dinilai',t:'sel',o:ELEMEN_CP},
 {k:'jenis',l:'Jenis penilaian',t:'sel',o:['Harian','Mingguan','Bulanan','Semester']},
-{k:'teknik',l:'Teknik',t:'sel',o:['Observasi','Catatan anekdot','Hasil karya','Dokumentasi','Percakapan','Ceklis perkembangan']},
+{k:'teknik',l:'Teknik penilaian',t:'sel',o:['Observasi','Catatan anekdot','Hasil karya','Foto berseri','Percakapan','Ceklis perkembangan']},
 {k:'peserta',l:'Jumlah anak dinilai',t:'sel',o:N(1,30)},
 {k:'bb',l:'Jumlah anak BB',t:'sel',o:N(0,30)},{k:'mb',l:'Jumlah anak MB',t:'sel',o:N(0,30)},{k:'bsh',l:'Jumlah anak BSH',t:'sel',o:N(0,30)},{k:'bsb',l:'Jumlah anak BSB',t:'sel',o:N(0,30)},
 {k:'tindak',l:'Tindak lanjut',t:'area',o:['Stimulasi tambahan','Pengayaan kegiatan','Pendampingan individu','Koordinasi dengan orang tua','Masuk laporan perkembangan']}],
@@ -1870,7 +1870,14 @@ const isiNama=()=>{const dl=md.querySelector('#dl_nama');if(!dl||!SISWA)return;c
 const gPk=n=>{const c=[...md.querySelectorAll('.pk')].find(x=>x.dataset.pk===n);if(!c)return;const a=FA[n]||{lama:[],baru:[]},tot=a.lama.length+a.baru.length;
 c.innerHTML=`<button type="button" class="btn o s" data-pkb="${esc(n)}">📷 ${tot?'Tambah foto':'Foto '+esc(n)}</button>`+a.lama.map((id,i)=>`<div class="fth"><img class="ft" data-fid="${esc(id)}" src="${BLANK}" alt="Foto"><button type="button" data-pl="${i}" aria-label="Hapus foto">×</button></div>`).join('')+a.baru.map((s,i)=>`<div class="fth"><img class="ft" data-loaded="1" src="${s}" alt="Foto"><button type="button" data-pb="${i}" aria-label="Hapus foto">×</button></div>`).join('');isiFoto(c)};
 const pkRows=()=>{if(k!=='penilaian'||row)return[];const tg=E('tanggal').value,kl=kelNorm(E('kelas').value),asp=String(E('aspek').value||'').trim().toLowerCase();if(!tg||!kl||!asp)return[];
-const cocok=a=>{a=String(a||'').trim().toLowerCase();return a===asp||(a.indexOf('dasar-dasar literasi')===0&&['literasi','matematika dan sains','teknologi dan rekayasa','seni'].includes(asp))};
+const cocok=a=>{
+ a=String(a||'').trim().toLowerCase();
+ // Cocokkan Elemen CP baru dengan catatan lama yang masih memakai kategori/aspek terdahulu.
+ if(asp==='nilai agama dan budi pekerti')return ['nilai agama dan budi pekerti'].includes(a);
+ if(asp==='jati diri')return ['jati diri','fisik motorik'].includes(a);
+ if(asp.indexOf('dasar-dasar literasi')===0)return a===asp||['literasi','matematika dan sains','teknologi dan rekayasa','seni'].includes(a);
+ return a===asp;
+};
 return(ROWS.perkembangan||[]).filter(r=>String(r.tanggal).slice(0,10)===tg&&kelNorm(r.kelas)===kl&&cocok(r.aspek)&&lvl(r)>=0)};
 const pkInfo=n=>{if(k!=='penilaian'||row)return;let w=md.querySelector('#pki');if(!w){w=document.createElement('div');w.id='pki';w.className='abn';w.style.display='none';const bx=md.querySelector('#tbl');if(bx)bx.before(w);else return}
 w.style.display=n?'':'none';w.textContent=n?'✅ Terisi otomatis dari Jurnal Perkembangan Anak ('+n+' anak, tanggal dan aspek yang sama). Boleh diubah sebelum disimpan.':''};
