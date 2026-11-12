@@ -1334,7 +1334,9 @@ catch(e){if(!ada&&S.view==='beranda')m.innerHTML=`<div class="empty">${esc(e.mes
 /* ---------- Pengaturan Akademik (satu pengaturan untuk semua guru; disimpan di sheet "Akademik") ---------- */
 let AKAD=null,_akT=0,_akF=0;
 const akadMuat=()=>api('akademik').then(j=>{AKAD={aktif:j.aktif,daftar:j.daftar,boleh:j.boleh};cSet('akad',AKAD)}).catch(()=>{});
-const akadPer=x=>x&&(x.mulai||x.selesai)?(x.mulai?tgl(x.mulai):'...')+' s.d. '+(x.selesai?tgl(x.selesai):'...'):'Tanggal belum diatur';
+const akadTampil=v=>{const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?m[3]+'/'+m[2]+'/'+m[1]:String(v||'')};
+const akadISO=v=>{const m=String(v||'').trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);if(!m)return '';const d=new Date(+m[3],+m[2]-1,+m[1]);return d.getFullYear()===+m[3]&&d.getMonth()===+m[2]-1&&d.getDate()===+m[1]?m[3]+'-'+m[2]+'-'+m[1]:null};
+const akadPer=x=>x&&(x.mulai||x.selesai)?(x.mulai?akadTampil(x.mulai):'...')+' s.d. '+(x.selesai?akadTampil(x.selesai):'...'):'Tanggal belum diatur';
 // segarkan tahun ajaran dan semester aktif di perangkat ini (guru lain mengubahnya dari perangkatnya sendiri)
 function segarAkad(){if(Date.now()-_akT<60000)return Promise.resolve();_akT=Date.now();
 return Promise.race([api('profil').then(j=>{const g=j.guru,o=S.guru;if(o&&(g.tahun!==o.tahun||g.semester!==o.semester||JSON.stringify(g.akademik)!==JSON.stringify(o.akademik))){o.tahun=g.tahun;o.semester=g.semester;o.akademik=g.akademik;simpanSesi()}}),new Promise(r=>setTimeout(r,2500))]).catch(()=>{})}
@@ -1346,8 +1348,8 @@ const info=`<div class="fd"><label>Sedang aktif</label><p style="margin:0;font-w
 const form=A.boleh?`<div class="akg"><div class="fd"><label for="akt">Tahun ajaran</label><input id="akt" maxlength="9" inputmode="numeric" placeholder="2026/2027" autocomplete="off" value="${esc(e.tahun)}"></div>
 <div class="fd"><label>Semester</label>${radioGrup('aks',[['Ganjil','Ganjil'],['Genap','Genap']],e.semester,'aks')}</div>
 <div class="fd"><label>Status</label>${radioGrup('ast',[['ya','Aktif'],['tidak','Tidak aktif']],ak(e)?'ya':'tidak','ast')}</div>
-</div><div class="akg2"><div class="fd"><label for="akm">Tanggal mulai (opsional)</label><input type="date" id="akm" value="${esc(e.mulai||'')}"></div>
-<div class="fd"><label for="ake">Tanggal selesai (opsional)</label><input type="date" id="ake" value="${esc(e.selesai||'')}"></div></div>
+</div><div class="akg2"><div class="fd"><label for="akm">Tanggal mulai (opsional)</label><input type="text" id="akm" value="${esc(akadTampil(e.mulai))}" placeholder="dd/mm/yyyy" inputmode="numeric" maxlength="10" autocomplete="off"></div>
+<div class="fd"><label for="ake">Tanggal selesai (opsional)</label><input type="text" id="ake" value="${esc(akadTampil(e.selesai))}" placeholder="dd/mm/yyyy" inputmode="numeric" maxlength="10" autocomplete="off"></div></div>
 <div class="act"><button class="btn y" id="aksv" type="button">Simpan Pengaturan Akademik</button></div>`
 :'<p class="sub" style="font-size:12px;margin:8px 0 0">Hanya kepala sekolah atau admin yang dapat mengubah pengaturan ini.</p>';
 const rw=(A.daftar||[]).map((x,i)=>`<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--ln)"><span style="flex:1"><b>${esc(x.tahun)} · ${esc(x.semester)}</b><br><small class="sub">${esc(akadPer(x))}</small></span>${ak(x)?'<span class="abg hadir" style="white-space:nowrap">Aktif</span>':''}${A.boleh?`<button class="btn gh s" type="button" data-ae="${i}">Ubah</button>`:''}</div>`).join('');
@@ -1355,7 +1357,8 @@ box.innerHTML=info+form+(rw?`<p class="sub" style="font-size:13px;margin:16px 0 
 box.oninput=()=>{box.dataset.t=1};
 const t=$('#akt');if(t)t.onblur=()=>{if(/^\d{4}$/.test(t.value.trim()))t.value=t.value.trim()+'/'+(+t.value.trim()+1)};
 box.onclick=ev=>{const b=ev.target.closest('[data-ae]');if(b){akadIsi(A.daftar[+b.dataset.ae]);box.dataset.t=1;box.scrollIntoView({behavior:'smooth',block:'nearest'})}};
-const sv=$('#aksv');if(sv)sv.onclick=async()=>{const th=$('#akt').value.trim(),sm=nilai('aks'),on=nilai('ast')==='ya',mu=$('#akm').value,se=$('#ake').value;
+const sv=$('#aksv');if(sv)sv.onclick=async()=>{const th=$('#akt').value.trim(),sm=nilai('aks'),on=nilai('ast')==='ya',mu0=$('#akm').value.trim(),se0=$('#ake').value.trim(),mu=mu0?akadISO(mu0):'',se=se0?akadISO(se0):'';
+if(mu===null||se===null)return toast('Tanggal harus valid dengan format dd/mm/yyyy',1);
 if(!/^\d{4}\/\d{4}$/.test(th)||+th.slice(5)!==+th.slice(0,4)+1)return toast('Tahun ajaran harus berformat 2026/2027',1);
 if(mu&&se&&se<mu)return toast('Tanggal selesai tidak boleh sebelum tanggal mulai',1);
 if(on&&a&&!(a.tahun===th&&a.semester===sm)&&!await tanya('Ganti periode aktif?','Seluruh guru akan memakai '+th+' semester '+sm+' di laporan dan cetakan. Data periode sebelumnya tidak berubah dan tetap tersimpan.','Ya, aktifkan',false))return;
