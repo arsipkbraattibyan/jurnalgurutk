@@ -799,6 +799,7 @@ const hari=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOStri
 const fmt=d=>{try{return new Date(d+'T00:00').toLocaleDateString('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}catch(e){return d}};
 const BLN_ID=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const tgl=d=>{const m=String(d==null?'':d).match(/^(\d{4})-(\d{2})-(\d{2})/);return m&&+m[2]>=1&&+m[2]<=12?m[3]+' '+BLN_ID[+m[2]-1]+' '+m[1]:d};
+const tglS=d=>{const m=String(d==null?'':d).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?m[3]+'/'+m[2]+'/'+m[1]:'dd/mm/yyyy'};
 const blnNama=ym=>new Date(ym+'-01T00:00').toLocaleDateString('id-ID',{month:'long',year:'numeric'});
 const N=(a,b,s=1)=>{const r=[];for(let i=a;i<=b;i+=s)r.push(String(i));return r};
 const sum=(rs,k)=>rs.reduce((a,r)=>a+(+r[k]||0),0);
@@ -859,7 +860,7 @@ g.gain.setValueAtTime({1:.05,2:.12,3:.25}[SET.vol],s);g.gain.exponentialRampToVa
 // suara ucapan (bahasa Indonesia) lewat speechSynthesis peramban; mengikuti pengaturan Suara dan Volume
 function ucap(t){if(!SET.suara)return;try{const s=window.speechSynthesis;if(!s)return;s.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='id-ID';
 const v=(s.getVoices()||[]).find(x=>/^id([-_]|$)/i.test(x.lang));if(v)u.voice=v;u.volume={1:.45,2:.75,3:1}[SET.vol]||.75;u.rate=1;setTimeout(()=>s.speak(u),250)}catch(e){}}
-document.addEventListener('input',e=>{const t=e.target;if(t&&t.matches&&t.matches('#kbct,#kbca,#kbcc')){const m=t.closest('.md');if(m&&typeof kpSeg==='function')kpSeg(m)}if(t&&t.matches&&t.matches('.dtw input')){const sp=t.parentNode.querySelector('.dv');if(sp)sp.textContent=t.value?tgl(t.value):'dd mmmm yyyy'}},true);document.addEventListener('change',e=>{const t=e.target;if(t&&t.matches&&t.matches('.dtw input')){const sp=t.parentNode.querySelector('.dv');if(sp)sp.textContent=t.value?tgl(t.value):'dd mmmm yyyy'}},true);
+document.addEventListener('input',e=>{const t=e.target;if(t&&t.matches&&t.matches('#kbct,#kbca,#kbcc')){const m=t.closest('.md');if(m&&typeof kpSeg==='function')kpSeg(m)}if(t&&t.matches&&t.matches('.dtw input')){const sp=t.parentNode.querySelector('.dv');if(sp)sp.textContent=t.parentNode.classList.contains('ds')?tglS(t.value):(t.value?tgl(t.value):'dd mmmm yyyy')}},true);document.addEventListener('change',e=>{const t=e.target;if(t&&t.matches&&t.matches('.dtw input')){const sp=t.parentNode.querySelector('.dv');if(sp)sp.textContent=t.parentNode.classList.contains('ds')?tglS(t.value):(t.value?tgl(t.value):'dd mmmm yyyy')}},true);
 function toast(m,er){const e=$('#toast');e.textContent=m;e.className='show'+(er?' er':'');bunyi(er?'err':'ok');clearTimeout(tt);tt=setTimeout(()=>e.className='',m.length>60?4000:2800)}
 document.addEventListener('click',e=>{const t=e.target;if(t.closest('button')||(t.closest('.op')&&t.tagName!=='INPUT'))bunyi()});
 document.addEventListener('change',e=>{const t=e.target;
@@ -1058,7 +1059,7 @@ if(f.t==='ind')return`<details class="fd full" id="indb"><summary class="ah koso
 if(f.t==='pc')return`<details class="fd full" id="pcb"><summary class="ah kosong"><span>💗 ${f.l}</span><i>Belum dipilih</i><em>›</em></summary><input type="hidden" name="${f.k}" value="${esc(v)}"><p class="sub" style="font-size:12px;margin:-2px 0 8px">${esc(f.ph||'Panca Cinta melengkapi, bukan pengganti, elemen CP. Pilih nilai yang tampak atau relevan pada pengamatan ini (boleh lebih dari satu).')}</p><div class="opts" id="pcl">${KBCN0.map(([id,n])=>`<label class="op"><input type="checkbox" name="pcc" value="${id}"><span>${esc(n)}</span></label>`).join('')}</div></details>`;
 if(f.t==='date'){const dv=v||hari();return`<div class="fd">${L}<div class="dtw"><input type="date" name="${f.k}" value="${esc(dv)}"><span class="dv">${esc(tgl(dv))}</span></div></div>`}
 if(f.t==='txt')return`<div class="fd">${L}<input name="${f.k}" value="${esc(v)}" autocomplete="off"></div>`;
-if(f.t==='tgl')return`<div class="fd">${L}<input type="date" name="${f.k}" value="${esc(v)}"></div>`;
+if(f.t==='tgl')return`<div class="fd">${L}<div class="dtw ds"><input type="date" name="${f.k}" value="${esc(v)}"><span class="dv">${esc(tglS(v))}</span></div></div>`;
 if(f.t==='tel')return`<div class="fd">${L}<input type="tel" inputmode="tel" name="${f.k}" value="${esc(v)}" autocomplete="off" placeholder="08xxxxxxxxxx"></div>`;
 if(f.t==='eml')return`<div class="fd">${L}<input type="email" inputmode="email" name="${f.k}" value="${esc(v)}" autocomplete="off" placeholder="nama@email.com"></div>`;
 if(f.t==='alm')return`<div class="fd full">${L}<textarea name="${f.k}" rows="3" placeholder="${esc(f.ph||'Jalan, RT/RW, kelurahan, kecamatan, kota')}">${esc(v)}</textarea></div>`;
