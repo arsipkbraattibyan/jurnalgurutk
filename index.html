@@ -1027,7 +1027,7 @@ const KEYS=ORDER.slice(1);
 /* ---------- komponen isian: semua pilihan berupa radio button ---------- */
 const opts=(name,o,sel)=>`<div class="opts">${o.map(x=>`<label class="op"><input type="radio" name="r_${name}" value="${esc(x)}"${String(x)===String(sel)?' checked':''}><span>${esc(x)}</span></label>`).join('')}</div>`;
 function fld(f,v){v=String(v??'');const L=`<label>${f.l}</label>`;
-if(f.t==='txa')return`<div class="fd full">${L}<textarea name="${f.k}" rows="3" maxlength="1000" placeholder="${esc(f.ph||'')}">${esc(v)}</textarea></div>`;if(f.t==='tuj')return`<div class="fd full">${L}<textarea name="${f.k}" rows="2" maxlength="500" placeholder="Contoh: Anak mampu mengenal kebutuhan tubuh dan merawatnya">${esc(v)}</textarea></div>`;
+if(f.t==='txa')return`<div class="fd full">${L}<textarea name="${f.k}" rows="3" maxlength="1000" placeholder="${esc(f.ph||'')}">${esc(v)}</textarea></div>`;if(f.t==='tuj')return`<details class="fd full" id="tujb"><summary class="ah kosong"><span>📌 Pilih tujuan pembelajaran</span><i>Belum dipilih</i><em>›</em></summary><p class="sub" id="tujh" style="font-size:12px;margin:-2px 0 8px"></p><div class="opts" id="tujl"></div>${boleh('tp.ubah')?'<button type="button" class="btn gh s" data-tk style="margin-top:10px">⚙️ Kelola daftar tujuan pembelajaran sekolah</button>':''}</details><div class="fd full">${L}<textarea name="${f.k}" rows="2" maxlength="500" placeholder="Pilih dari daftar di atas, atau tulis sendiri. Contoh: Anak mampu mengenal kebutuhan tubuh dan merawatnya">${esc(v)}</textarea></div>`;
 if(f.t==='ind')return`<details class="fd full" id="indb"><summary class="ah kosong"><span>🎯 ${f.l}</span><i>Belum dipilih</i><em>›</em></summary><input type="hidden" name="${f.k}" value="${esc(v)}"><p class="sub" id="indh" style="font-size:12px;margin:-2px 0 8px"></p><div class="opts" id="indl"></div><div class="fup" style="margin-top:10px"><input id="indx" maxlength="200" placeholder="Tulis indikator sendiri sesuai tujuan pembelajaran" style="flex:1 1 220px;width:auto" autocomplete="off"><button type="button" class="btn o s" data-ia>+ Tambah</button></div></details>`;
 if(f.t==='pc')return`<details class="fd full" id="pcb"><summary class="ah kosong"><span>💗 ${f.l}</span><i>Belum dipilih</i><em>›</em></summary><input type="hidden" name="${f.k}" value="${esc(v)}"><p class="sub" style="font-size:12px;margin:-2px 0 8px">${esc(f.ph||'Panca Cinta melengkapi, bukan pengganti, elemen CP. Pilih nilai yang tampak atau relevan pada pengamatan ini (boleh lebih dari satu).')}</p><div class="opts" id="pcl">${KBCN0.map(([id,n])=>`<label class="op"><input type="checkbox" name="pcc" value="${id}"><span>${esc(n)}</span></label>`).join('')}</div></details>`;
 if(f.t==='date'){const dv=v||hari();return`<div class="fd">${L}<div class="dtw"><input type="date" name="${f.k}" value="${esc(dv)}"><span class="dv">${esc(tgl(dv))}</span></div></div>`}
@@ -1623,6 +1623,70 @@ const fv=(f,r)=>f.k==='kelas'?kelTampil(r.kelas):f.k==='tanggal'?tgl(r.tanggal):
 function pcRingkas(rs){const c={};rs.forEach(r=>String(r.pancacinta||'').split(',').map(x=>x.trim()).filter(Boolean).forEach(id=>{c[id]=(c[id]||0)+1}));
 const ks=Object.keys(c).sort();if(!ks.length)return'';
 return`<h4>Penguatan nilai Panca Cinta</h4><table class="rt sm dst"><thead><tr><th>Nilai Panca Cinta</th><th>Jumlah pengamatan</th><th>Persentase</th></tr></thead><tbody>${ks.map(id=>`<tr><td>${esc(pcNama(id))}</td><td class="c">${c[id]}</td><td class="c">${pct(c[id],rs.length)}</td></tr>`).join('')}</tbody></table><p style="font-size:11px;margin:4px 0 0">Nilai Panca Cinta melengkapi elemen CP dan tidak menggantikannya.</p>`}
+/* ---------- Tujuan pembelajaran (TP): bawaan aplikasi + penyesuaian sekolah (sheet "TP", izin tp.ubah) ---------- */
+const TP_BAWAAN=[
+['Mengenal Tuhan melalui ciptaan-Nya.','Mengenal dan mempraktikkan ibadah sesuai agama.','Menunjukkan perilaku sopan dan santun.','Menyayangi sesama teman.','Menjaga kebersihan lingkungan.'],
+['Mengenal identitas diri.','Mengenali berbagai macam emosi.','Mengungkapkan perasaan dengan tepat.','Menunjukkan sikap mandiri.','Mengembangkan kemampuan motorik kasar.','Mengembangkan kemampuan motorik halus.','Menjaga keselamatan diri.'],
+['Menyimak cerita sederhana.','Mengungkapkan ide secara lisan.','Mengenal simbol dan huruf.','Mengenal konsep bilangan.','Mengenal bentuk dan ukuran.','Mengelompokkan benda.','Mengamati lingkungan sekitar.','Melakukan percobaan sederhana.','Mengenal teknologi sederhana.','Mengekspresikan kreativitas melalui seni.']];
+let TPD=null;
+const tpRows=()=>TPD||(TPD=cGet('tp')||[]);
+async function tpMuat(){try{const j=await api('tpDaftar');TPD=j.rows||[];cSet('tp',TPD);return true}catch(e){return false}}
+const tpGalat=er=>/tidak dikenal/i.test(er.message)?'Backend belum diperbarui. Pasang TP.gs dan Code.gs terbaru.':er.message;
+// daftar TP yang berlaku untuk satu elemen: bawaan (kecuali yang dihapus sekolah, dengan teks yang diubah sekolah) + tambahan sekolah
+function tpGabung(i){const rs=tpRows(),out=[];
+(TP_BAWAAN[i]||[]).forEach((t,n)=>{const bid='b'+i+'_'+n,ov=rs.find(r=>r.bid===bid);
+if(ov&&ov.aktif==='tidak')return;
+out.push({bid,id:ov?ov.id:'',teks:ov&&ov.teks?ov.teks:t,diubah:!!(ov&&ov.teks)})});
+rs.filter(r=>!r.bid&&r.aktif!=='tidak'&&+r.elemen===i).forEach(r=>out.push({bid:'',id:r.id,teks:r.teks,tambah:true}));
+return out}
+function tujInit(md,row){const b=md.querySelector('#tujb');if(!b)return;
+const E=n=>md.querySelector(`[name=${n}]`),T=E('tujuan'),L=b.querySelector('#tujl'),Hn=b.querySelector('#tujh'),idx=()=>elemenIdx(E('aspek').value);
+let daf=[],prev=idx();
+const parts=()=>T.value.split(';').map(x=>x.trim()).filter(Boolean);
+const ring=()=>{const p=parts(),n=daf.filter(d=>p.includes(d.teks)).length,a=b.querySelector('.ah');a.querySelector('i').textContent=n?n+' tujuan dipilih':'Belum dipilih';a.classList.toggle('kosong',!n)};
+const sinkron=()=>{const p=parts();L.querySelectorAll('input[name=tujc]').forEach(c=>c.checked=p.includes(daf[+c.value].teks));ring()};
+const render=()=>{const i=idx(),p=parts();daf=i<0?[]:tpGabung(i);
+Hn.textContent=i<0?'Pilih Elemen CP dulu. Daftar tujuan pembelajaran menyesuaikan elemen yang dipilih.':'Centang tujuan yang sesuai. Tujuan terpilih masuk ke kolom di bawah, dan tetap bisa diedit atau ditambah sendiri.';
+L.innerHTML=daf.length?daf.map((d,n)=>`<label class="op"><input type="checkbox" name="tujc" value="${n}"${p.includes(d.teks)?' checked':''}><span>${esc(d.teks)}</span></label>`).join(''):`<span class="sub">${i<0?'':'Belum ada tujuan pembelajaran untuk elemen ini.'}</span>`;ring()};
+L.style.gridTemplateColumns='1fr';
+b.addEventListener('change',e=>{if(e.target.name!=='tujc')return;const t=daf[+e.target.value].teks;let p=parts();
+if(e.target.checked){if(!p.includes(t))p.push(t)}else p=p.filter(x=>x!==t);
+const v=p.join('; ');if(v.length>500){e.target.checked=false;return toast('Terlalu panjang. Maksimal 500 karakter.',1)}T.value=v;ring()});
+T.addEventListener('input',sinkron);
+md.addEventListener('change',e=>{if(e.target.name!=='aspek')return;const i=idx();
+if(prev>=0&&i!==prev){const lama=daf.map(d=>d.teks),p=parts(),sisa=p.filter(x=>lama.indexOf(x)<0);if(sisa.length!==p.length){T.value=sisa.join('; ');toast('Tujuan dari elemen sebelumnya dikosongkan karena Elemen CP diganti')}}
+prev=i;render()});
+b.addEventListener('click',e=>{if(e.target.closest('[data-tk]'))tpKelola(Math.max(0,idx()),render)});
+render();
+tpMuat().then(ok=>{if(ok&&document.body.contains(md))render()})}
+// kelola daftar TP sekolah: tambah, ubah, hapus, pulihkan bawaan (hanya akun berizin tp.ubah; server memeriksa lagi)
+function tpKelola(i0,onTutup){const md=document.createElement('div');md.className='md';md.style.zIndex=35;
+md.innerHTML=`<div class="sheet" style="max-height:90vh;overflow:auto"><h2>⚙️ Kelola Tujuan Pembelajaran</h2><p class="sub" style="font-size:13px;margin-bottom:8px">Perubahan berlaku untuk semua guru di sekolah ini. Jurnal yang sudah tersimpan tidak ikut berubah.</p><div class="fd full"><label>Elemen CP</label><select id="tke">${ELEMEN_CP.map((x,n)=>`<option value="${n}"${n===i0?' selected':''}>${esc(x)}</option>`).join('')}</select></div><div id="tkl" style="margin:10px 0"></div><div class="fd full"><label id="tkt">Tambah tujuan pembelajaran</label><input id="tkx" maxlength="200" autocomplete="off" placeholder="Tulis tujuan pembelajaran"></div><div class="fup" style="margin-top:8px;gap:8px"><button type="button" class="btn y s" data-ts>+ Tambah</button><button type="button" class="btn gh s" data-tb hidden>Batal ubah</button><button type="button" class="btn gh s" data-tp hidden>↩️ Pulihkan bawaan</button></div><div class="act"><button class="btn gh" data-x>Tutup</button></div></div>`;
+const Q=s=>md.querySelector(s),sel=()=>+Q('#tke').value;let edit=null;
+const render=()=>{const i=sel(),daf=tpGabung(i),rs=tpRows().filter(r=>String(r.bid||'').indexOf('b'+i+'_')===0);
+Q('#tkl').innerHTML=daf.length?daf.map((d,n)=>`<div style="display:flex;gap:6px;align-items:center;padding:8px 0;border-top:1px solid var(--ln)"><span style="flex:1;min-width:0;font-size:14px">${esc(d.teks)}${d.diubah?' <small class="sub">(diubah)</small>':d.tambah?' <small class="sub">(tambahan)</small>':''}</span><button type="button" class="btn gh s" data-e="${n}">Ubah</button><button type="button" class="btn gh s" data-d="${n}">Hapus</button></div>`).join(''):'<div class="empty">Belum ada tujuan pembelajaran.</div>';
+const pul=Q('[data-tp]');pul.hidden=!rs.length;pul.textContent='↩️ Pulihkan bawaan ('+rs.length+')';
+Q('#tkt').textContent=edit?'Ubah tujuan pembelajaran':'Tambah tujuan pembelajaran';Q('[data-ts]').textContent=edit?'Simpan perubahan':'+ Tambah';Q('[data-tb]').hidden=!edit};
+const kirim=async(act,data,ok)=>{try{const j=await api(act,{data});TPD=j.rows||[];cSet('tp',TPD);edit=null;Q('#tkx').value='';render();toast(ok)}catch(er){toast(tpGalat(er),1)}};
+md.onclick=async e=>{if(e.target===md||e.target.closest('[data-x]')){md.remove();if(onTutup)onTutup();return}
+const i=sel(),daf=tpGabung(i),X=Q('#tkx');
+if(e.target.closest('[data-ts]')){const v=X.value.trim().replace(/\s+/g,' ');
+if(v.length<3)return toast('Tulis tujuan pembelajarannya dulu',1);
+if(/;/.test(v))return toast('Tanda titik koma (;) tidak boleh dipakai',1);
+if(/^[=+\-@]/.test(v))return toast('Tidak boleh diawali tanda = + - @',1);
+if(daf.some(d=>d.teks.toLowerCase()===v.toLowerCase()&&!(edit&&d.bid===edit.bid&&d.id===edit.id)))return toast('Tujuan itu sudah ada pada elemen ini',1);
+const data=edit?(edit.id?{id:edit.id,teks:v}:{bid:edit.bid,teks:v}):{elemen:i,teks:v};
+return kirim('tpSimpan',data,edit?'Perubahan tersimpan':'Tujuan ditambahkan')}
+const be=e.target.closest('[data-e]');if(be){edit=daf[+be.dataset.e];X.value=edit.teks;render();X.focus();return}
+if(e.target.closest('[data-tb]')){edit=null;X.value='';render();return}
+const bd=e.target.closest('[data-d]');if(bd){const d=daf[+bd.dataset.d];
+if(!await tanya('Hapus tujuan pembelajaran?',d.teks+(d.bid?' (TP bawaan, bisa dipulihkan lewat tombol Pulihkan bawaan).':''),'Ya, hapus',true))return;
+return kirim('tpHapus',d.id?{id:d.id}:{bid:d.bid},'Tujuan dihapus')}
+if(e.target.closest('[data-tp]')){if(!await tanya('Pulihkan TP bawaan?','Perubahan dan penghapusan TP bawaan pada elemen ini dikembalikan seperti semula. Tambahan sekolah tidak dihapus.','Ya, pulihkan'))return;
+return kirim('tpPulihkan',{semua:true,elemen:i},'TP bawaan dipulihkan')}};
+md.addEventListener('change',e=>{if(e.target.id==='tke'){edit=null;Q('#tkx').value='';render()}});
+md.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='tkx'){e.preventDefault();Q('[data-ts]').click()}});
+document.body.appendChild(md);render()}
 // daftar indikator menyesuaikan elemen CP + tema/subtema; bisa tambah indikator sendiri (disimpan di perangkat guru)
 function indInit(md,row){const b=md.querySelector('#indb');if(!b)return;
 const E=n=>md.querySelector(`[name=${n}]`),H=E('indikator'),L=b.querySelector('#indl'),Hn=b.querySelector('#indh'),X=b.querySelector('#indx');
@@ -1886,7 +1950,7 @@ if(['kehadiran','perkembangan','penilaian'].includes(k))(md._mu=KHmuat()).then((
 if(!row&&k==='harian'){pilih(md,'kendala','Tidak ada kendala');pilih(md,'capaian','Sebagian besar antusias')}
 akordeon(md);
 if(k==='harian')kbcInit(md,row);if(k==='penilaian')pcpInit(md,row,daftar);
-if(k==='perkembangan'){indInit(md,row);pcInit(md,row);idHint(md);
+if(k==='perkembangan'){indInit(md,row);tujInit(md,row);pcInit(md,row);idHint(md);
 // tema dan subtema mengikuti Jurnal Harian pada tanggal dan kelompok yang sama (otomatis saat tanggal atau kelompok berubah)
 const hhi=md.querySelector('#hhi'),isiT=(n,v)=>{if(!v)return;pilih(md,n,v);const e2=E(n);if(!e2)return;const fd=e2.closest('.fd');
 if(e2.value!==v){const ex=fd&&fd.querySelector('.ex');if(ex){ex.value=v;syncOpt(fd)}}
