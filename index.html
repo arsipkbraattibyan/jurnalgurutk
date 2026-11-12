@@ -2003,7 +2003,7 @@ const SDF=[['Nama',[/^nama(\s+(lengkap|siswa|murid|anak))?$/i,/nama/i],RX_ORTU],
 const sdTel=l=>RX_KON.test(l)&&!/email/i.test(l);
 const SDG=[['👧 Data anak',null],['📍 Alamat',RX_ALM],['👨‍👩‍👧 Orang tua / wali',RX_ORTU],['📞 Kontak',RX_KON]];
 const sdGrup=l=>RX_ORTU.test(l)?2:RX_ALM.test(l)?1:RX_KON.test(l)?3:0;
-function sdv(l,v){v=String(v||'').trim();if(!v)return'-';if(/^\d{4}-\d{2}-\d{2}$/.test(v))return tgl(v);if(sdTel(l)&&/^8\d{7,12}$/.test(v))return'0'+v;return v}
+function sdv(l,v){v=String(v||'').trim();if(!v)return'-';if(l==='Kelompok')return kelTampil(v);if(/^\d{4}-\d{2}-\d{2}$/.test(v))return tgl(v);if(sdTel(l)&&/^8\d{7,12}$/.test(v))return'0'+v;return v}
 function sdCols(){const used=new Set();return SDF.map(([l,res,ex])=>{let i=-1;for(const re of res){i=SD.kolom.findIndex((k,n)=>!used.has(n)&&re.test(k)&&!(ex&&ex.test(k)));if(i>=0)break}if(i>=0)used.add(i);return{l,i}}).filter(c=>c.i>=0)}
 function sdDetail(i){const r=SD.rows[i],md=document.createElement('div');md.className='md';
 const g=[[],[],[],[]];SD.kolom.forEach((k,n)=>g[sdGrup(k)].push(n));
@@ -2069,7 +2069,7 @@ try{await api('siswaAktifkan',{data:{id:x.id,nama:x.nama}});sdSegarkan();toast('
 if(h){const x=L[+h.dataset.hp];if(await sdHapus(x.id,x.nama,false))isi()}};
 document.body.appendChild(md);isi()}
 function sdBaru(){const md=document.createElement('div'),kf=klf();md.className='md';
-md.innerHTML=`<div class="sheet"><h2>➕ Tambah Siswa Baru</h2><p class="sub" style="font-size:13px;margin-bottom:6px">Siswa disimpan di aplikasi ini saja (tidak mengubah spreadsheet absensi). Selama aktif ia dihitung hadir pada Jurnal Kehadiran mulai tanggal masuk, kecuali guru mengubahnya. Nama tidak dapat diubah setelah disimpan.</p><div class="fg"><div class="fd full"><label>Nama lengkap</label><input name="nm" maxlength="60" autocomplete="off"></div><div class="fd"><label>Kelompok</label>${kf?`<input value="${esc(kf)}" disabled>`:`<select name="kl">${['KB',...KELAS].map(x=>`<option>${x}</option>`).join('')}</select>`}</div><div class="fd"><label>Tanggal masuk</label><input type="date" name="tm" value="${hari()}"></div></div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn y" data-sv>Simpan</button></div></div>`;
+md.innerHTML=`<div class="sheet"><h2>➕ Tambah Siswa Baru</h2><p class="sub" style="font-size:13px;margin-bottom:6px">Siswa disimpan di aplikasi ini saja (tidak mengubah spreadsheet absensi). Selama aktif ia dihitung hadir pada Jurnal Kehadiran mulai tanggal masuk, kecuali guru mengubahnya. Nama tidak dapat diubah setelah disimpan.</p><div class="fg"><div class="fd full"><label>Nama lengkap</label><input name="nm" maxlength="60" autocomplete="off"></div><div class="fd"><label>Kelompok</label>${kf?`<input value="${esc(kelTampil(kf))}" disabled>`:`<select name="kl">${['KB',...KELAS].map(x=>`<option value="${x}">${kelTampil(x)}</option>`).join('')}</select>`}</div><div class="fd"><label>Tanggal masuk</label><input type="date" name="tm" value="${hari()}"></div></div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn y" data-sv>Simpan</button></div></div>`;
 md.onclick=async e=>{if(e.target===md||e.target.closest('[data-x]'))return md.remove();const b=e.target.closest('[data-sv]');if(!b)return;
 const nama=md.querySelector('[name=nm]').value.trim().replace(/\s+/g,' '),kelas=kf||md.querySelector('[name=kl]').value,mulai=md.querySelector('[name=tm]').value;
 if(!nama)return toast('Nama wajib diisi',1);
@@ -2181,7 +2181,7 @@ gbr();
 try{await Promise.all([loadSiswa(),...DOKK.map(async k=>{try{const r=await api('list',{jenis:k});ROWS[k]=urut(r.rows)}catch(e){}})])}catch(e){}
 gbr()}
 function viewSiswa(){const m=$('#main'),kf=klf();
-m.innerHTML=`<div class="card noprint"><div class="tabs" id="stb"><button data-t="data">🧑‍🎓 Data Siswa</button><button data-t="pres">📅 Presensi</button><button data-t="gal">🖼️ Galeri Foto</button></div>${kf?`<p><b>Kelompok</b><span class="bdg">${kf}</span></p>`:`<div class="fd"><label>Kelompok</label>${radioGrup('sk',[['','Semua'],...KELAS.map(x=>[x,x])],'','sk')}</div>`}<div id="sfil" style="margin-top:14px"></div></div><div class="card noprint" id="sr"></div><div id="lap" class="hid"></div>`;
+m.innerHTML=`<div class="card noprint"><div class="tabs" id="stb"><button data-t="data">🧑‍🎓 Data Siswa</button><button data-t="pres">📅 Presensi</button><button data-t="gal">🖼️ Galeri Foto</button></div>${kf?`<p><b>Kelompok</b><span class="bdg">${kelTampil(kf)}</span></p>`:`<div class="fd"><label>Kelompok</label>${radioGrup('sk',[['','Semua'],...KELAS.map(x=>[x,kelTampil(x)])],'','sk')}</div>`}<div id="sfil" style="margin-top:14px"></div></div><div class="card noprint" id="sr"></div><div id="lap" class="hid"></div>`;
 $('#stb').onclick=e=>{const b=e.target.closest('[data-t]');if(b){SISTAB=b.dataset.t;tabSiswa()}};
 if(!kf)$('#sk').onchange=tabSiswa;
 tabSiswa()}
