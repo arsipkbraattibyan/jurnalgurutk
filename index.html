@@ -1361,7 +1361,7 @@ if(mu&&se&&se<mu)return toast('Tanggal selesai tidak boleh sebelum tanggal mulai
 if(on&&a&&!(a.tahun===th&&a.semester===sm)&&!await tanya('Ganti periode aktif?','Seluruh guru akan memakai '+th+' semester '+sm+' di laporan dan cetakan. Data periode sebelumnya tidak berubah dan tetap tersimpan.','Ya, aktifkan',false))return;
 if(!on&&a&&a.tahun===th&&a.semester===sm&&!await tanya('Nonaktifkan periode?','Tidak ada periode aktif. Laporan akan memakai isian tahun ajaran lama di profil guru sampai Anda mengaktifkan periode lain.','Ya, nonaktifkan',false))return;
 sv.disabled=true;try{const j=await api('simpanAkademik',{data:{tahun:th,semester:sm,aktif:on,mulai:mu,selesai:se}});AKAD={aktif:j.aktif,daftar:j.daftar,boleh:j.boleh};cSet('akad',AKAD);S.guru=j.guru;simpanSesi();isiAkun();_akT=Date.now();
-const bx=$('#akd');if(bx)delete bx.dataset.t;akadIsi();const lp=$('#lap');if(lp)lp.innerHTML=dataPaper(nilai('dj')||'guru');toast('Pengaturan akademik tersimpan')}catch(er){toast(er.message,1);sv.disabled=false}}}
+const bx=$('#akd');if(bx)delete bx.dataset.t;akadIsi();const lp=$('#lap');if(lp)lp.innerHTML=dataPaper(nilai('dj')||'guru');toast('Simpan pengaturan akademik berhasil')}catch(er){toast(er.message,1);sv.disabled=false}}}
 /* ---------- Sumber data kehadiran otomatis (khusus Admin Sekolah, perlu internet) ---------- */
 async function sumberSegar(){svBersih();await segarSiswa()}
 async function sumberKartu(){
@@ -1476,7 +1476,7 @@ if(kurang){const pf=$('#pf'),el=pf.querySelector('[name='+kk+']'),f=el&&el.close
 const er=cekProfil(d);if(er.length)return toast(er[0],1);
 const k0=kelNorm(S.guru.kelas),k1=kelNorm(d.kelas); // kelompok menentukan data anak yang tampil dan boleh diubah: minta konfirmasi
 if(k0&&k1!==k0&&!await tanya('Ubah kelompok?',/^semua/i.test(k1)?'Anda akan melihat dan dapat mengubah data anak dari SEMUA kelompok.':'Daftar anak, presensi, dan catatan yang tampil akan mengikuti '+k1+'. Catatan lama Anda tidak dihapus.','Ya, ubah',false))return;
-$('#sv').disabled=true;try{const j=await api('simpanProfil',{data:d});S.guru=j.guru;simpanSesi();isiAkun();rl();toast('Identitas tersimpan')}catch(er){toast(er.message,1)}$('#sv').disabled=false};}
+$('#sv').disabled=true;try{const j=await api('simpanProfil',{data:d});S.guru=j.guru;simpanSesi();isiAkun();rl();toast('Simpan identitas berhasil')}catch(er){toast(er.message,1)}$('#sv').disabled=false};}
 
 /* ---------- pengaturan foto profil dan logo sekolah ---------- */
 async function simpanLogo(d){try{const j=await api('unggahLogo',{data:d});S.guru.logo=j.logo||'';simpanSesi();sekCache({nama:sekCache().nama,logo:S.guru.logo});
