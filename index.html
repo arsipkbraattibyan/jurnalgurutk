@@ -806,7 +806,10 @@ const sum=(rs,k)=>rs.reduce((a,r)=>a+(+r[k]||0),0);
 const pct=(a,b)=>b?Math.round(a/b*1000)/10+'%':'-';
 let S={token:null,guru:null,view:'beranda'},ROWS={},tt;
 try{const x=JSON.parse(localStorage.getItem('jg')||'null');if(x){S.token=x.token;S.guru=x.guru}}catch(e){}
-const simpanSesi=()=>{try{localStorage.setItem('jg',JSON.stringify({token:S.token,guru:S.guru}))}catch(e){}};
+// akun dengan jabatan Kepala sekolah: nama, NIP, dan HP kepala sekolah di data sekolah otomatis mengikuti data pribadinya
+const aplKepsek=()=>{const g=S.guru;if(!g||!(/kepala\s*sekolah/i.test(g.jabatan||'')||g.peran==='kepsek'))return;const n=String(g.nama||'').trim(),p=String(g.nip||'').trim(),h=String(g.telepon||'').trim();if(n)g.kepsek=n;if(p)g.nipkepsek=p;if(h)g.hpkepsek=h};
+try{aplKepsek()}catch(e){}
+const simpanSesi=()=>{try{aplKepsek()}catch(e){}try{localStorage.setItem('jg',JSON.stringify({token:S.token,guru:S.guru}))}catch(e){}};
 
 /* ---------- suara tombol dan pilihan ---------- */
 const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('jgset')||'{}')}catch(e){}return{suara:o.suara!==false,vol:[1,2,3].includes(o.vol)?o.vol:2,tema:['ceria','main','belajar','ujian'].includes(o.tema)?o.tema:'ceria',foto:/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(o.foto||'')?o.foto:'',fmode:'isi',fgel:typeof o.fgel==='number'?Math.min(85,Math.max(0,o.fgel)):55,fx:typeof o.fx==='number'?Math.min(100,Math.max(0,o.fx)):50,fy:typeof o.fy==='number'?Math.min(100,Math.max(0,o.fy)):50}})();
@@ -1448,7 +1451,7 @@ if(!String(d.nama||'').trim())er.push('Nama lengkap wajib diisi');
 Object.keys(VALID_PROFIL).forEach(k=>{const v=String(d[k]==null?'':d[k]).trim();if(v&&v!==String(g[k]||'').trim()&&!VALID_PROFIL[k][0].test(v))er.push(lb(k)+': '+VALID_PROFIL[k][1])});
 const t=+String(d.tahunberdiri||'').trim();if(t&&t>new Date().getFullYear()&&!er.some(x=>/^Tahun berdiri/.test(x)))er.push(lb('tahunberdiri')+': belum boleh lebih dari tahun ini');
 return er}
-function formIdentitas(){const g=S.guru,P=k=>PROFIL.find(f=>f.k===k);
+function formIdentitas(){aplKepsek();const g=S.guru,P=k=>PROFIL.find(f=>f.k===k);
 const one=k=>fld(P(k),k==='kelas'?kelTampil(g[k]):k==='jenjang'&&g[k]==='PAUD'?'':g[k]); // array di dalam daftar = beberapa isian dalam satu baris
 const sek=(ic,jd,ket,ks)=>`<div class="card"><h3>${ic} ${jd}</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">${ket}</p><div class="fg">${ks.map(k=>Array.isArray(k)?`<div class="frw f${k.length}">${k.map(one).join('')}</div>`:one(k)).join('')}</div></div>`;
 $('#main').innerHTML=`<div class="noprint"><div class="card"><h3>🖨️ Cetak / Unduh Data</h3><p class="sub" style="font-size:13px;margin:-6px 0 12px">Berdasarkan data yang sudah disimpan. Pilih data, lalu cetak atau simpan sebagai PDF, Excel, atau Word.</p><div class="fd"><label>Data yang dicetak</label>${radioGrup('dj',[['guru','Data guru'],['sekolah','Data sekolah'],['semua','Data guru + sekolah']],'guru','dj')}</div><div class="fd" id="fpw"><label>Foto profil guru</label>${radioGrup('fp',[['tidak','Tanpa foto'],['ya','Dengan foto profil']],fpPref(),'fp')}<p class="sub" id="fph" style="font-size:12px;margin:6px 0 0"></p></div>${ukrHtml()}</div><div class="card" id="akc"><h3>🗓️ Pengaturan Akademik</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Berlaku untuk seluruh guru. Tahun ajaran dan semester yang aktif dipakai otomatis di laporan dan cetakan, jadi guru tidak perlu mengisinya lagi. Periode sebelumnya tetap tersimpan.</p><div id="akd"></div></div><div id="pf">${sek('👩‍🏫','A. Data pribadi','Identitas dan kontak Anda. NIP dan NUPTK boleh dikosongkan jika belum ada.',['nama','nip','nuptk','tempatlahir',['tgllahir','jk','agama'],'alamat','telepon','email'])}
