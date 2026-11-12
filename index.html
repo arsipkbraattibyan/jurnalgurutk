@@ -163,7 +163,7 @@ input:focus,textarea:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 4
 .rt th,.rt td{border:1px solid #333;padding:4px 6px;vertical-align:top;text-align:left}
 .rt th{background:#e8e8e8;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .rt .c{text-align:center}.rt.sm{width:100%}.rt.id td:first-child{width:28%;font-weight:bold}
-.pfr{display:flex;gap:.5cm;align-items:flex-start;margin:0 0 6px;break-inside:avoid}.pfr>.pfd{flex:1 1 auto;min-width:0}.pfr .rt{margin:0;width:100%;table-layout:fixed}.rt.idx{table-layout:fixed;width:100%}.rt.idx td{vertical-align:middle;word-break:break-word}.rt.idx td.lb{width:17%;font-weight:bold}.rt.idx td.vl{width:33%}.pfw{flex:0 0 3.6cm;width:3.6cm;height:4.5cm;min-height:4.5cm;margin:0;position:relative;overflow:hidden}.pfw img{position:static;width:100%;height:4.5cm;object-fit:cover;border:1px solid #333;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}.idgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}.idgrid h4{margin:0 0 4px}.idgrid>div{min-width:0}.idgrid .rt.id td:first-child{width:42%}
+.pfr{display:flex;gap:.5cm;align-items:stretch;margin:0 0 6px}.pfr>.pfd{flex:1;min-width:0}.pfr .rt{margin:0;width:100%;table-layout:fixed}.rt.idx{table-layout:fixed;width:100%}.rt.idx td{vertical-align:middle;word-break:break-word}.rt.idx td.lb{width:17%;font-weight:bold}.rt.idx td.vl{width:33%}.pfw{flex:0 0 3.6cm;width:3.6cm;min-height:4.5cm;margin:0;position:relative;overflow:hidden}.pfw img{position:absolute;left:0;top:0;width:100%;height:100%;min-height:4.5cm;object-fit:cover;border:1px solid #333;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}.idgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}.idgrid h4{margin:0 0 4px}.idgrid>div{min-width:0}.idgrid .rt.id td:first-child{width:42%}
 @media(max-width:600px){.idgrid{grid-template-columns:1fr}}@media print{.idgrid{grid-template-columns:1fr 1fr}}.rt .tt td{font-weight:bold;background:#f3f3f3}
 .rt.ap{font-size:13px;font-family:Nunito,sans-serif}.rt.ap th,.rt.ap td{border-color:var(--ln);padding:8px}.rt.ap th{background:#e8f3fd}.rt.ap .tt td{background:#f3f9ff}
 .ttd{display:flex;justify-content:space-between;gap:20px;margin-top:30px;text-align:center;break-inside:avoid}
@@ -2463,8 +2463,6 @@ function setKertas(u){let s=$('#pgsty');if(!s){s=document.createElement('style')
 // render laporan menjadi kanvas per halaman, dipotong di batas baris tabel agar teks tidak terpotong
 async function halaman(u){const src=$('#lap .paper');if(!src)throw new Error('Laporan belum siap dimuat.');
 await libs();await siapFoto();
-// Pastikan foto identitas anak selesai didekode sebelum halaman disalin dan dirender.
-await Promise.all([...src.querySelectorAll('.pfr .pfw img')].map(im=>im.decode?im.decode().catch(()=>{}):Promise.resolve()));
 const W=Math.round(u.w*MM),H=Math.round(u.h*MM),mg=Math.round(MG*MM),use=H-2*mg;
 const box=document.createElement('div');box.id='capbox';box.className='cap';
 box.style.cssText=`position:absolute;left:-99999px;top:0;width:${W}px;padding:0 ${mg}px;background:#fff;box-sizing:border-box`;
@@ -2859,20 +2857,10 @@ if(pakaiFoto&&!foto){
   if(id!==PF_RENDER_ID||!$('#pa')||$('#pa').value!==k)return;
   foto=faGet(o.nama);
 }
-// Gunakan nama resmi pada Data Siswa jika nama di catatan perkembangan berbeda.
+// Cari nama resmi dari daftar siswa sebagai cadangan jika ejaan nama di catatan berbeda.
 if(pakaiFoto&&!foto){
   const siswa=(SISWA||[]).find(s=>kunci(s.nama)===o.k);
   if(siswa)foto=faGet(siswa.nama);
-}
-// Cadangan langsung dari server: jangan bergantung hanya pada cache localStorage.
-if(pakaiFoto&&!foto){
-  try{
-    const hasilFoto=await api('fotoAnak');
-    if(id!==PF_RENDER_ID||!$('#pa')||$('#pa').value!==k)return;
-    const petaFoto=hasilFoto&&hasilFoto.foto||{};
-    foto=petaFoto[kunci(o.nama)]||'';
-    if(foto)faSet(o.nama,foto);
-  }catch(e){console.warn('Pengambilan foto langsung gagal:',e)}
 }
 pfInfo(o);
 $('#lap').innerHTML=portofolio(o,$('#pd').value,$('#ps').value,S.pfTuj,foto);
@@ -2904,7 +2892,7 @@ const idn=[['Nama anak',o.nama],['Kelompok',kls],['Guru kelas',g.nama],['Sekolah
 const nr=narasi(o.nama,per);
 return`<div class="paper"><div class="kop"><img class="kl" src="${logoSek()}" alt=""><div class="kt"><h2>${esc((g.sekolah||'NAMA SEKOLAH').toUpperCase())}</h2><p>${esc(g.jenjang||'')}${g.npsn?' - NPSN '+esc(g.npsn):''}</p>${alamatSek(g)?`<p>${esc(alamatSek(g))}${g.telpsekolah?' | Telp. '+esc(g.telpsekolah):''}</p>`:''}</div></div>
 <h1 class="jd">PORTOFOLIO PERKEMBANGAN ANAK</h1><p class="sj">Tahun ajaran ${esc(g.tahun||'-')}, semester ${esc(g.semester||'-')}<br>Periode: ${esc(plabel)}</p>
-<h3>A. Identitas anak</h3>${(()=>{const t=`<table class="rt id">${idn.map(x=>`<tr><td>${x[0]}</td><td>${esc(x[1]===0?'0':x[1]||'-')}</td></tr>`).join('')}</table>`,fa=typeof foto==='string'?foto:(foto?faGet(o.nama):'');return fa?`<div class="pfr"><div class="pfw"><img src="${esc(fa)}" alt="Foto ${esc(o.nama)}"></div><div class="pfd">${t}</div></div>`:t})()}
+<h3>A. Identitas anak</h3>${(()=>{const t=`<table class="rt id">${idn.map(x=>`<tr><td>${x[0]}</td><td>${esc(x[1]===0?'0':x[1]||'-')}</td></tr>`).join('')}</table>`,fa=(typeof foto==='string'&&foto.startsWith('data:image/'))?foto:(faGet(o.nama)||'');return fa?`<div class="pfr"><div class="pfw"><img src="${esc(fa)}" alt="Foto ${esc(o.nama)}"></div><div class="pfd">${t}</div></div>`:t})()}
 <h3>B. Ringkasan capaian per aspek</h3>${per.length?`<div class="ov"><table class="rt"><thead><tr><th>Elemen CP / aspek</th><th>Jumlah catatan</th><th>Riwayat capaian</th><th>Grafik</th><th>Terbaru</th><th>Tren</th></tr></thead><tbody>${per.map(p=>`<tr><td>${esc(p.aspek)}</td><td class="c">${p.n}</td><td class="c">${p.seq.map(lvChip).join(' ')}</td><td class="c">${spark(p.seq)}</td><td class="c">${lvChip(p.last)}</td><td class="c">${tren(p)}</td></tr>`).join('')}</tbody></table></div><p style="font-size:11px;margin:4px 0 0">BB = Belum Berkembang, MB = Mulai Berkembang, BSH = Berkembang Sesuai Harapan, BSB = Berkembang Sangat Baik. Riwayat diurutkan dari catatan paling awal.</p>`:'<p style="font-size:12px">Belum ada catatan perkembangan pada periode ini.</p>'}
 ${pcRingkas(rs)}${nr?`<h3>C. Ringkasan perkembangan</h3><p id="nrs" contenteditable="true" style="margin:0;text-align:justify">${esc(nr)}</p><p class="noprint" style="font-size:11px;color:#6c7aa5;margin:4px 0 0">Ringkasan dibuat otomatis dari catatan. Ketuk teksnya untuk menyunting sebelum dicetak. Hasil sunting hilang jika pilihan anak atau tanggal diganti.</p>`:''}
 <h3>D. Catatan perkembangan</h3><div class="ov"><table class="rt"><thead><tr><th>No</th><th>Tanggal</th><th>Tema / kegiatan</th>${tuj?'<th>Tujuan pembelajaran</th>':''}<th>Elemen CP</th><th>Indikator</th><th>Capaian</th><th>Panca Cinta</th><th>Cara mencatat</th><th>Catatan pengamatan</th><th>Tindak lanjut</th></tr></thead><tbody>${rs.length?rs.map((r,i)=>`<tr><td class="c">${i+1}</td><td>${tgl(r.tanggal)}</td><td>${esc([r.tema,r.subtema].filter(Boolean).join(' / '))}${r.kegiatan?'<br><small>'+esc(r.kegiatan)+'</small>':''}</td>${tuj?'<td>'+(esc(r.tujuan)||'-')+'</td>':''}<td>${esc(r.aspek)}</td><td>${esc(String(r.indikator||'').split(' | ').join('; '))}</td><td class="c">${lvl(r)>=0?lvChip(lvl(r)):esc(r.tingkat)}</td><td>${esc(pcNama(r.pancacinta))}</td><td>${esc(r.teknik)}</td><td>${esc(r.catatan)}</td><td>${esc(r.tindak)}</td></tr>`).join(''):'<tr><td class="c" colspan="${tuj?11:10}">Tidak ada catatan pada periode ini.</td></tr>'}</tbody></table></div>
