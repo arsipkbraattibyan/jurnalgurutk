@@ -1335,7 +1335,7 @@ catch(e){if(!ada&&S.view==='beranda')m.innerHTML=`<div class="empty">${esc(e.mes
 /* ---------- Pengaturan Akademik (satu pengaturan untuk semua guru; disimpan di sheet "Akademik") ---------- */
 let AKAD=null,_akT=0,_akF=0;
 const akadMuat=()=>api('akademik').then(j=>{AKAD={aktif:j.aktif,daftar:j.daftar,boleh:j.boleh};cSet('akad',AKAD)}).catch(()=>{});
-const akadPer=x=>x&&(x.mulai||x.selesai)?(x.mulai?tgl(x.mulai):'...')+' s.d. '+(x.selesai?tgl(x.selesai):'...'):'Tanggal belum diatur';
+const akadPer=x=>x&&(x.mulai||x.selesai)?(x.mulai?tglS(x.mulai):'...')+' s.d. '+(x.selesai?tglS(x.selesai):'...'):'Tanggal belum diatur';
 // segarkan tahun ajaran dan semester aktif di perangkat ini (guru lain mengubahnya dari perangkatnya sendiri)
 function segarAkad(){if(Date.now()-_akT<60000)return Promise.resolve();_akT=Date.now();
 return Promise.race([api('profil').then(j=>{const g=j.guru,o=S.guru;if(o&&(g.tahun!==o.tahun||g.semester!==o.semester||JSON.stringify(g.akademik)!==JSON.stringify(o.akademik))){o.tahun=g.tahun;o.semester=g.semester;o.akademik=g.akademik;simpanSesi()}}),new Promise(r=>setTimeout(r,2500))]).catch(()=>{})}
@@ -1344,17 +1344,16 @@ if(!A){box.innerHTML='<p class="sub">Memuat pengaturan akademik...</p>';return}
 const a=A.aktif,n=new Date(),e=ed||a||{tahun:tahunAjaranList()[1],semester:n.getMonth()>=6?'Ganjil':'Genap',aktif:'ya',mulai:'',selesai:''};
 const ak=x=>x.aktif===true||x.aktif==='ya';
 const info=`<div class="fd"><label>Sedang aktif</label><p style="margin:0;font-weight:800;color:var(--navy)">${a?esc(a.tahun+' · Semester '+a.semester):'Belum diatur'}</p><p class="sub" style="font-size:12px;margin:2px 0 0">${a?esc(akadPer(a)):'Selama belum diatur, laporan memakai isian tahun ajaran lama di profil guru.'}</p></div>`;
-const form=A.boleh?`<div class="akg"><div class="fd"><label for="akt">Tahun ajaran</label><input id="akt" maxlength="9" inputmode="numeric" placeholder="2026/2027" autocomplete="off" value="${esc(e.tahun)}"></div>
+const form=A.boleh?`<div class="akg"><div class="fd"><label for="akt">Tahun ajaran</label><select id="akt">${[...new Set([...tahunAjaranList(),e.tahun,...(A.daftar||[]).map(x=>x.tahun)].filter(Boolean))].sort().map(t=>`<option value="${esc(t)}"${t===e.tahun?' selected':''}>${esc(t)}</option>`).join('')}</select></div>
 <div class="fd"><label>Semester</label>${radioGrup('aks',[['Ganjil','Ganjil'],['Genap','Genap']],e.semester,'aks')}</div>
 <div class="fd"><label>Status</label>${radioGrup('ast',[['ya','Aktif'],['tidak','Tidak aktif']],ak(e)?'ya':'tidak','ast')}</div>
-</div><div class="akg2"><div class="fd"><label for="akm">Tanggal mulai (opsional)</label><input type="date" id="akm" value="${esc(e.mulai||'')}"></div>
-<div class="fd"><label for="ake">Tanggal selesai (opsional)</label><input type="date" id="ake" value="${esc(e.selesai||'')}"></div></div>
+</div><div class="akg2"><div class="fd"><label for="akm">Tanggal mulai (opsional)</label><div class="dtw ds"><input type="date" id="akm" value="${esc(e.mulai||'')}"><span class="dv">${esc(tglS(e.mulai||''))}</span></div></div>
+<div class="fd"><label for="ake">Tanggal selesai (opsional)</label><div class="dtw ds"><input type="date" id="ake" value="${esc(e.selesai||'')}"><span class="dv">${esc(tglS(e.selesai||''))}</span></div></div></div>
 <div class="act"><button class="btn y" id="aksv" type="button">Simpan Pengaturan Akademik</button></div>`
 :'<p class="sub" style="font-size:12px;margin:8px 0 0">Hanya kepala sekolah atau admin yang dapat mengubah pengaturan ini.</p>';
 const rw=(A.daftar||[]).map((x,i)=>`<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--ln)"><span style="flex:1"><b>${esc(x.tahun)} · ${esc(x.semester)}</b><br><small class="sub">${esc(akadPer(x))}</small></span>${ak(x)?'<span class="abg hadir" style="white-space:nowrap">Aktif</span>':''}${A.boleh?`<button class="btn gh s" type="button" data-ae="${i}">Ubah</button>`:''}</div>`).join('');
 box.innerHTML=info+form+(rw?`<p class="sub" style="font-size:13px;margin:16px 0 4px;font-weight:800">Riwayat tahun ajaran</p>${rw}`:'');
 box.oninput=()=>{box.dataset.t=1};
-const t=$('#akt');if(t)t.onblur=()=>{if(/^\d{4}$/.test(t.value.trim()))t.value=t.value.trim()+'/'+(+t.value.trim()+1)};
 box.onclick=ev=>{const b=ev.target.closest('[data-ae]');if(b){akadIsi(A.daftar[+b.dataset.ae]);box.dataset.t=1;box.scrollIntoView({behavior:'smooth',block:'nearest'})}};
 const sv=$('#aksv');if(sv)sv.onclick=async()=>{const th=$('#akt').value.trim(),sm=nilai('aks'),on=nilai('ast')==='ya',mu=$('#akm').value,se=$('#ake').value;
 if(!/^\d{4}\/\d{4}$/.test(th)||+th.slice(5)!==+th.slice(0,4)+1)return toast('Tahun ajaran harus berformat 2026/2027',1);
