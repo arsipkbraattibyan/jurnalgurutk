@@ -100,7 +100,7 @@ function sIdent(F) {
   const gur = tabel([['Nama guru', g.nama], ['NIP / NUPTK', [g.nip, g.nuptk].filter(Boolean).join(' / ')],
     ['Tempat, tanggal lahir', [g.tempatlahir, tp(g.tgllahir)].filter(Boolean).join(', ')],
     ['Pendidikan terakhir', [g.pendidikan, g.jurusan].filter(Boolean).join(' - ')], ['Jabatan', g.jabatan], ['Status kepegawaian', g.status],
-    ['Mulai mengajar', tp(g.mulaitugas)], ['Kelompok yang diampu', kelNorm(g.kelas) || g.kelas]]);
+    ['Mulai mengajar', tp(g.mulaitugas)], ['Kelompok yang diampu', kelTampil(g.kelas)]]);
   return ['Identitas sekolah dan guru', '<div class="idgrid"><div><h4>Identitas sekolah</h4>' + sek + '</div><div><h4>Identitas guru</h4>' + gur + '</div></div>'];
 }
 
@@ -136,7 +136,7 @@ const pcHarian = (F, r) => {
 
 function sHarian(F, kbc) {
   const H = dat('harian', F);
-  const cols = [['Tanggal', r => tgl(r.tanggal)], ['Kelompok', r => E(kelNorm(r.kelas))], ['Tema', r => E(r.tema)], ['Subtema', r => E(r.subtema)],
+  const cols = [['Tanggal', r => tgl(r.tanggal)], ['Kelompok', r => E(kelTampil(r.kelas))], ['Tema', r => E(r.tema)], ['Subtema', r => E(r.subtema)],
     ['Sentra', r => E(r.sentra)], ['Kegiatan inti', r => E(r.kegiatan)], ['Metode', r => E(r.metode)], ['Ketercapaian', r => E(r.capaian)],
     ['Kendala', r => E(r.kendala)], ['Tindak lanjut', r => E(r.tindak)]];
   if (kbc) cols.push(['Penguatan Panca Cinta', r => pcHarian(F, r)]);
@@ -157,7 +157,7 @@ function sHadir(F) {
     const jh = sum(kh, 'jumlah');
     h = '<h4>Rekapitulasi kehadiran anak</h4><table class="rt sm"><thead><tr><th>Hari tercatat</th><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Tanpa keterangan</th><th>Persentase hadir</th></tr></thead><tbody><tr><td class="c">'
       + kh.length + '</td><td class="c">' + sum(kh, 'hadir') + '</td><td class="c">' + sum(kh, 'sakit') + '</td><td class="c">' + sum(kh, 'izin') + '</td><td class="c">' + sum(kh, 'alpha') + '</td><td class="c">' + pct(sum(kh, 'hadir'), jh) + '</td></tr></tbody></table>'
-      + '<h4>Rincian per hari</h4>' + tb([['Tanggal', r => tgl(r.tanggal)], ['Kelompok', r => E(kelNorm(r.kelas))], ['Jumlah anak', r => E(r.jumlah), 1], ['Hadir', r => E(r.hadir), 1], ['Sakit', r => E(r.sakit), 1],
+      + '<h4>Rincian per hari</h4>' + tb([['Tanggal', r => tgl(r.tanggal)], ['Kelompok', r => E(kelTampil(r.kelas))], ['Jumlah anak', r => E(r.jumlah), 1], ['Hadir', r => E(r.hadir), 1], ['Sakit', r => E(r.sakit), 1],
         ['Izin', r => E(r.izin), 1], ['Tanpa keterangan', r => E(r.alpha), 1], ['Catatan', r => E(r.catatan)]], kh)
       + '<h4>Presensi per anak</h4><p style="margin:0 0 4px;font-size:12px">Sumber: Rekap Absen, hanya pada tanggal yang Jurnal Kehadirannya sudah diisi.</p><div id="prs" data-w="1">' + presTabel({ loading: 1 }) + '</div>';
   }
@@ -166,7 +166,7 @@ function sHadir(F) {
 
 function sPerk(F, kbc) {
   const P = dat('perkembangan', F);
-  const cols = [['Tanggal', r => tgl(r.tanggal)], ['Anak', r => E(r.nama)], ['Kelompok', r => E(kelNorm(r.kelas))],
+  const cols = [['Tanggal', r => tgl(r.tanggal)], ['Anak', r => E(r.nama)], ['Kelompok', r => E(kelTampil(r.kelas))],
     ['Tema / subtema / kegiatan', r => E([r.tema, r.subtema].filter(Boolean).join(' / ')) + (r.kegiatan ? '<br>Kegiatan: ' + E(r.kegiatan) : '')], ['Elemen CP', r => E(r.aspek)],
     ['Indikator', r => E(String(r.indikator || '').split(' | ').join('; '))],
     ['Capaian', r => lvl(r) >= 0 ? lvChip(lvl(r)) : E(r.tingkat), 1]];
@@ -182,7 +182,7 @@ function sKoku(F) {
   return ['Kegiatan kokurikuler',
     '<h4>Tujuan kegiatan kokurikuler</h4>' + tb([['Tanggal', r => tgl(r.tanggal)], ['Tema', r => E(r.tema)], ['Tujuan kegiatan', r => E(r.tujuan)],
       ['Dimensi Profil Pelajar Pancasila', r => E(r.dimensi || '-')]], K)
-    + '<h4>Rincian kegiatan kokurikuler</h4>' + tb([['Tanggal', r => tgl(r.tanggal)], ['Kelompok', r => E(kelNorm(r.kelas))], ['Tema', r => E(r.tema)],
+    + '<h4>Rincian kegiatan kokurikuler</h4>' + tb([['Tanggal', r => tgl(r.tanggal)], ['Kelompok', r => E(kelTampil(r.kelas))], ['Tema', r => E(r.tema)],
       ['Bentuk kegiatan', r => E(r.bentuk)], ['Aktivitas anak', r => E(r.aktivitas)], ['Anak ikut', r => E(r.peserta), 1],
       ['Hasil kegiatan', r => E(r.hasil)], ['Uraian hasil', r => E(r.uraianhasil)], ['Catatan', r => E(r.catatan)]], K)
     + '<h4>Hasil kegiatan</h4>' + dist('Hasil kegiatan', K, 'hasil', opsi('kokurikuler', 'hasil'))];
@@ -193,7 +193,7 @@ function sAses(F) {
   const sm = '<h4>Rekap hasil penilaian</h4><table class="rt sm dst"><thead><tr><th>Tingkat capaian</th><th>Jumlah anak</th><th>Persentase</th></tr></thead><tbody>'
     + [['bb', TKT[0]], ['mb', TKT[1]], ['bsh', TKT[2]], ['bsb', TKT[3]]].map(x => '<tr><td>' + x[1] + '</td><td class="c">' + sum(pn, x[0]) + '</td><td class="c">' + pct(sum(pn, x[0]), tn) + '</td></tr>').join('')
     + '<tr class="tt"><td>Total</td><td class="c">' + tn + '</td><td class="c">' + (tn ? '100%' : '-') + '</td></tr></tbody></table>';
-  return ['Asesmen (penilaian pembelajaran)', sm + '<h4>Rincian penilaian</h4>' + tb([['Tanggal', r => tgl(r.tanggal)], ['Kelompok', r => E(kelNorm(r.kelas))], ['Tema', r => E(r.tema)], ['Aspek', r => E(r.aspek)],
+  return ['Asesmen (penilaian pembelajaran)', sm + '<h4>Rincian penilaian</h4>' + tb([['Tanggal', r => tgl(r.tanggal)], ['Kelompok', r => E(kelTampil(r.kelas))], ['Tema', r => E(r.tema)], ['Aspek', r => E(r.aspek)],
     ['Jenis', r => E(r.jenis)], ['Teknik', r => E(r.teknik)], ['Anak dinilai', r => E(r.peserta), 1], ['BB', r => E(r.bb), 1], ['MB', r => E(r.mb), 1], ['BSH', r => E(r.bsh), 1], ['BSB', r => E(r.bsb), 1],
     ['Tindak lanjut', r => E(r.tindak)]], pn)];
 }
@@ -246,7 +246,7 @@ function sTujuan(F) {
 
 function sAktPemb(F) {
   const H = dat('harian', F), K = dat('kokurikuler', F);
-  let h = '<h4>Kegiatan pembelajaran harian</h4>' + tb([['Tanggal', r => tgl(r.tanggal)], ['Kelompok', r => E(kelNorm(r.kelas))], ['Tema / subtema', r => E([r.tema, r.subtema].filter(Boolean).join(' / '))],
+  let h = '<h4>Kegiatan pembelajaran harian</h4>' + tb([['Tanggal', r => tgl(r.tanggal)], ['Kelompok', r => E(kelTampil(r.kelas))], ['Tema / subtema', r => E([r.tema, r.subtema].filter(Boolean).join(' / '))],
     ['Kegiatan inti', r => E(r.kegiatan)], ['Sentra', r => E(r.sentra)], ['Metode', r => E(r.metode)],
     ['Nilai Panca Cinta', r => { const k = F.kk.find(x => x.jenis === 'harian' && String(x.jurnalid) === String(r.ID) && !x.anakid); return k ? E(nm(nilaiKbc(k).join(','))) : '-'; }]], H);
   if (K.length) h += '<h4>Kegiatan kokurikuler</h4>' + tb([['Tanggal', r => tgl(r.tanggal)], ['Tema', r => E(r.tema)], ['Bentuk kegiatan', r => E(r.bentuk)], ['Aktivitas anak', r => E(r.aktivitas)],
@@ -295,11 +295,11 @@ function kertas(F, judul, secs) {
   const g = S.guru, today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
   const kop = '<div class="kop"><img class="kl" src="' + logoSek() + '" alt=""><div class="kt"><h2>' + E((g.sekolah || 'NAMA SEKOLAH').toUpperCase()) + '</h2><p>' + E(g.jenjang || '') + (g.npsn ? ' - NPSN ' + E(g.npsn) : '') + '</p>'
     + (alamatSek(g) ? '<p>' + E(alamatSek(g)) + (g.telpsekolah ? ' | Telp. ' + E(g.telpsekolah) : '') + '</p>' : '') + '</div></div>';
-  const ket = 'Kelompok: ' + E(F.kel || 'Semua kelompok') + ' | Anak: ' + E(F.anakNama || 'Semua anak');
+  const ket = 'Kelompok: ' + E(F.kel ? kelTampil(F.kel) : 'Semua kelompok') + ' | Anak: ' + E(F.anakNama || 'Semua anak');
   return '<div class="paper">' + kop + '<h1 class="jd">' + judul + '</h1><p class="sj">Tahun pelajaran ' + E(F.rg.th || '-') + ', semester ' + E(F.rg.sm || '-') + '<br>Periode: ' + E(F.rg.label) + (ket ? '<br>' + ket : '') + '</p>'
     + secs.map((s, i) => '<h3>' + String.fromCharCode(65 + i) + '. ' + s[0] + '</h3>' + s[1]).join('')
     + '<div class="ttd"><div><p>Mengetahui,<br>Kepala ' + E(g.sekolah || 'sekolah') + '</p><div class="sp"></div><b><u>' + E(g.kepsek || '..............................') + '</u></b></div>'
-    + '<div><p>' + E(kotaTtd(g)) + ', ' + today + '<br>Guru ' + E(g.kelas || 'kelompok') + '</p><div class="sp"></div><b><u>' + E(g.nama) + '</u></b></div></div></div>';
+    + '<div><p>' + E(kotaTtd(g)) + ', ' + today + '<br>Guru ' + E(kelTampil(g.kelas) || 'kelompok') + '</p><div class="sp"></div><b><u>' + E(g.nama) + '</u></b></div></div></div>';
 }
 
 function bangun(F) {
@@ -370,8 +370,8 @@ async function viewLaporan() {
   m.innerHTML = '<div class="card noprint" id="lrc"><h3>🔎 Filter laporan</h3>'
     + '<div class="fd"><label>Jenis laporan</label>' + radioGrup('lrj', [['km', 'Kurikulum Merdeka'], ['kbc', 'Kurikulum Berbasis Cinta'], ['terpadu', 'Terpadu (KM + KBC)'], ['lama', 'Rekap jurnal (laporan lama)']], JN, 'lrj') + '</div>'
     + '<div class="fg" style="margin-top:14px"><div class="fd"><label>Nama guru</label><input value="' + E(g.nama) + '" disabled></div>'
-    + (kf ? '<div class="fd"><label>Kelompok</label><input value="' + E(kf) + '" disabled></div>'
-      : '<div class="fd full"><label>Kelompok</label>' + radioGrup('lrk', [['', 'Semua'], ['Kelompok A', 'Kelompok A'], ['Kelompok B', 'Kelompok B'], ['KB', 'KB']], '', 'lrk') + '</div>')
+    + (kf ? '<div class="fd"><label>Kelompok</label><input value="' + E(kelTampil(kf)) + '" disabled></div>'
+      : '<div class="fd full"><label>Kelompok</label>' + radioGrup('lrk', [['', 'Semua'], ['Kelompok A', 'TK A / RA A'], ['Kelompok B', 'TK B / RA B'], ['KB', 'KB']], '', 'lrk') + '</div>')
     + '<div class="fd"><label for="lra">Nama anak (opsional)</label><select id="lra"><option value="">Semua anak</option></select></div></div>'
     + '<div class="fd" style="margin-top:14px"><label>Periode</label>' + radioGrup('lpm', [['tanggal', 'Tanggal'], ['bulan', 'Bulan'], ['semester', 'Semester'], ['semua', 'Seluruh periode']], 'bulan', 'lpm') + '</div>'
     + '<div class="filt" style="margin-top:12px"><div class="fg" id="lpt" style="display:none"><div class="fd"><label for="lrd">Dari tanggal</label><input type="date" id="lrd" value="' + hari().slice(0, 8) + '01"></div><div class="fd"><label for="lrs">Sampai tanggal</label><input type="date" id="lrs" value="' + hari() + '"></div></div>'
