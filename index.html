@@ -1008,8 +1008,8 @@ const PROFIL=[
 {k:'pendidikan',l:'Pendidikan terakhir',t:'sel',o:['SMA / SMK / MA','D3','S1','S2'],opt:1},{k:'jurusan',l:'Jurusan atau bidang pendidikan',t:'txt',opt:1},{k:'tugastambahan',l:'Tugas tambahan (jika ada)',t:'txt',opt:1},
 {k:'jabatan',l:'Jabatan',t:'sel',o:['Guru kelas','Guru pendamping','Kepala sekolah','Guru ekstrakurikuler'],opt:1},
 {k:'mulaitugas',l:'Tanggal mulai mengajar',t:'tgl',opt:1},
-{k:'statussekolah',l:'Status sekolah',t:'sel',o:['Swasta','Negeri'],opt:1},{k:'yayasan',l:'Nama yayasan',t:'txt',opt:1},
-{k:'akreditasi',l:'Akreditasi',t:'sel',o:['A','B','C','Belum terakreditasi'],opt:1},{k:'tahunberdiri',l:'Tahun berdiri',t:'txt',opt:1},
+{k:'statussekolah',l:'Status sekolah',t:'dd',o:['Swasta','Negeri'],opt:1},{k:'yayasan',l:'Nama yayasan',t:'txt',opt:1},
+{k:'akreditasi',l:'Akreditasi',t:'dd',o:['A','B','C','Belum terakreditasi'],opt:1},{k:'tahunberdiri',l:'Tahun berdiri',t:'txt',opt:1},
 {k:'alamatsekolah',l:'Jalan dan nomor',t:'alm',opt:1,ph:'Nama jalan dan nomor, RT/RW'},{k:'kelurahan',l:'Kelurahan / desa',t:'txt',opt:1},{k:'kecamatan',l:'Kecamatan',t:'txt',opt:1},
 {k:'kota',l:'Kabupaten / kota',t:'txt',opt:1},{k:'provinsi',l:'Provinsi',t:'txt',opt:1},{k:'kodepos',l:'Kode pos',t:'txt',opt:1},
 {k:'telpsekolah',l:'Telepon sekolah',t:'tel',opt:1},{k:'emailsekolah',l:'Email sekolah',t:'eml',opt:1},{k:'website',l:'Website (opsional)',t:'txt',opt:1},
@@ -1036,6 +1036,8 @@ if(f.t==='tgl')return`<div class="fd">${L}<input type="date" name="${f.k}" value
 if(f.t==='tel')return`<div class="fd">${L}<input type="tel" inputmode="tel" name="${f.k}" value="${esc(v)}" autocomplete="off" placeholder="08xxxxxxxxxx"></div>`;
 if(f.t==='eml')return`<div class="fd">${L}<input type="email" inputmode="email" name="${f.k}" value="${esc(v)}" autocomplete="off" placeholder="nama@email.com"></div>`;
 if(f.t==='alm')return`<div class="fd full">${L}<textarea name="${f.k}" rows="3" placeholder="${esc(f.ph||'Jalan, RT/RW, kelurahan, kecamatan, kota')}">${esc(v)}</textarea></div>`;
+if(f.t==='dd'){const o=!v||f.o.includes(v)?f.o:[...f.o,v];
+return`<div class="fd">${L}<select name="${f.k}"><option value="">Pilih</option>${o.map(x=>`<option value="${esc(x)}"${String(x)===v?' selected':''}>${esc(x)}</option>`).join('')}</select></div>`}
 if(f.t==='sel'){
 if(f.o.every(x=>/^\d+$/.test(x))){const val=v!==''?v:(f.o[0]==='0'?'0':'');
 return`<div class="fd">${L}<div class="stp"><button type="button" data-st="-1" aria-label="Kurangi">−</button><input type="number" inputmode="numeric" name="${f.k}" min="${f.o[0]}" max="${f.o[f.o.length-1]}" value="${esc(val)}"><button type="button" data-st="1" aria-label="Tambah">+</button></div></div>`}
