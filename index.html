@@ -2242,8 +2242,6 @@ const faPendSet=o=>{try{if(Object.keys(o).length)localStorage.setItem(faPK(),JSO
 let FA_ERR='';
 const faAlasan=m=>/tidak dikenal|unknown/i.test(m)?'Backend belum diperbarui: tambahkan kode foto siswa (fotoAnakSimpan, fotoAnak) ke Code.gs lalu deploy versi baru':/failed to fetch|networkerror|load failed/i.test(m)?'Tidak ada koneksi internet atau server tidak terjangkau':m;
 async function faKirim(n,d){const k=kunci(n),p=faPend();FA_ERR='';try{await api('fotoAnakSimpan',{nama:n,foto:d});if(p[k]){delete p[k];faPendSet(p)}return true}catch(e){FA_ERR=faAlasan(String((e&&e.message)||e));console.warn('fotoAnakSimpan gagal:',e);p[k]=1;faPendSet(p);return false}}
-let FA_JALAN=false;
-
 let FA_JALAN = false;
 
 async function faSinkron(rows, iNama) {
@@ -2313,32 +2311,17 @@ async function faSinkron(rows, iNama) {
 
       if (S.view === 'portofolio' &&
           $('#pa') && $('#pa').value) {
-        const o = $('#pa').value;
-        const anak = document.querySelector(
-          '#pa option:checked'
+        const pilih = $('#pa');
+        const namaAnak = (SISWA || []).find(
+          x => kunci(x.nama) === pilih.value
+        );
+        const fotoDipilih = document.querySelector(
+          'input[name="pfp"]:checked'
         );
 
-        if (anak) {
-          const nm = anak.value;
-          const namaAnak = (SISWA || []).find(
-            x => kunci(x.nama) === nm
-          );
-
-          // Bangun ulang portofolio menggunakan
-          // foto yang sudah diperbarui.
-          if (namaAnak) {
-            const b = $('#pfp');
-            if (b) {
-              const ev = document.querySelector(
-                'input[name="pfp"]:checked'
-              );
-              if (ev && ev.value === 'ya') {
-                $('#pa').dispatchEvent(
-                  new Event('change')
-                );
-              }
-            }
-          }
+        // Bangun ulang portofolio hanya jika opsi Dengan Foto Anak aktif.
+        if (namaAnak && fotoDipilih && fotoDipilih.value === 'ya') {
+          pilih.dispatchEvent(new Event('change'));
         }
       }
     }
@@ -2349,22 +2332,7 @@ async function faSinkron(rows, iNama) {
     FA_JALAN = false;
   }
 }
-if(FA_JALAN||!rows||!rows.length)return;FA_JALAN=true;
-try{const j=await api('fotoAnak'),sv=j.foto||{},fk='jgfas_'+((S.guru&&S.guru.id)||'');let pertama=false;try{pertama=localStorage.getItem(fk)!=='1'}catch(e){}
-let ubah=false,gagal=false;const pend=faPend();
-for(const r of rows){const nm=String(r[iNama]||''),k=kunci(nm);if(!k)continue;const lo=faGet(nm),se=sv[k]||'';
-if(pend[k]||(pertama&&lo&&!se)){if(!await faKirim(nm,lo))gagal=true;continue} /* perubahan di perangkat ini yang belum terkirim, atau foto lama yang baru ada di sini */
-if(se){if(se!==lo){faSet(nm,se);ubah=true}}
-else if(lo){
-  // Foto ada di perangkat, tetapi belum ada di server.
-  // Pertahankan foto lokal dan kirim ke server.
-  if(!await faKirim(nm,lo)){
-    gagal=true;
-  }
-}} /* sudah dihapus dari perangkat lain */
-if(!gagal)try{localStorage.setItem(fk,'1')}catch(e){}
-if(ubah&&S.view==='siswa'&&SISTAB==='data'&&SD)renderDataSiswa()}
-catch(e){}finally{FA_JALAN=false}}
+
 const FA_WARNA=['#4aa6f7','#ee6c85','#4fb37e','#f0a020','#9b7be0','#26b5b0','#ef8a4c','#5c7cfa'];
 function faHtml(n){const f=faGet(n);if(f)return`<img src="${esc(f)}" alt="">`;let h=0;const k=kunci(n);for(let i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))>>>0;return`<span style="grid-area:1/1;position:absolute;inset:0;background:${FA_WARNA[h%FA_WARNA.length]};display:grid;place-items:center">${esc(String(n||'?').trim().charAt(0).toUpperCase())}</span>`}
 function sdUsia(v){const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return'';const n=new Date();let bl=(n.getFullYear()-(+m[1]))*12+(n.getMonth()+1-(+m[2]));if(n.getDate()<(+m[3]))bl--;if(bl<0)return'';const y=Math.floor(bl/12),b=bl%12;return y?(b?y+' th '+b+' bln':y+' th'):b+' bln'}
