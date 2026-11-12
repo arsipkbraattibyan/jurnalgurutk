@@ -2848,17 +2848,7 @@ const o=L.find(x=>x.k===k);if(!o)return;
 S.pfNama=o.nama;pu.style.display='';S.pfTuj=$('#ptj').checked;
 const pakaiFoto=nilai('pfp')==='ya';
 let foto=pakaiFoto?faGet(o.nama):'';
-// Ambil langsung dari server bila cache perangkat belum memiliki foto.
-if(pakaiFoto&&!foto){
-  try{
-    const hasil=await api('fotoAnak');
-    const peta=hasil&&hasil.foto?hasil.foto:{};
-    foto=peta[kunci(o.nama)]||'';
-    if(foto)faSet(o.nama,foto);
-  }catch(e){console.warn('Foto anak belum berhasil diambil dari server:',e)}
-  if(id!==PF_RENDER_ID||!$('#pa')||$('#pa').value!==k)return;
-}
-// Sinkronisasi tetap dijalankan untuk memperbarui cache perangkat.
+// Jika foto belum ada di penyimpanan lokal, tunggu sinkronisasi server dahulu.
 if(pakaiFoto&&!foto){
   try{
     const daftar=(SISWA||[]).map(s=>[s.nama]);
@@ -2867,13 +2857,13 @@ if(pakaiFoto&&!foto){
   if(id!==PF_RENDER_ID||!$('#pa')||$('#pa').value!==k)return;
   foto=faGet(o.nama);
 }
-// Cadangan nama resmi dari daftar siswa jika ejaan catatan berbeda.
+// Cari nama resmi dari daftar siswa sebagai cadangan jika ejaan nama di catatan berbeda.
 if(pakaiFoto&&!foto){
   const siswa=(SISWA||[]).find(s=>kunci(s.nama)===o.k);
   if(siswa)foto=faGet(siswa.nama);
 }
 pfInfo(o);
-$('#lap').innerHTML=portofolio(o,$('#pd').value,$('#ps').value,S.pfTuj,foto,pakaiFoto);
+$('#lap').innerHTML=portofolio(o,$('#pd').value,$('#ps').value,S.pfTuj,foto);
 isiFoto($('#lap'))};
 ['#pa','#pd','#ps','#ptj'].forEach(x=>$(x).onchange=tampil);
 $('#pfp').onchange=()=>{try{localStorage.setItem('jgpf',nilai('pfp')==='ya'?'ya':'tidak')}catch(e){}tampil()};
@@ -2891,7 +2881,7 @@ bangun();const sig0=JSON.stringify([ROWS.perkembangan,SISWA]);
 Promise.all([segarSiswa(),api('list',{jenis:'perkembangan'}).then(r=>{ROWS.perkembangan=urut(r.rows);cRows('perkembangan')})]).then(()=>{if(S.view==='portofolio'&&JSON.stringify([ROWS.perkembangan,SISWA])!==sig0)bangun()}).catch(()=>{})}
 else{m.innerHTML=muat();await loadSiswa();const r=await api('list',{jenis:'perkembangan'});ROWS.perkembangan=urut(r.rows);cRows('perkembangan');if(S.view!=='portofolio')return;bangun()}}
 catch(e){m.innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
-function portofolio(o,dari,sampai,tuj,foto,pakaiFoto){const g=S.guru,today=new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
+function portofolio(o,dari,sampai,tuj,foto){const g=S.guru,today=new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
 const rs=(ROWS.perkembangan||[]).filter(r=>kunci(r.nama)===o.k&&(!dari||r.tanggal>=dari)&&(!sampai||r.tanggal<=sampai)).slice().sort((a,b)=>String(a.tanggal).localeCompare(String(b.tanggal)));
 const asp=[...new Set([...ELEMEN_CP,...ASPEK,...rs.map(r=>r.aspek).filter(Boolean)])];
 const per=asp.map(a=>{const x=rs.filter(r=>r.aspek===a&&lvl(r)>=0),seq=x.map(lvl);return{aspek:a,n:x.length,seq,first:seq[0],last:seq[seq.length-1]}}).filter(p=>p.n);
@@ -2902,7 +2892,7 @@ const idn=[['Nama anak',o.nama],['Kelompok',kls],['Guru kelas',g.nama],['Sekolah
 const nr=narasi(o.nama,per);
 return`<div class="paper"><div class="kop"><img class="kl" src="${logoSek()}" alt=""><div class="kt"><h2>${esc((g.sekolah||'NAMA SEKOLAH').toUpperCase())}</h2><p>${esc(g.jenjang||'')}${g.npsn?' - NPSN '+esc(g.npsn):''}</p>${alamatSek(g)?`<p>${esc(alamatSek(g))}${g.telpsekolah?' | Telp. '+esc(g.telpsekolah):''}</p>`:''}</div></div>
 <h1 class="jd">PORTOFOLIO PERKEMBANGAN ANAK</h1><p class="sj">Tahun ajaran ${esc(g.tahun||'-')}, semester ${esc(g.semester||'-')}<br>Periode: ${esc(plabel)}</p>
-<h3>A. Identitas anak</h3>${(()=>{const t=`<table class="rt id">${idn.map(x=>`<tr><td>${x[0]}</td><td>${esc(x[1]===0?'0':x[1]||'-')}</td></tr>`).join('')}</table>`,fa=pakaiFoto?((typeof foto==='string'&&foto.startsWith('data:image/'))?foto:(faGet(o.nama)||'')):'';return fa?`<div class="pfr"><div class="pfw"><img src="${esc(fa)}" alt="Foto ${esc(o.nama)}"></div><div class="pfd">${t}</div></div>`:t})()}
+<h3>A. Identitas anak</h3>${(()=>{const t=`<table class="rt id">${idn.map(x=>`<tr><td>${x[0]}</td><td>${esc(x[1]===0?'0':x[1]||'-')}</td></tr>`).join('')}</table>`,fa=(typeof foto==='string'&&foto.startsWith('data:image/'))?foto:''; // hanya pakai foto yang dikirim pemanggil: pilihan "Tanpa foto" berarti foto kosongreturn fa?`<div class="pfr"><div class="pfw"><img src="${esc(fa)}" alt="Foto ${esc(o.nama)}"></div><div class="pfd">${t}</div></div>`:t})()}
 <h3>B. Ringkasan capaian per aspek</h3>${per.length?`<div class="ov"><table class="rt"><thead><tr><th>Elemen CP / aspek</th><th>Jumlah catatan</th><th>Riwayat capaian</th><th>Grafik</th><th>Terbaru</th><th>Tren</th></tr></thead><tbody>${per.map(p=>`<tr><td>${esc(p.aspek)}</td><td class="c">${p.n}</td><td class="c">${p.seq.map(lvChip).join(' ')}</td><td class="c">${spark(p.seq)}</td><td class="c">${lvChip(p.last)}</td><td class="c">${tren(p)}</td></tr>`).join('')}</tbody></table></div><p style="font-size:11px;margin:4px 0 0">BB = Belum Berkembang, MB = Mulai Berkembang, BSH = Berkembang Sesuai Harapan, BSB = Berkembang Sangat Baik. Riwayat diurutkan dari catatan paling awal.</p>`:'<p style="font-size:12px">Belum ada catatan perkembangan pada periode ini.</p>'}
 ${pcRingkas(rs)}${nr?`<h3>C. Ringkasan perkembangan</h3><p id="nrs" contenteditable="true" style="margin:0;text-align:justify">${esc(nr)}</p><p class="noprint" style="font-size:11px;color:#6c7aa5;margin:4px 0 0">Ringkasan dibuat otomatis dari catatan. Ketuk teksnya untuk menyunting sebelum dicetak. Hasil sunting hilang jika pilihan anak atau tanggal diganti.</p>`:''}
 <h3>D. Catatan perkembangan</h3><div class="ov"><table class="rt"><thead><tr><th>No</th><th>Tanggal</th><th>Tema / kegiatan</th>${tuj?'<th>Tujuan pembelajaran</th>':''}<th>Elemen CP</th><th>Indikator</th><th>Capaian</th><th>Panca Cinta</th><th>Cara mencatat</th><th>Catatan pengamatan</th><th>Tindak lanjut</th></tr></thead><tbody>${rs.length?rs.map((r,i)=>`<tr><td class="c">${i+1}</td><td>${tgl(r.tanggal)}</td><td>${esc([r.tema,r.subtema].filter(Boolean).join(' / '))}${r.kegiatan?'<br><small>'+esc(r.kegiatan)+'</small>':''}</td>${tuj?'<td>'+(esc(r.tujuan)||'-')+'</td>':''}<td>${esc(r.aspek)}</td><td>${esc(String(r.indikator||'').split(' | ').join('; '))}</td><td class="c">${lvl(r)>=0?lvChip(lvl(r)):esc(r.tingkat)}</td><td>${esc(pcNama(r.pancacinta))}</td><td>${esc(r.teknik)}</td><td>${esc(r.catatan)}</td><td>${esc(r.tindak)}</td></tr>`).join(''):'<tr><td class="c" colspan="${tuj?11:10}">Tidak ada catatan pada periode ini.</td></tr>'}</tbody></table></div>
