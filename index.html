@@ -2243,13 +2243,125 @@ let FA_ERR='';
 const faAlasan=m=>/tidak dikenal|unknown/i.test(m)?'Backend belum diperbarui: tambahkan kode foto siswa (fotoAnakSimpan, fotoAnak) ke Code.gs lalu deploy versi baru':/failed to fetch|networkerror|load failed/i.test(m)?'Tidak ada koneksi internet atau server tidak terjangkau':m;
 async function faKirim(n,d){const k=kunci(n),p=faPend();FA_ERR='';try{await api('fotoAnakSimpan',{nama:n,foto:d});if(p[k]){delete p[k];faPendSet(p)}return true}catch(e){FA_ERR=faAlasan(String((e&&e.message)||e));console.warn('fotoAnakSimpan gagal:',e);p[k]=1;faPendSet(p);return false}}
 let FA_JALAN=false;
-async function faSinkron(rows,iNama){if(FA_JALAN||!rows||!rows.length)return;FA_JALAN=true;
+
+let FA_JALAN = false;
+
+async function faSinkron(rows, iNama) {
+  if (FA_JALAN || !rows || !rows.length) return;
+
+  FA_JALAN = true;
+
+  try {
+    const j = await api('fotoAnak');
+    const sv = j.foto || {};
+    const pend = faPend();
+
+    let ubah = false;
+    let gagal = false;
+
+    for (const r of rows) {
+      const nm = String(r[iNama] || '').trim();
+      const k = kunci(nm);
+
+      if (!k) continue;
+
+      const lo = faGet(nm);
+      const se = sv[k] || '';
+
+      // Foto yang belum berhasil disinkronkan
+      if (pend[k]) {
+        if (!await faKirim(nm, lo)) {
+          gagal = true;
+        }
+        continue;
+      }
+
+      // Server memiliki foto terbaru
+      if (se) {
+        if (se !== lo) {
+          faSet(nm, se);
+          ubah = true;
+        }
+        continue;
+      }
+
+      // Server belum memiliki foto:
+      // JANGAN HAPUS FOTO LOKAL.
+      // Kirim ulang foto lokal ke server.
+      if (lo) {
+        if (!await faKirim(nm, lo)) {
+          gagal = true;
+        }
+      }
+    }
+
+    if (!gagal) {
+      try {
+        localStorage.setItem(
+          'jgfas_' + ((S.guru && S.guru.id) || ''),
+          '1'
+        );
+      } catch (e) {}
+    }
+
+    // Perbarui tampilan jika foto berubah
+    if (ubah) {
+      if (S.view === 'siswa' &&
+          SISTAB === 'data' && SD) {
+        renderDataSiswa();
+      }
+
+      if (S.view === 'portofolio' &&
+          $('#pa') && $('#pa').value) {
+        const o = $('#pa').value;
+        const anak = document.querySelector(
+          '#pa option:checked'
+        );
+
+        if (anak) {
+          const nm = anak.value;
+          const namaAnak = (SISWA || []).find(
+            x => kunci(x.nama) === nm
+          );
+
+          // Bangun ulang portofolio menggunakan
+          // foto yang sudah diperbarui.
+          if (namaAnak) {
+            const b = $('#pfp');
+            if (b) {
+              const ev = document.querySelector(
+                'input[name="pfp"]:checked'
+              );
+              if (ev && ev.value === 'ya') {
+                $('#pa').dispatchEvent(
+                  new Event('change')
+                );
+              }
+            }
+          }
+        }
+      }
+    }
+
+  } catch (e) {
+    console.warn('Sinkronisasi foto gagal:', e);
+  } finally {
+    FA_JALAN = false;
+  }
+}
+if(FA_JALAN||!rows||!rows.length)return;FA_JALAN=true;
 try{const j=await api('fotoAnak'),sv=j.foto||{},fk='jgfas_'+((S.guru&&S.guru.id)||'');let pertama=false;try{pertama=localStorage.getItem(fk)!=='1'}catch(e){}
 let ubah=false,gagal=false;const pend=faPend();
 for(const r of rows){const nm=String(r[iNama]||''),k=kunci(nm);if(!k)continue;const lo=faGet(nm),se=sv[k]||'';
 if(pend[k]||(pertama&&lo&&!se)){if(!await faKirim(nm,lo))gagal=true;continue} /* perubahan di perangkat ini yang belum terkirim, atau foto lama yang baru ada di sini */
 if(se){if(se!==lo){faSet(nm,se);ubah=true}}
-else if(lo){faSet(nm,'');ubah=true}} /* sudah dihapus dari perangkat lain */
+else if(lo){
+  // Foto ada di perangkat, tetapi belum ada di server.
+  // Pertahankan foto lokal dan kirim ke server.
+  if(!await faKirim(nm,lo)){
+    gagal=true;
+  }
+}} /* sudah dihapus dari perangkat lain */
 if(!gagal)try{localStorage.setItem(fk,'1')}catch(e){}
 if(ubah&&S.view==='siswa'&&SISTAB==='data'&&SD)renderDataSiswa()}
 catch(e){}finally{FA_JALAN=false}}
