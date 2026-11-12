@@ -1401,7 +1401,7 @@ im.onload=()=>{try{const c=document.createElement('canvas');c.width=im.naturalWi
 im.onerror=()=>ok('');im.src=u}))}
 function dataPaper(jenis){const g=S.guru,P=k=>PROFIL.find(f=>f.k===k)||{k:k,l:k};
 const grp=[].concat(jenis!=='sekolah'?ID_GURU:[],jenis!=='guru'?ID_SEK:[]);
-const mkT=ks=>`<table class="rt id">${ks.map(k=>{const f=P(k);let v=g[k];if(k==='kelas')v=kelNorm(v);else if(f.t==='tgl'&&v)v=tgl(v);return`<tr><td>${esc(f.l)}</td><td>${esc(v||'-')}</td></tr>`}).join('')}</table>`;
+const mkT=ks=>`<table class="rt id">${ks.map(k=>{const f=P(k);let v=g[k];if(k==='kelas')v=kelTampil(v);else if(f.t==='tgl'&&v)v=tgl(v);return`<tr><td>${esc(f.l)}</td><td>${esc(v||'-')}</td></tr>`}).join('')}</table>`;
 const mkX=ks=>{const td=(k,c)=>{const f=P(k);let v=g[k];if(f.t==='tgl'&&v)v=tgl(v);return`<td class="lb">${esc(f.l)}</td><td class="vl"${c?' colspan="3"':''}>${esc(v||'-')}</td>`};let h='';for(let i=0;i<3;i++)h+='<tr>'+td(ks[i])+td(ks[i+3])+'</tr>';ks.slice(6).forEach(k=>{h+='<tr>'+td(k,1)+'</tr>'});return`<table class="rt idx">${h}</table>`};
 const tb=grp.map((x,i)=>{
 if(i===0&&fpAktif(jenis))return`<h3>${String.fromCharCode(65+i)}. ${x[0]}</h3><div class="pfr"><div class="pfw"><img src="${esc(fpSrc())}" alt="Foto profil guru" referrerpolicy="no-referrer"></div><div class="pfd">${mkX(x[1])}</div></div>`;
@@ -2500,7 +2500,7 @@ function laporan(rg,pres){const g=S.guru,per=rg.label;
 const F=k=>(ROWS[k]||[]).filter(r=>!rg.dari||(r.tanggal>=rg.dari&&r.tanggal<=rg.sampai)).slice().sort((a,b)=>String(a.tanggal).localeCompare(String(b.tanggal)));
 const kh=F('kehadiran'),pn=F('penilaian'),jh=sum(kh,'jumlah'),tn=sum(pn,'bb')+sum(pn,'mb')+sum(pn,'bsh')+sum(pn,'bsb');
 const BLN=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],tp=d=>{const m=String(d||'').match(/^(\d{4})-(\d{2})-(\d{2})/);return m?m[3]+' '+BLN[+m[2]-1]+' '+m[1]:String(d||'')};
-const idG=[['Nama guru',g.nama],['NIP / NUPTK',[g.nip,g.nuptk].filter(Boolean).join(' / ')],['Tempat, tanggal lahir',[g.tempatlahir,tp(g.tgllahir)].filter(Boolean).join(', ')],['Pendidikan terakhir',[g.pendidikan,g.jurusan].filter(Boolean).join(' - ')],['Jabatan',g.jabatan],['Status kepegawaian',g.status],['Mulai mengajar',tp(g.mulaitugas)],['Kelompok yang diampu',g.kelas]];
+const idG=[['Nama guru',g.nama],['NIP / NUPTK',[g.nip,g.nuptk].filter(Boolean).join(' / ')],['Tempat, tanggal lahir',[g.tempatlahir,tp(g.tgllahir)].filter(Boolean).join(', ')],['Pendidikan terakhir',[g.pendidikan,g.jurusan].filter(Boolean).join(' - ')],['Jabatan',g.jabatan],['Status kepegawaian',g.status],['Mulai mengajar',tp(g.mulaitugas)],['Kelompok yang diampu',kelTampil(g.kelas)]];
 const idS=[['Nama sekolah',g.sekolah],['NPSN',g.npsn],['Jenis lembaga',g.jenjang],['Status sekolah',g.statussekolah],['Akreditasi',g.akreditasi],['Yayasan',g.yayasan],['Alamat sekolah',alamatSek(g)],['Telepon / email sekolah',[g.telpsekolah,g.emailsekolah].filter(Boolean).join(' / ')],['Kepala sekolah',g.kepsek],['NIP / NUPTK kepala sekolah',g.nipkepsek],['Tahun ajaran',g.tahun],['Semester',g.semester]];
 const tabId=r=>`<table class="rt id">${r.map(x=>`<tr><td>${x[0]}</td><td>${esc(x[1]||'-')}</td></tr>`).join('')}</table>`;
 const today=new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
