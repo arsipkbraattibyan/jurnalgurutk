@@ -2181,7 +2181,7 @@ gbr();
 try{await Promise.all([loadSiswa(),...DOKK.map(async k=>{try{const r=await api('list',{jenis:k});ROWS[k]=urut(r.rows)}catch(e){}})])}catch(e){}
 gbr()}
 function viewSiswa(){const m=$('#main'),kf=klf();
-m.innerHTML=`<div class="card noprint"><div class="tabs" id="stb"><button data-t="data">🧑‍🎓 Data Siswa</button><button data-t="pres">📅 Presensi</button><button data-t="gal">🖼️ Galeri Foto</button></div>${kf?`<p><b>Kelompok</b><span class="bdg">${kelTampil(kf)}</span></p>`:`<div class="fd"><label>Kelompok</label>${radioGrup('sk',[['','Semua'],...KELAS.map(x=>[x,kelTampil(x)])],'','sk')}</div>`}<div id="sfil" style="margin-top:14px"></div></div><div class="card noprint" id="sr"></div><div id="lap" class="hid"></div>`;
+m.innerHTML=`<div class="card noprint"><div class="tabs" id="stb"><button data-t="data">🧑‍🎓 Data Siswa</button><button data-t="pres">📅 Presensi</button><button data-t="gal">🖼️ Galeri Foto</button></div>${kf?`<p><b>Kelompok</b><span class="bdg">${kelTampil(kf)}</span></p>`:`<div class="fd"><label>Kelompok</label>${radioGrup('sk',[['','Semua'],...['KB',...KELAS].map(x=>[x,kelTampil(x)])],'','sk')}</div>`}<div id="sfil" style="margin-top:14px"></div></div><div class="card noprint" id="sr"></div><div id="lap" class="hid"></div>`;
 $('#stb').onclick=e=>{const b=e.target.closest('[data-t]');if(b){SISTAB=b.dataset.t;tabSiswa()}};
 if(!kf)$('#sk').onchange=tabSiswa;
 tabSiswa()}
