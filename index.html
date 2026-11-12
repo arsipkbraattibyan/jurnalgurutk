@@ -1003,10 +1003,10 @@ const tahunAjaranList=()=>{const n=new Date(),y=n.getMonth()>=6?n.getFullYear():
 const PROFIL=[
 {k:'nama',l:'Nama lengkap',t:'txt'},{k:'nip',l:'NIP',t:'txt',opt:1},{k:'nuptk',l:'NUPTK',t:'txt',opt:1},
 {k:'tempatlahir',l:'Tempat lahir',t:'txt',opt:1},{k:'tgllahir',l:'Tanggal lahir',t:'tgl',opt:1},
-{k:'jk',l:'Jenis kelamin',t:'sel',o:['Perempuan','Laki-laki'],opt:1},{k:'agama',l:'Agama',t:'sel',o:['Islam','Kristen','Katolik','Hindu','Buddha','Konghucu'],opt:1},
+{k:'jk',l:'Jenis kelamin',t:'dd',o:['Perempuan','Laki-laki'],opt:1},{k:'agama',l:'Agama',t:'dd',o:['Islam','Kristen','Katolik','Hindu','Buddha','Konghucu'],opt:1},
 {k:'alamat',l:'Alamat lengkap',t:'alm',opt:1},{k:'telepon',l:'Nomor HP',t:'tel',opt:1},{k:'email',l:'Email',t:'eml',opt:1},
-{k:'pendidikan',l:'Pendidikan terakhir',t:'sel',o:['SMA / SMK / MA','D3','S1','S2'],opt:1},{k:'jurusan',l:'Jurusan atau bidang pendidikan',t:'txt',opt:1},{k:'tugastambahan',l:'Tugas tambahan (jika ada)',t:'txt',opt:1},
-{k:'jabatan',l:'Jabatan',t:'sel',o:['Guru kelas','Guru pendamping','Kepala sekolah','Guru ekstrakurikuler'],opt:1},
+{k:'pendidikan',l:'Pendidikan terakhir',t:'dd',o:['SMA / SMK / MA','D3','S1','S2'],opt:1},{k:'jurusan',l:'Jurusan atau bidang pendidikan',t:'txt',opt:1},{k:'tugastambahan',l:'Tugas tambahan (jika ada)',t:'txt',opt:1},
+{k:'jabatan',l:'Jabatan',t:'dd',o:['Guru kelas','Guru pendamping','Kepala sekolah','Guru ekstrakurikuler'],opt:1},
 {k:'mulaitugas',l:'Tanggal mulai mengajar',t:'tgl',opt:1},
 {k:'statussekolah',l:'Status sekolah',t:'dd',o:['Swasta','Negeri'],opt:1},{k:'yayasan',l:'Nama yayasan',t:'txt',opt:1},
 {k:'akreditasi',l:'Akreditasi',t:'dd',o:['A','B','C','Belum terakreditasi'],opt:1},{k:'tahunberdiri',l:'Tahun berdiri',t:'txt',opt:1},
@@ -1016,7 +1016,7 @@ const PROFIL=[
 {k:'nipkepsek',l:'NIP kepala sekolah (jika ada)',t:'txt',opt:1},{k:'hpkepsek',l:'Nomor HP kepala sekolah',t:'tel',opt:1},{k:'nsm',l:'NSM (jika ada)',t:'txt',opt:1},{k:'izinno',l:'Nomor izin operasional (opsional)',t:'txt',opt:1},{k:'izintgl',l:'Tanggal izin operasional (opsional)',t:'tgl',opt:1},{k:'sekolah',l:'Nama Sekolah',t:'txt'},{k:'npsn',l:'NPSN',t:'txt',opt:1},
 {k:'jenjang',l:'Jenis lembaga',t:'sel',o:['TK','RA','KB','SPS','Lainnya']},{k:'kelas',l:'Kelompok yang diampu',t:'sel',o:['KB','TK A / RA A','TK B / RA B','Guru Pendamping','Guru Pengganti','Semua Kelompok','Lainnya']},
 {k:'tahun',l:'Tahun ajaran',t:'sel',o:tahunAjaranList()},{k:'semester',l:'Semester',t:'sel',o:['Ganjil','Genap']},
-{k:'status',l:'Status kepegawaian',t:'sel',o:['PNS','PPPK','Guru tetap yayasan','Guru honorer','Lainnya']},{k:'kepsek',l:'Nama Kepala Sekolah',t:'txt',opt:1}];
+{k:'status',l:'Status kepegawaian',t:'dd',o:['PNS','PPPK','Guru tetap yayasan','Guru honorer','Lainnya']},{k:'kepsek',l:'Nama Kepala Sekolah',t:'txt',opt:1}];
 
 
 const KEYS=ORDER.slice(1);
