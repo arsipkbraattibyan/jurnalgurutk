@@ -931,11 +931,37 @@ const SUBTEMA_SEMUA=[...new Set(Object.values(SUBTEMA).flat())];
 const ASPEK=['Nilai agama dan budi pekerti','Jati diri','Literasi','Matematika dan sains','Teknologi dan rekayasa','Seni','Fisik motorik']; // lama, dipakai Jurnal Penilaian dan data lama
 /* Tiga elemen CP Fase Fondasi (disimpan di kolom "aspek" Jurnal Perkembangan) */
 const ELEMEN_CP=['Nilai Agama dan Budi Pekerti','Jati Diri','Dasar-Dasar Literasi, Matematika, Sains, Teknologi, Rekayasa, dan Seni'];
-/* Bank indikator per elemen. {sub} diganti subtema (atau tema) yang dipilih. Guru bisa menambah indikator sendiri. */
-const INDIKATOR=[
-['Mengucapkan salam dan berdoa sebelum dan sesudah kegiatan','Menirukan gerakan ibadah sesuai agama yang dianut','Menyebutkan ciptaan Tuhan yang berkaitan dengan {sub}','Mengucap syukur atas ciptaan Tuhan terkait {sub}','Berperilaku santun: mengucapkan tolong, maaf, dan terima kasih','Menunjukkan kasih sayang dan kepedulian kepada teman','Mau berbagi dan bergantian dengan teman','Menghormati guru dan orang yang lebih tua','Menjaga kebersihan dan merawat lingkungan terkait {sub}'],
-['Mengenali dan menyebutkan perasaannya (senang, sedih, marah)','Mengungkapkan kebutuhan dan keinginannya dengan kata-kata','Melakukan kegiatan sehari-hari secara mandiri (makan, merapikan mainan)','Bermain dan bekerja sama dengan teman dalam kegiatan {sub}','Mengikuti aturan dan kesepakatan kelas','Menunjukkan rasa percaya diri saat menceritakan {sub}','Mengenal identitas diri dan keluarganya','Mengendalikan emosi dan menunggu giliran','Menunjukkan gerak kasar dan halus yang terkoordinasi dalam kegiatan {sub}'],
-['Menyimak dan merespons cerita tentang {sub}','Menceritakan kembali pengalaman atau hasil karya terkait {sub}','Mengenal huruf awal dari benda yang berkaitan dengan {sub}','Membilang dan membandingkan jumlah benda terkait {sub}','Mengelompokkan benda berdasarkan warna, bentuk, atau ukuran','Mengamati dan mengajukan pertanyaan tentang {sub}','Melakukan percobaan atau eksplorasi sederhana tentang {sub}','Menggunakan alat atau media sederhana untuk mencari tahu tentang {sub}','Membangun atau merancang sesuatu dari balok atau bahan bekas terkait {sub}','Menghasilkan karya seni (gambar, musik, atau gerak) terkait {sub}']];
+/* Bank indikator per TP bawaan. Kode stabil: i<elemen>_<nomorTP>_<nomorIndikator>. {sub} diganti tema/subtema. */
+const INDIKATOR_TP=[
+ [
+  ['Menyebutkan bahwa alam dan isinya merupakan ciptaan Tuhan.','Menunjukkan rasa kagum terhadap ciptaan Tuhan saat mengamati {sub}.','Menyebutkan cara sederhana merawat ciptaan Tuhan.','Menunjukkan sikap hati-hati saat berinteraksi dengan makhluk hidup.'],
+  ['Mengikuti doa sebelum dan sesudah kegiatan.','Mempraktikkan gerakan ibadah sederhana sesuai agama yang dianut.','Mengenali tempat atau perlengkapan ibadah agamanya.'],
+  ['Mengucapkan tolong, maaf, dan terima kasih pada situasi yang sesuai.','Berbicara dengan santun kepada guru dan teman.','Menunjukkan perilaku sopan saat kegiatan bersama.'],
+  ['Menawarkan bantuan kepada teman yang membutuhkan.','Bermain bersama tanpa membeda-bedakan teman.','Menunjukkan kepedulian saat teman sedih atau kesulitan.'],
+  ['Membuang sampah pada tempatnya.','Merapikan alat bermain setelah digunakan.','Menjaga kebersihan lingkungan saat kegiatan {sub}.']
+ ],
+ [
+  ['Menyebutkan nama lengkap dan nama panggilannya.','Mengenali ciri atau kesukaan dirinya.','Menyebutkan anggota keluarga terdekat.','Menyampaikan informasi sederhana tentang dirinya kepada teman.'],
+  ['Mengenali ekspresi senang, sedih, marah, dan takut.','Mencocokkan ekspresi wajah dengan nama emosi.','Menceritakan penyebab perasaan yang dialaminya.'],
+  ['Mengungkapkan perasaan dengan kata-kata sederhana.','Menyampaikan kebutuhan kepada guru dengan jelas.','Menggunakan cara yang tepat saat merasa kecewa.'],
+  ['Makan dan minum dengan bantuan minimal.','Merapikan barang miliknya setelah digunakan.','Mencoba menyelesaikan tugas sederhana secara mandiri.'],
+  ['Melompat dengan dua kaki secara seimbang.','Berjalan, berlari, dan berhenti mengikuti arahan.','Melempar atau menangkap bola berukuran sesuai.'],
+  ['Memegang alat tulis dengan cara yang sesuai.','Menggunting mengikuti garis sederhana.','Meronce atau menyusun benda kecil dengan koordinasi mata-tangan.'],
+  ['Mengenali situasi atau benda yang berbahaya.','Mengikuti aturan keselamatan saat bermain.','Meminta bantuan orang dewasa ketika menghadapi bahaya.']
+ ],
+ [
+  ['Menyimak cerita tentang {sub} sampai selesai.','Menjawab pertanyaan sederhana tentang isi cerita.','Menunjukkan gambar atau tokoh yang disebut dalam cerita.','Menunjukkan sikap tertarik terhadap buku atau bahan bacaan.'],
+  ['Menyampaikan pendapat atau ide tentang {sub}.','Menceritakan pengalaman dengan kalimat sederhana.','Mengajukan pertanyaan yang berkaitan dengan kegiatan.','Menggunakan kosakata baru yang diperoleh dari kegiatan {sub}.'],
+  ['Mengenali beberapa huruf yang terdapat pada namanya.','Mencocokkan simbol atau huruf yang sama.','Menyebutkan bunyi awal kata yang dikenal.'],
+  ['Membilang benda konkret secara berurutan.','Mencocokkan jumlah benda dengan lambang bilangan yang dikenal.','Membandingkan kelompok benda lebih banyak atau lebih sedikit.'],
+  ['Membedakan bentuk lingkaran, segitiga, dan persegi.','Membandingkan benda berdasarkan ukuran atau panjang.','Menggunakan istilah besar-kecil atau panjang-pendek secara tepat.'],
+  ['Mengelompokkan benda berdasarkan warna.','Mengelompokkan benda berdasarkan bentuk atau ukuran.','Menjelaskan alasan sederhana dalam mengelompokkan benda.'],
+  ['Mengamati perubahan atau ciri benda di sekitar {sub}.','Menyebutkan hasil pengamatan dengan kata-kata sendiri.','Mengajukan pertanyaan tentang hal yang menarik perhatiannya.'],
+  ['Mencoba kegiatan percobaan sederhana tentang {sub}.','Menceritakan perubahan yang diamati sebelum dan sesudah percobaan.','Menunjukkan sikap ingin tahu selama eksplorasi.'],
+  ['Mengenali fungsi alat teknologi sederhana di sekitarnya.','Menggunakan alat sederhana sesuai arahan dan aturan keselamatan.','Memilih alat yang sesuai untuk membantu kegiatan {sub}.'],
+  ['Mengekspresikan ide melalui gambar atau karya seni tentang {sub}.','Memilih bahan atau warna sesuai gagasannya.','Menunjukkan dan menceritakan hasil karya kepada orang lain.']
+ ]
+];
 const elemenIdx=a=>{a=String(a||'').toLowerCase();return!a?-1:a.indexOf('agama')>=0?0:(a.indexOf('jati diri')>=0||a.indexOf('fisik')>=0)?1:2}; // data lama (7 aspek) dipetakan ke 3 elemen
 const TGL={k:'tanggal',l:'Tanggal',t:'date'};
 const K={k:'kelas',l:'Kelompok',t:'sel',o:KELAS};
@@ -1639,13 +1665,22 @@ if(ov&&ov.aktif==='tidak')return;
 out.push({bid,id:ov?ov.id:'',teks:ov&&ov.teks?ov.teks:t,diubah:!!(ov&&ov.teks)})});
 rs.filter(r=>!r.bid&&r.aktif!=='tidak'&&+r.elemen===i).forEach(r=>out.push({bid:'',id:r.id,teks:r.teks,tambah:true}));
 return out}
-// daftar indikator yang berlaku untuk satu elemen (templat, boleh memuat {sub}): bawaan kecuali yang dihapus sekolah, dengan teks yang diubah sekolah + tambahan sekolah
-function indGabung(i){const rs=tpRows().filter(r=>r.jenis==='ind'),out=[];
-(INDIKATOR[i]||[]).forEach((t,n)=>{const bid='i'+i+'_'+n,ov=rs.find(r=>r.bid===bid);
-if(ov&&ov.aktif==='tidak')return;
-out.push({bid,id:ov?ov.id:'',teks:ov&&ov.teks?ov.teks:t,diubah:!!(ov&&ov.teks)})});
-rs.filter(r=>!r.bid&&r.aktif!=='tidak'&&+r.elemen===i).forEach(r=>out.push({bid:'',id:r.id,teks:r.teks,tambah:true}));
-return out}
+// Indikator umum (tpid kosong) dan indikator yang terhubung ke TP tertentu.
+function indGabung(i,tpTerpilih){
+ const rs=tpRows().filter(r=>r.jenis==='ind'),out=[],pilih=(tpTerpilih||[]).map(String);
+ const umum=INDIKATOR_UMUM[i]||[];
+ umum.forEach((t,n)=>{const bid='g'+i+'_'+n,ov=rs.find(r=>r.bid===bid);if(ov&&ov.aktif==='tidak')return;out.push({bid,id:ov?ov.id:'',teks:ov&&ov.teks?ov.teks:t,diubah:!!(ov&&ov.teks),umum:true})});
+ // indikator bawaan hanya muncul bila TP terkait dipilih
+ (TP_BAWAAN[i]||[]).forEach((tp,n)=>{const tpid='b'+i+'_'+n,bank=(INDIKATOR_TP[i]||[])[n]||[];bank.forEach((t,k)=>{const bid='i'+i+'_'+n+'_'+k,ov=rs.find(r=>r.bid===bid);if(ov&&ov.aktif==='tidak')return;if(pilih.includes(tpid))out.push({bid,id:ov?ov.id:'',teks:ov&&ov.teks?ov.teks:t,diubah:!!(ov&&ov.teks),tpid})})});
+ // tambahan sekolah lama tanpa tpid tetap umum; tambahan baru dengan tpid mengikuti TP-nya
+ rs.filter(r=>!r.bid&&r.aktif!=='tidak'&&+r.elemen===i&&(!r.tpid||pilih.includes(String(r.tpid)))).forEach(r=>out.push({bid:'',id:r.id,teks:r.teks,tambah:true,tpid:r.tpid||'',umum:!r.tpid}));
+ return out;
+}
+const INDIKATOR_UMUM=[
+ ['Mengikuti kegiatan pembiasaan dengan tertib.','Menunjukkan rasa syukur dalam kegiatan sehari-hari.'],
+ ['Menunjukkan rasa percaya diri saat berinteraksi.','Berpartisipasi dalam kegiatan bersama teman.'],
+ ['Menunjukkan rasa ingin tahu terhadap lingkungan sekitar.','Menyampaikan gagasan melalui bahasa, angka, eksplorasi, atau karya.']
+];
 function tujInit(md,row){const b=md.querySelector('#tujb');if(!b)return;
 const E=n=>md.querySelector(`[name=${n}]`),T=E('tujuan'),L=b.querySelector('#tujl'),Hn=b.querySelector('#tujh'),idx=()=>elemenIdx(E('aspek').value);
 let daf=[],prev=idx();
@@ -1658,71 +1693,46 @@ L.innerHTML=daf.length?daf.map((d,n)=>`<label class="op"><input type="checkbox" 
 L.style.gridTemplateColumns='1fr';
 b.addEventListener('change',e=>{if(e.target.name!=='tujc')return;const t=daf[+e.target.value].teks;let p=parts();
 if(e.target.checked){if(!p.includes(t))p.push(t)}else p=p.filter(x=>x!==t);
-const v=p.join('; ');if(v.length>500){e.target.checked=false;return toast('Terlalu panjang. Maksimal 500 karakter.',1)}T.value=v;ring()});
-T.addEventListener('input',sinkron);
+const v=p.join('; ');if(v.length>500){e.target.checked=false;return toast('Terlalu panjang. Maksimal 500 karakter.',1)}T.value=v;ring();if(md._indRender)md._indRender()});
+T.addEventListener('input',()=>{sinkron();if(md._indRender)md._indRender()});
 md.addEventListener('change',e=>{if(e.target.name!=='aspek')return;const i=idx();
 if(prev>=0&&i!==prev){const lama=daf.map(d=>d.teks),p=parts(),sisa=p.filter(x=>lama.indexOf(x)<0);if(sisa.length!==p.length){T.value=sisa.join('; ');toast('Tujuan dari elemen sebelumnya dikosongkan karena Elemen CP diganti')}}
-prev=i;render()});
+prev=i;render();if(md._indRender)md._indRender()});
 b.addEventListener('click',e=>{if(e.target.closest('[data-tk]'))tpKelola(Math.max(0,idx()),render)});
 render();
 tpMuat().then(ok=>{if(ok&&document.body.contains(md)){render();if(md._indRender)md._indRender()}})}
 // kelola daftar TP sekolah: tambah, ubah, hapus, pulihkan bawaan (hanya akun berizin tp.ubah; server memeriksa lagi)
 function tpKelola(i0,onTutup,j0){const md=document.createElement('div');md.className='md';md.style.zIndex=35;
-md.innerHTML=`<div class="sheet" style="max-height:90vh;overflow:auto"><h2>⚙️ Kelola Daftar Sekolah</h2><p class="sub" style="font-size:13px;margin-bottom:8px">Perubahan berlaku untuk semua guru di sekolah ini. Jurnal yang sudah tersimpan tidak ikut berubah.</p><div class="fd full"><label>Daftar yang dikelola</label><select id="tkj"><option value="tp">Tujuan pembelajaran</option><option value="ind">Indikator yang diamati</option></select></div><div class="fd full" style="margin-top:10px"><label>Elemen CP</label><select id="tke">${ELEMEN_CP.map((x,n)=>`<option value="${n}"${n===i0?' selected':''}>${esc(x)}</option>`).join('')}</select></div><p class="sub" id="tkh" style="font-size:12px;margin:8px 0 0"></p><div id="tkl" style="margin:10px 0"></div><div class="fd full"><label id="tkt"></label><input id="tkx" maxlength="200" autocomplete="off"></div><div class="fup" style="margin-top:8px;gap:8px"><button type="button" class="btn y s" data-ts>+ Tambah</button><button type="button" class="btn gh s" data-tb hidden>Batal ubah</button><button type="button" class="btn gh s" data-tp hidden>↩️ Pulihkan bawaan</button></div><div class="act"><button class="btn gh" data-x>Tutup</button></div></div>`;
+md.innerHTML=`<div class="sheet" style="max-height:90vh;overflow:auto"><h2>⚙️ Kelola Daftar Sekolah</h2><p class="sub" style="font-size:13px;margin-bottom:8px">Perubahan berlaku untuk semua guru di sekolah ini. Jurnal yang sudah tersimpan tidak ikut berubah.</p><div class="fd full"><label>Daftar yang dikelola</label><select id="tkj"><option value="tp">Tujuan pembelajaran</option><option value="ind">Indikator yang diamati</option></select></div><div class="fd full" style="margin-top:10px"><label>Elemen CP</label><select id="tke">${ELEMEN_CP.map((x,n)=>`<option value="${n}"${n===i0?' selected':''}>${esc(x)}</option>`).join('')}</select></div><div class="fd full" id="tkpwrap" style="margin-top:10px"><label>Terhubung dengan TP</label><select id="tkp"><option value="">Umum (semua TP)</option></select></div><p class="sub" id="tkh" style="font-size:12px;margin:8px 0 0"></p><div id="tkl" style="margin:10px 0"></div><div class="fd full"><label id="tkt"></label><input id="tkx" maxlength="200" autocomplete="off"></div><div class="fup" style="margin-top:8px;gap:8px"><button type="button" class="btn y s" data-ts>+ Tambah</button><button type="button" class="btn gh s" data-tb hidden>Batal ubah</button><button type="button" class="btn gh s" data-tp hidden>↩️ Pulihkan bawaan</button></div><div class="act"><button class="btn gh" data-x>Tutup</button></div></div>`;
 const Q=s=>md.querySelector(s),sel=()=>+Q('#tke').value;let edit=null,J=j0==='ind'?'ind':'tp';Q('#tkj').value=J;
-const gab=i=>J==='ind'?indGabung(i):tpGabung(i),nm=()=>J==='ind'?'indikator':'tujuan pembelajaran';
-const render=()=>{const i=sel(),daf=gab(i),pre=(J==='ind'?'i':'b')+i+'_',rs=tpRows().filter(r=>String(r.bid||'').indexOf(pre)===0);
-Q('#tkh').textContent=J==='ind'?'Tulis {sub} bila ingin otomatis diganti nama subtema atau tema yang dipilih guru. Contoh: Menyebutkan benda yang berkaitan dengan {sub}.':'';
-Q('#tkx').placeholder='Tulis '+nm();
-Q('#tkl').innerHTML=daf.length?daf.map((d,n)=>`<div style="display:flex;gap:6px;align-items:center;padding:8px 0;border-top:1px solid var(--ln)"><span style="flex:1;min-width:0;font-size:14px">${esc(d.teks)}${d.diubah?' <small class="sub">(diubah)</small>':d.tambah?' <small class="sub">(tambahan)</small>':''}</span><button type="button" class="btn gh s" data-e="${n}">Ubah</button><button type="button" class="btn gh s" data-d="${n}">Hapus</button></div>`).join(''):`<div class="empty">Belum ada ${nm()}.</div>`;
-const pul=Q('[data-tp]');pul.hidden=!rs.length;pul.textContent='↩️ Pulihkan bawaan ('+rs.length+')';
-Q('#tkt').textContent=(edit?'Ubah ':'Tambah ')+nm();Q('[data-ts]').textContent=edit?'Simpan perubahan':'+ Tambah';Q('[data-tb]').hidden=!edit};
+const pid=()=>Q('#tkp').value,gab=i=>J==='ind'?indGabung(i,pid()?[pid()]:[]):tpGabung(i),nm=()=>J==='ind'?'indikator':'tujuan pembelajaran';
+const isiPilihan=()=>{const i=sel(),v=Q('#tkp').value;Q('#tkp').innerHTML='<option value="">Umum (semua TP)</option>'+(TP_BAWAAN[i]||[]).map((t,n)=>`<option value="b${i}_${n}">${esc(t)}</option>`).join('')+tpRows().filter(r=>r.jenis!=='ind'&&!r.bid&&+r.elemen===i&&r.aktif!=='tidak').map(r=>`<option value="${esc(r.id)}">${esc(r.teks)}</option>`).join('');Q('#tkp').value=v};
+const render=()=>{const i=sel();isiPilihan();const p=pid(),daf=J==='ind'?indGabung(i,p?[p]:[]):tpGabung(i),pre=J==='ind'?'i'+i+'_':'b'+i+'_',rs=tpRows().filter(r=>J==='ind'?(r.jenis==='ind'&&((p&&String(r.tpid||'')===p)||(!p&&!r.tpid))):(r.jenis!=='ind'&&String(r.bid||'').indexOf(pre)===0));
+const tampil=daf.filter(d=>J!=='ind'||(p?String(d.tpid||'')===p:!!d.umum));
+Q('#tkpwrap').style.display=J==='ind'?'':'none';Q('#tkh').textContent=J==='ind'?'Indikator untuk TP terpilih ditampilkan khusus TP tersebut. Pilih “Umum (semua TP)” untuk indikator fallback. Gunakan {sub} agar nama tema/subtema terisi otomatis.':'Kelola tujuan pembelajaran pada elemen CP ini.';
+Q('#tkx').placeholder='Tulis '+nm();Q('#tkl').innerHTML=tampil.length?tampil.map((d,n)=>`<div style="display:flex;gap:6px;align-items:center;padding:8px 0;border-top:1px solid var(--ln)"><span style="flex:1;min-width:0;font-size:14px">${esc(d.teks)}${d.diubah?' <small class="sub">(diubah)</small>':d.tambah?' <small class="sub">(tambahan)</small>':''}</span><button type="button" class="btn gh s" data-e="${n}">Ubah</button><button type="button" class="btn gh s" data-d="${n}">Hapus</button></div>`).join(''):`<div class="empty">Belum ada ${nm()}.</div>`;
+const pul=Q('[data-tp]');pul.hidden=!rs.length;pul.textContent='↩️ Pulihkan bawaan ('+rs.length+')';Q('#tkt').textContent=(edit?'Ubah ':'Tambah ')+nm();Q('[data-ts]').textContent=edit?'Simpan perubahan':'+ Tambah';Q('[data-tb]').hidden=!edit;};
 const kirim=async(act,data,ok)=>{try{const j=await api(act,{data});TPD=j.rows||[];cSet('tp',TPD);edit=null;Q('#tkx').value='';render();toast(ok)}catch(er){toast(tpGalat(er),1)}};
-md.onclick=async e=>{if(e.target===md||e.target.closest('[data-x]')){md.remove();if(onTutup)onTutup();return}
-const i=sel(),daf=gab(i),X=Q('#tkx');
-if(e.target.closest('[data-ts]')){let v=X.value.trim().replace(/\s+/g,' ');
-if(J==='ind')v=v.replace(/\s*\|\s*/g,' ');
-if(v.length<3)return toast('Tulis '+nm()+'nya dulu',1);
-if(J==='tp'&&/;/.test(v))return toast('Tanda titik koma (;) tidak boleh dipakai',1);
-if(/^[=+\-@]/.test(v))return toast('Tidak boleh diawali tanda = + - @',1);
-if(daf.some(d=>d.teks.toLowerCase()===v.toLowerCase()&&!(edit&&d.bid===edit.bid&&d.id===edit.id)))return toast('Isian itu sudah ada pada elemen ini',1);
-const data=edit?(edit.id?{id:edit.id,teks:v}:{bid:edit.bid,teks:v}):{jenis:J,elemen:String(i),teks:v};
-return kirim('tpSimpan',data,edit?'Perubahan tersimpan':'Ditambahkan')}
-const be=e.target.closest('[data-e]');if(be){edit=daf[+be.dataset.e];X.value=edit.teks;render();X.focus();return}
-if(e.target.closest('[data-tb]')){edit=null;X.value='';render();return}
-const bd=e.target.closest('[data-d]');if(bd){const d=daf[+bd.dataset.d];
-if(!await tanya('Hapus '+nm()+'?',d.teks+(d.bid?' (bawaan aplikasi, bisa dipulihkan lewat tombol Pulihkan bawaan).':''),'Ya, hapus',true))return;
-return kirim('tpHapus',d.id?{id:d.id}:{bid:d.bid},'Dihapus')}
-if(e.target.closest('[data-tp]')){if(!await tanya('Pulihkan bawaan?','Perubahan dan penghapusan '+nm()+' bawaan pada elemen ini dikembalikan seperti semula. Tambahan sekolah tidak dihapus.','Ya, pulihkan'))return;
-return kirim('tpPulihkan',{semua:true,elemen:i,jenis:J},'Bawaan dipulihkan')}};
-md.addEventListener('change',e=>{if(e.target.id==='tke'||e.target.id==='tkj'){if(e.target.id==='tkj')J=e.target.value==='ind'?'ind':'tp';edit=null;Q('#tkx').value='';render()}});
-md.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='tkx'){e.preventDefault();Q('[data-ts]').click()}});
-document.body.appendChild(md);render()}
+md.onclick=async e=>{if(e.target===md||e.target.closest('[data-x]')){md.remove();if(onTutup)onTutup();return}const i=sel(),p=pid(),daf=J==='ind'?indGabung(i,p?[p]:[]):tpGabung(i),tampil=daf.filter(d=>J!=='ind'||(p?String(d.tpid||'')===p:!!d.umum)),X=Q('#tkx');
+if(e.target.closest('[data-ts]')){let v=X.value.trim().replace(/\s+/g,' ');if(!v||v.length<3)return toast('Tulis '+nm()+'nya dulu',1);if(J==='tp'&&/;/.test(v))return toast('Tanda titik koma (;) tidak boleh dipakai',1);if(/^[=+\-@]/.test(v))return toast('Tidak boleh diawali tanda = + - @',1);if(tampil.some(d=>d.teks.toLowerCase()===v.toLowerCase()&&!(edit&&d.bid===edit.bid&&d.id===edit.id)))return toast('Isian itu sudah ada',1);
+const data=edit?(edit.id?{id:edit.id,teks:v,...(J==='ind'?{tpid:p||''}:{})}:{bid:edit.bid,teks:v,...(J==='ind'?{tpid:p||''}:{})}):{jenis:J,elemen:String(i),teks:v,...(J==='ind'?{tpid:p||''}:{})};return kirim('tpSimpan',data,edit?'Perubahan tersimpan':'Ditambahkan')}
+const be=e.target.closest('[data-e]');if(be){edit=tampil[+be.dataset.e];X.value=edit.teks;render();X.focus();return}if(e.target.closest('[data-tb]')){edit=null;X.value='';render();return}
+const bd=e.target.closest('[data-d]');if(bd){const d=tampil[+bd.dataset.d];if(!await tanya('Hapus '+nm()+'?',d.teks+(d.bid?' (bawaan aplikasi, bisa dipulihkan).':''),'Ya, hapus',true))return;return kirim('tpHapus',d.id?{id:d.id}:{bid:d.bid},'Dihapus')}
+if(e.target.closest('[data-tp]')){if(!await tanya('Pulihkan bawaan?','Perubahan/hapus bawaan pada pilihan ini dikembalikan. Tambahan sekolah tidak dihapus.','Ya, pulihkan'))return;return kirim('tpPulihkan',{semua:true,elemen:i,jenis:J,...(J==='ind'?{tpid:p||''}:{})},'Bawaan dipulihkan')}};
+md.addEventListener('change',e=>{if(e.target.id==='tke'){edit=null;Q('#tkx').value='';render()}else if(e.target.id==='tkj'){J=Q('#tkj').value==='ind'?'ind':'tp';edit=null;Q('#tkx').value='';render()}else if(e.target.id==='tkp'){edit=null;Q('#tkx').value='';render()}});
+md.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='tkx'){e.preventDefault();Q('[data-ts]').click()}});document.body.appendChild(md);render()}
 // daftar indikator menyesuaikan elemen CP + tema/subtema; bisa tambah indikator sendiri (disimpan di perangkat guru)
-function indInit(md,row){const b=md.querySelector('#indb');if(!b)return;
-const E=n=>md.querySelector(`[name=${n}]`),H=E('indikator'),L=b.querySelector('#indl'),Hn=b.querySelector('#indh'),X=b.querySelector('#indx');
-const ctx=()=>E('subtema').value||E('tema').value||'tema ini',idx=()=>elemenIdx(E('aspek').value),isi=(t,c)=>t.replace(/\{sub\}/g,c);
-const kc=()=>'jgind_'+((S.guru&&S.guru.id)||'')+'_'+idx(),base=()=>{const i=idx();return i<0?[]:indGabung(i).map(d=>d.teks)};
-const getC=()=>{try{return JSON.parse(localStorage.getItem(kc())||'[]')}catch(e){return[]}};
-let sel=String(H.value||'').split(' | ').filter(Boolean),lama=ctx(),prev=idx();
+function indInit(md,row){const b=md.querySelector('#indb');if(!b)return;const E=n=>md.querySelector(`[name=${n}]`),H=E('indikator'),L=b.querySelector('#indl'),Hn=b.querySelector('#indh'),X=b.querySelector('#indx');
+const ctx=()=>E('subtema').value||E('tema').value||'tema ini',idx=()=>elemenIdx(E('aspek').value),isi=(t,c)=>t.replace(/\{sub\}/g,c),parts=()=>String(E('tujuan').value||'').split(';').map(x=>x.trim()).filter(Boolean);
+const tpDipilih=()=>{const i=idx(),all=i<0?[]:tpGabung(i);return all.filter(d=>parts().includes(d.teks)).map(d=>String(d.bid||d.id||'')).filter(Boolean)};
+const kc=()=>'jgind_'+((S.guru&&S.guru.id)||'')+'_'+idx();const getC=()=>{try{return JSON.parse(localStorage.getItem(kc())||'[]')}catch(e){return[]}};
+let sel=String(H.value||'').split(' | ').filter(Boolean),lama=ctx(),prev=idx(),prevTP=tpDipilih().join('|');
 const ring=()=>{H.value=sel.join(' | ');const a=b.querySelector('.ah');a.querySelector('i').textContent=sel.length?sel.length+' indikator':'Belum dipilih';a.classList.toggle('kosong',!sel.length)};
-const render=()=>{const i=idx(),c=ctx(),bs=base().map(t=>isi(t,c)),cs=getC(),ek=sel.filter(s=>bs.indexOf(s)<0&&cs.indexOf(s)<0),all=bs.concat(cs,ek);
-Hn.textContent=i<0?'Pilih Elemen CP dulu. Daftar indikator menyesuaikan elemen, tema, dan subtema yang dipilih.':'Indikator menyesuaikan elemen CP dan "'+c+'". Centang yang diamati, atau tulis indikator sendiri sesuai tujuan pembelajaran.';
-L.innerHTML=all.length?all.map(x=>`<label class="op"><input type="checkbox" name="indc" value="${esc(x)}"${sel.indexOf(x)>=0?' checked':''}><span>${esc(x)}</span></label>`).join(''):'<span class="sub">Belum ada indikator.</span>';ring()};
-const tambah=async()=>{const v=X.value.trim().replace(/\s*\|\s*/g,' ');if(!v)return toast('Tulis indikatornya dulu',1);if(idx()<0)return toast('Pilih Elemen CP dulu',1);
-const c=ctx(),cs=getC();if(cs.indexOf(v)<0&&base().every(t=>isi(t,c)!==v)){
-let server=false;
-if(boleh('tp.ubah')){try{const j=await api('tpSimpan',{data:{jenis:'ind',elemen:String(idx()),teks:v}});TPD=j.rows||[];cSet('tp',TPD);server=true;toast('Indikator ditambahkan ke daftar sekolah')}catch(er){toast(tpGalat(er)+' Indikator disimpan di perangkat ini saja.',1)}}
-if(!server){cs.push(v);try{localStorage.setItem(kc(),JSON.stringify(cs.slice(-30)))}catch(er){}}}
-if(sel.indexOf(v)<0)sel.push(v);X.value='';render()};
-L.style.gridTemplateColumns='1fr';
-b.addEventListener('change',e=>{if(e.target.name!=='indc')return;const v=e.target.value;sel=e.target.checked?sel.filter(x=>x!==v).concat(v):sel.filter(x=>x!==v);ring()});
-b.addEventListener('click',e=>{if(e.target.closest('[data-ia]'))tambah();else if(e.target.closest('[data-ik]'))tpKelola(Math.max(0,idx()),render,'ind')});
-X.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();tambah()}});
-md.addEventListener('change',e=>{const n=e.target.name;
-if(n==='aspek'){const i=idx();if(prev>=0&&i!==prev&&sel.length){sel=[];toast('Indikator dikosongkan karena Elemen CP diganti')}prev=i;render()}
-else if(n==='tema'||n==='subtema'){const c=ctx();sel=sel.map(s=>{const t=base().find(t=>isi(t,lama)===s);return t?isi(t,c):s});lama=c;render()}});
-md._indRender=render;render()}
+const render=()=>{const i=idx(),c=ctx(),tp=tpDipilih(),nowTP=tp.join('|');if(nowTP!==prevTP){const gone=prevTP.split('|').filter(x=>x&&!tp.includes(x));if(gone.length&&sel.length){const before=sel.length;sel=sel.filter(x=>!indGabung(i,gone).some(d=>isi(d.teks,c)===x));if(sel.length!==before)toast('Indikator dari TP yang dibatalkan ikut dihapus')}prevTP=nowTP}const bs=i<0?[]:indGabung(i,tp).map(d=>isi(d.teks,c)),cs=getC(),ek=sel.filter(s=>!bs.includes(s)&&!cs.includes(s)),all=[...new Set(bs.concat(cs,ek))];Hn.textContent=i<0?'Pilih Elemen CP terlebih dahulu.':tp.length?'Indikator ditampilkan sesuai TP yang dipilih. Jika beberapa TP dipilih, indikatornya digabung.':'Belum ada TP yang dipilih. Indikator umum ditampilkan sebagai pilihan.';L.innerHTML=all.length?all.map(x=>`<label class="op"><input type="checkbox" name="indc" value="${esc(x)}"${sel.includes(x)?' checked':''}><span>${esc(x)}</span></label>`).join(''):'<span class="sub">Belum ada indikator untuk pilihan ini.</span>';ring()};
+const tambah=async()=>{const v=X.value.trim().replace(/\s*\|\s*/g,' ');if(!v)return toast('Tulis indikatornya dulu',1);if(idx()<0)return toast('Pilih Elemen CP dulu',1);const tp=tpDipilih(),cs=getC();if(!cs.includes(v)&&!indGabung(idx(),tp).some(d=>isi(d.teks,ctx())===v)){let server=false;if(boleh('tp.ubah')){try{const j=await api('tpSimpan',{data:{jenis:'ind',elemen:String(idx()),teks:v,tpid:tp.length===1?tp[0]:''}});TPD=j.rows||[];cSet('tp',TPD);server=true;toast(tp.length===1?'Indikator ditambahkan ke TP terpilih':'Indikator ditambahkan sebagai indikator umum')}catch(er){toast(tpGalat(er)+' Indikator disimpan di perangkat ini saja.',1)}}if(!server){cs.push(v);try{localStorage.setItem(kc(),JSON.stringify(cs.slice(-30)))}catch(er){}}}if(!sel.includes(v))sel.push(v);X.value='';render()};
+L.style.gridTemplateColumns='1fr';b.addEventListener('change',e=>{if(e.target.name!=='indc')return;const v=e.target.value;sel=e.target.checked?[...sel.filter(x=>x!==v),v]:sel.filter(x=>x!==v);ring()});b.addEventListener('click',e=>{if(e.target.closest('[data-ia]'))tambah();else if(e.target.closest('[data-ik]'))tpKelola(Math.max(0,idx()),render,'ind')});X.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();tambah()}});
+md.addEventListener('change',e=>{const n=e.target.name;if(n==='aspek'){const i=idx();if(prev>=0&&i!==prev&&sel.length){sel=[];toast('Indikator dikosongkan karena Elemen CP diganti')}prev=i;render()}else if(n==='tujuan'){render()}else if(n==='tema'||n==='subtema'){const c=ctx(),tp=tpDipilih(),oldBase=indGabung(idx(),tp).map(d=>isi(d.teks,lama));sel=sel.map(x=>{const at=oldBase.indexOf(x);return at>=0?isi(indGabung(idx(),tp)[at].teks,c):x});lama=c;render()}});
+md._indRender=render;render();tpMuat().then(ok=>{if(ok&&document.body.contains(md))render()})}
 function pcInit(md,row){const b=md.querySelector('#pcb');if(!b)return;const H=md.querySelector('[name=pancacinta]');
 const sel=String(H.value||'').split(',').map(x=>x.trim()).filter(Boolean);
 b.querySelectorAll('input[name=pcc]').forEach(c=>c.checked=sel.indexOf(c.value)>=0);
