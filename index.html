@@ -1014,7 +1014,7 @@ const PROFIL=[
 {k:'kota',l:'Kabupaten / kota',t:'txt',opt:1},{k:'provinsi',l:'Provinsi',t:'txt',opt:1},{k:'kodepos',l:'Kode pos',t:'txt',opt:1},
 {k:'telpsekolah',l:'Telepon sekolah',t:'tel',opt:1},{k:'emailsekolah',l:'Email sekolah',t:'eml',opt:1},{k:'website',l:'Website (opsional)',t:'txt',opt:1},
 {k:'nipkepsek',l:'NIP kepala sekolah (jika ada)',t:'txt',opt:1},{k:'hpkepsek',l:'Nomor HP kepala sekolah',t:'tel',opt:1},{k:'nsm',l:'NSM (jika ada)',t:'txt',opt:1},{k:'izinno',l:'Nomor izin operasional (opsional)',t:'txt',opt:1},{k:'izintgl',l:'Tanggal izin operasional (opsional)',t:'tgl',opt:1},{k:'sekolah',l:'Nama Sekolah',t:'txt'},{k:'npsn',l:'NPSN',t:'txt',opt:1},
-{k:'jenjang',l:'Jenjang',t:'sel',o:['TK','RA','KB']},{k:'kelas',l:'Kelompok yang diampu',t:'sel',o:KELAS.concat(['KB','Guru pendamping','Semua kelompok'])},
+{k:'jenjang',l:'Jenis lembaga',t:'sel',o:['TK','RA','KB','SPS','Lainnya']},{k:'kelas',l:'Kelompok yang diampu',t:'sel',o:['KB','TK A / RA A','TK B / RA B','Guru Pendamping','Guru Pengganti','Semua Kelompok','Lainnya']},
 {k:'tahun',l:'Tahun ajaran',t:'sel',o:tahunAjaranList()},{k:'semester',l:'Semester',t:'sel',o:['Ganjil','Genap']},
 {k:'status',l:'Status kepegawaian',t:'sel',o:['PNS','PPPK','Guru tetap yayasan','Guru honorer','Lainnya']},{k:'kepsek',l:'Nama Kepala Sekolah',t:'txt',opt:1}];
 
@@ -1421,13 +1421,13 @@ Object.keys(VALID_PROFIL).forEach(k=>{const v=String(d[k]==null?'':d[k]).trim();
 const t=+String(d.tahunberdiri||'').trim();if(t&&t>new Date().getFullYear()&&!er.some(x=>/^Tahun berdiri/.test(x)))er.push(lb('tahunberdiri')+': belum boleh lebih dari tahun ini');
 return er}
 function formIdentitas(){const g=S.guru,P=k=>PROFIL.find(f=>f.k===k);
-const one=k=>fld(P(k),k==='kelas'?kelNorm(g[k]):k==='jenjang'&&g[k]==='PAUD'?'':g[k]); // array di dalam daftar = beberapa isian dalam satu baris
+const one=k=>fld(P(k),k==='kelas'?kelTampil(g[k]):k==='jenjang'&&g[k]==='PAUD'?'':g[k]); // array di dalam daftar = beberapa isian dalam satu baris
 const sek=(ic,jd,ket,ks)=>`<div class="card"><h3>${ic} ${jd}</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">${ket}</p><div class="fg">${ks.map(k=>Array.isArray(k)?`<div class="frw f${k.length}">${k.map(one).join('')}</div>`:one(k)).join('')}</div></div>`;
 $('#main').innerHTML=`<div class="noprint"><div class="card"><h3>🖨️ Cetak / Unduh Data</h3><p class="sub" style="font-size:13px;margin:-6px 0 12px">Berdasarkan data yang sudah disimpan. Pilih data, lalu cetak atau simpan sebagai PDF, Excel, atau Word.</p><div class="fd"><label>Data yang dicetak</label>${radioGrup('dj',[['guru','Data guru'],['sekolah','Data sekolah'],['semua','Data guru + sekolah']],'guru','dj')}</div><div class="fd" id="fpw"><label>Foto profil guru</label>${radioGrup('fp',[['tidak','Tanpa foto'],['ya','Dengan foto profil']],fpPref(),'fp')}<p class="sub" id="fph" style="font-size:12px;margin:6px 0 0"></p></div>${ukrHtml()}</div><div class="card" id="akc"><h3>🗓️ Pengaturan Akademik</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Berlaku untuk seluruh guru. Tahun ajaran dan semester yang aktif dipakai otomatis di laporan dan cetakan, jadi guru tidak perlu mengisinya lagi. Periode sebelumnya tetap tersimpan.</p><div id="akd"></div></div><div id="pf">${sek('👩‍🏫','A. Data pribadi','Identitas dan kontak Anda. NIP dan NUPTK boleh dikosongkan jika belum ada.',['nama','nip','nuptk','tempatlahir',['tgllahir','jk','agama'],'alamat','telepon','email'])}
 ${sek('🎓','B. Data kepegawaian','Status, pendidikan, jabatan, dan tugas Anda.',[['status','pendidikan'],['jurusan','jabatan'],'tugastambahan','mulaitugas'])}
 ${sek('📋','C. Data mengajar','Kelompok yang Anda ampu. Tahun ajaran dan semester mengikuti Pengaturan Akademik sekolah (saat ini: '+esc(g.tahun||'belum diatur')+', semester '+esc(g.semester||'-')+'). Jurnal yang Anda isi tetap milik akun Anda sendiri.',['kelas'])}
 <div class="card"><h3>🔐 D. Data akun</h3><div class="fup"><div class="avb" id="avp">${av(g.foto,g.nama)}</div><div><button class="btn o s" id="fpb" type="button">Unggah / Ganti Foto</button> <button class="btn o s" id="gp" type="button">Ganti PIN</button><input type="file" id="fpi" accept="image/*" style="display:none"><p class="sub" style="font-size:12px;margin-top:6px">Foto dan PIN langsung tersimpan, tanpa menunggu tombol Simpan Identitas. Masuk tetap memakai ID guru dan PIN 6 angka seperti biasa.</p></div></div></div>
-${sek('🏫','A. Data utama','Identitas pokok sekolah.',[['sekolah','npsn','nsm','jenjang'],['statussekolah','yayasan','akreditasi','tahunberdiri']])}
+${sek('🏫','A. Data utama','Identitas pokok sekolah.',[['sekolah','npsn','nsm'],'jenjang',['statussekolah','yayasan','akreditasi','tahunberdiri']])}
 ${sek('📜','B. Legalitas','Izin operasional sekolah (boleh dikosongkan).',['izinno','izintgl'])}
 ${sek('📍','C. Alamat','Letak sekolah.',['alamatsekolah','kelurahan','kecamatan','kota','provinsi','kodepos'])}
 ${sek('📞','D. Kontak','Cara menghubungi sekolah.',['telpsekolah','emailsekolah','website'])}
@@ -1443,7 +1443,8 @@ akadIsi();{const lm=JSON.stringify(AKAD);if(Date.now()-_akF>15000){_akF=Date.now
 $('#fpi').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let d;try{d=await pangkas(f,{judul:'Atur foto profil',out:400})}catch(er){return toast('Berkas bukan gambar yang valid',1)}if(!d)return;const b=$('#fpb');b.disabled=true;b.textContent='Mengunggah...';
 try{const j=await api('unggahFoto',{b64:d.split(',')[1]});S.guru.foto=j.foto;simpanSesi();isiAkun();$('#avp').innerHTML=av(j.foto,S.guru.nama);FPD={u:'',d:''};rl();toast('Foto profil tersimpan')}catch(er){toast(er.message,1)}b.disabled=false;b.textContent='Unggah / Ganti Foto'};$('#lgb').onclick=()=>$('#lgi').click();$('#lgz').onclick=()=>unduhPaketIkon();$('#lgh').onclick=async()=>{await simpanLogo('');rl()};
 $('#lgi').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let d;try{d=await pangkas(f,{judul:'Atur logo sekolah',out:160,logo:1})}catch(er){return toast('Berkas bukan gambar yang valid',1)}if(d){await simpanLogo(d);rl()}};$('.ukr').onclick=e=>{const b=e.target.closest('[data-ak]');if(b)aksiLap(b.dataset.uk,b.dataset.ak)};
-$('#sv').onclick=async()=>{const{d,kurang,kk}=ambil($('#pf'),PROFIL.filter(f=>f.k!=='tahun'&&f.k!=='semester'&&(boleh('sekolah.ubah')||!SEK_ALL.includes(f.k))));if(kurang){const pf=$('#pf'),el=pf.querySelector('[name='+kk+']'),f=el&&el.closest('.fd');const cd=el&&el.closest('#pf>.card');if(cd&&cd.style.display==='none'){const r=document.querySelector('input[name=dj][value=semua]');if(r){r.checked=true;rl()}}if(f&&f.classList.contains('acc')&&pf._bk)pf._bk(f);return toast('Lengkapi dulu: '+kurang,1)}
+$('#sv').onclick=async()=>{const{d,kurang,kk}=ambil($('#pf'),PROFIL.filter(f=>f.k!=='tahun'&&f.k!=='semester'&&(boleh('sekolah.ubah')||!SEK_ALL.includes(f.k))));if(d&&d.kelas)d.kelas=kelSimpan(d.kelas);
+if(kurang){const pf=$('#pf'),el=pf.querySelector('[name='+kk+']'),f=el&&el.closest('.fd');const cd=el&&el.closest('#pf>.card');if(cd&&cd.style.display==='none'){const r=document.querySelector('input[name=dj][value=semua]');if(r){r.checked=true;rl()}}if(f&&f.classList.contains('acc')&&pf._bk)pf._bk(f);return toast('Lengkapi dulu: '+kurang,1)}
 const er=cekProfil(d);if(er.length)return toast(er[0],1);
 const k0=kelNorm(S.guru.kelas),k1=kelNorm(d.kelas); // kelompok menentukan data anak yang tampil dan boleh diubah: minta konfirmasi
 if(k0&&k1!==k0&&!await tanya('Ubah kelompok?',/^semua/i.test(k1)?'Anda akan melihat dan dapat mengubah data anak dari SEMUA kelompok.':'Daftar anak, presensi, dan catatan yang tampil akan mengikuti '+k1+'. Catatan lama Anda tidak dihapus.','Ya, ubah',false))return;
@@ -1589,7 +1590,7 @@ document.addEventListener('input',e=>tumbuh(e.target));document.addEventListener
 document.addEventListener('click',()=>setTimeout(semua,90));window.addEventListener('resize',()=>setTimeout(semua,90));
 new MutationObserver(()=>{clearTimeout(tm);tm=setTimeout(semua,60)}).observe(document.body,{childList:true,subtree:true})})();
 function akordeon(md){
-const fds=[...md.querySelectorAll('.fd[data-m]')],val=f=>f.querySelector('input[type=hidden]').value,ok=f=>f.style.display!=='none';
+const fds=[...md.querySelectorAll('.fd[data-m]')].filter(f=>!(md.id==='pf'&&/^(jenjang|kelas)$/.test((f.querySelector('input[type=hidden]')||{}).name||''))),val=f=>f.querySelector('input[type=hidden]').value,ok=f=>f.style.display!=='none';
 const segar=f=>{const b=f.querySelector('.ah'),v=val(f);b.querySelector('i').textContent=v||'Belum dipilih';b.classList.toggle('kosong',!v)};
 const buka=f=>{fds.forEach(x=>x.classList.toggle('open',x===f));
 if(f)setTimeout(()=>{const sh=md.querySelector('.sheet'),h=f.getBoundingClientRect().height,vh=sh?sh.clientHeight-90:innerHeight-150;
@@ -1982,7 +1983,9 @@ catch(er){toast(er.message,1);gFoto();b.disabled=false;b.textContent='Simpan'}}}
 const kotaTtd=g=>String((g&&g.kota)||'').replace(/^(kota|kabupaten|kab\.?)\s+/i,'').trim()||'Surabaya'; // kota pada tanda tangan laporan
 const alamatSek=g=>[g.alamatsekolah,g.kelurahan&&'Kel. '+g.kelurahan,g.kecamatan&&'Kec. '+g.kecamatan,g.kota,g.provinsi,g.kodepos].filter(Boolean).join(', ');
 const kelNorm=v=>{const m=String(v||'').trim().match(/^(?:TK|KELOMPOK)?[\s\-_]*([AB])$/i);return m?'Kelompok '+m[1].toUpperCase():String(v||'').trim()};
-const klf=()=>{const k=kelNorm(S.guru&&S.guru.kelas);return k&&!/^(semua|guru )/i.test(k)?k:''};
+const kelTampil=v=>{const k=kelNorm(v),l=k.toLowerCase();return k==='Kelompok A'?'TK A / RA A':k==='Kelompok B'?'TK B / RA B':l==='guru pendamping'?'Guru Pendamping':l==='guru pengganti'?'Guru Pengganti':l==='semua kelompok'?'Semua Kelompok':k};
+const kelSimpan=v=>({'TK A / RA A':'Kelompok A','TK B / RA B':'Kelompok B','Guru Pendamping':'Guru pendamping','Semua Kelompok':'Semua kelompok'})[v]||v;
+const klf=()=>{const k=kelNorm(S.guru&&S.guru.kelas);return k&&!/^(semua|guru |lainnya)/i.test(k)?k:''};
 const PRES_KOSONG='Belum ada Jurnal Kehadiran pada periode ini, sehingga presensi per anak belum ditampilkan. Isi dulu di menu 3. Kehadiran Anak.';
 function presTabel(j,cls=''){if(j&&j.loading)return'<p>Memuat data presensi...</p>';if(!j||j.err)return`<p>Data presensi belum dapat dimuat${j&&j.err?': '+esc(j.err):''}.</p>`;
 if(!j.hari)return`<div class="empty" style="padding:16px">${PRES_KOSONG}</div>`;
@@ -2496,7 +2499,7 @@ const F=k=>(ROWS[k]||[]).filter(r=>!rg.dari||(r.tanggal>=rg.dari&&r.tanggal<=rg.
 const kh=F('kehadiran'),pn=F('penilaian'),jh=sum(kh,'jumlah'),tn=sum(pn,'bb')+sum(pn,'mb')+sum(pn,'bsh')+sum(pn,'bsb');
 const BLN=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],tp=d=>{const m=String(d||'').match(/^(\d{4})-(\d{2})-(\d{2})/);return m?m[3]+' '+BLN[+m[2]-1]+' '+m[1]:String(d||'')};
 const idG=[['Nama guru',g.nama],['NIP / NUPTK',[g.nip,g.nuptk].filter(Boolean).join(' / ')],['Tempat, tanggal lahir',[g.tempatlahir,tp(g.tgllahir)].filter(Boolean).join(', ')],['Pendidikan terakhir',[g.pendidikan,g.jurusan].filter(Boolean).join(' - ')],['Jabatan',g.jabatan],['Status kepegawaian',g.status],['Mulai mengajar',tp(g.mulaitugas)],['Kelompok yang diampu',g.kelas]];
-const idS=[['Nama sekolah',g.sekolah],['NPSN',g.npsn],['Jenjang',g.jenjang],['Status sekolah',g.statussekolah],['Akreditasi',g.akreditasi],['Yayasan',g.yayasan],['Alamat sekolah',alamatSek(g)],['Telepon / email sekolah',[g.telpsekolah,g.emailsekolah].filter(Boolean).join(' / ')],['Kepala sekolah',g.kepsek],['NIP / NUPTK kepala sekolah',g.nipkepsek],['Tahun ajaran',g.tahun],['Semester',g.semester]];
+const idS=[['Nama sekolah',g.sekolah],['NPSN',g.npsn],['Jenis lembaga',g.jenjang],['Status sekolah',g.statussekolah],['Akreditasi',g.akreditasi],['Yayasan',g.yayasan],['Alamat sekolah',alamatSek(g)],['Telepon / email sekolah',[g.telpsekolah,g.emailsekolah].filter(Boolean).join(' / ')],['Kepala sekolah',g.kepsek],['NIP / NUPTK kepala sekolah',g.nipkepsek],['Tahun ajaran',g.tahun],['Semester',g.semester]];
 const tabId=r=>`<table class="rt id">${r.map(x=>`<tr><td>${x[0]}</td><td>${esc(x[1]||'-')}</td></tr>`).join('')}</table>`;
 const today=new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
 return`<div class="paper"><div class="kop"><img class="kl" src="${logoSek()}" alt=""><div class="kt"><h2>${esc((g.sekolah||'NAMA SEKOLAH').toUpperCase())}</h2><p>${esc(g.jenjang||'')}${g.npsn?' - NPSN '+esc(g.npsn):''}</p>${alamatSek(g)?`<p>${esc(alamatSek(g))}${g.telpsekolah?' | Telp. '+esc(g.telpsekolah):''}</p>`:''}</div></div>
