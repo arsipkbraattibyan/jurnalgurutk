@@ -1642,11 +1642,6 @@ if(matchMedia('(prefers-reduced-motion:reduce)').matches){el.scrollTop=to;return
 const t0=performance.now(),e=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
 const f=n=>{const p=Math.min(1,(n-t0)/dur);el.scrollTop=s+d*e(p);if(p<1)requestAnimationFrame(f)};
 requestAnimationFrame(f)};
-const gulir=(el,to,dur=650)=>{const s=el.scrollTop,d=to-s;if(Math.abs(d)<4)return;
-if(matchMedia('(prefers-reduced-motion:reduce)').matches){el.scrollTop=to;return}
-const t0=performance.now(),e=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
-const f=n=>{const p=Math.min(1,(n-t0)/dur);el.scrollTop=s+d*e(p);if(p<1)requestAnimationFrame(f)};
-requestAnimationFrame(f)};
 const lanjut=f=>{const sh=md.querySelector('.sheet.frm');if(!sh)return;
 const kids=[...sh.querySelectorAll('.fg>.fd')],i=kids.indexOf(f);if(i<0)return;
 const nx=kids.slice(i+1).find(g=>g.offsetParent!==null&&(!g.classList.contains('acc')||!val(g)));if(!nx)return;
