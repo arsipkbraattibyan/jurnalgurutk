@@ -2,7 +2,7 @@
 // - Cangkang aplikasi (HTML, JS, ikon, manifest) disimpan di cache dan dibuka walau offline.
 // - Font Google dan pustaka CDN (PDF, Excel, Word) disimpan saat pertama dipakai.
 // - Permintaan ke Google Apps Script (data jurnal) TIDAK pernah disimpan atau dicegat.
-const V = 'jurnal-guru-v17';
+const V = 'jurnal-guru-v18';
 const CANGKANG = ['./', 'index.html', 'manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png', 'laporan-baru.js', 'login-fix.js', 'offline.js', 'libur.js', './favicon-64.png', './icon-maskable-512.png'];
 const HOST_LUAR = ['fonts.googleapis.com', 'fonts.gstatic.com', 'cdnjs.cloudflare.com'];
 const BATAS = 5000; // ms: jaringan lambat lebih dari ini, pakai salinan cache
