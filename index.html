@@ -807,7 +807,7 @@ const pct=(a,b)=>b?Math.round(a/b*1000)/10+'%':'-';
 let S={token:null,guru:null,view:'beranda'},ROWS={},tt;
 try{const x=JSON.parse(localStorage.getItem('jg')||'null');if(x){S.token=x.token;S.guru=x.guru}}catch(e){}
 // akun dengan jabatan Kepala sekolah: nama, NIP, dan HP kepala sekolah di data sekolah otomatis mengikuti data pribadinya
-const aplKepsek=()=>{const g=S.guru;if(!g||!(/kepala\s*sekolah/i.test(g.jabatan||'')||g.peran==='kepsek'))return;const n=String(g.nama||'').trim(),p=String(g.nip||'').trim(),h=String(g.telepon||'').trim();if(n)g.kepsek=n;if(p)g.nipkepsek=p;if(h)g.hpkepsek=h};
+const aplKepsek=()=>{const g=S.guru;if(!g||!(/kepala\s*sekolah/i.test(g.jabatan||'')||g.peran==='kepsek'))return;const n=String(g.nama||'').trim(),p=String(g.nip||'').trim(),h=String(g.telepon||'').trim();if(n&&!String(g.kepsek||'').trim())g.kepsek=n;if(p&&!String(g.nipkepsek||'').trim())g.nipkepsek=p;if(h&&!String(g.hpkepsek||'').trim())g.hpkepsek=h};
 try{aplKepsek()}catch(e){}
 const simpanSesi=()=>{try{aplKepsek()}catch(e){}try{localStorage.setItem('jg',JSON.stringify({token:S.token,guru:S.guru}))}catch(e){}};
 
@@ -1341,7 +1341,7 @@ const akadMuat=()=>api('akademik').then(j=>{AKAD={aktif:j.aktif,daftar:j.daftar,
 const akadPer=x=>x&&(x.mulai||x.selesai)?(x.mulai?tglS(x.mulai):'...')+' s.d. '+(x.selesai?tglS(x.selesai):'...'):'Tanggal belum diatur';
 // segarkan tahun ajaran dan semester aktif di perangkat ini (guru lain mengubahnya dari perangkatnya sendiri)
 function segarAkad(){if(Date.now()-_akT<60000)return Promise.resolve();_akT=Date.now();
-return Promise.race([api('profil').then(j=>{const g=j.guru,o=S.guru;if(o&&(g.tahun!==o.tahun||g.semester!==o.semester||JSON.stringify(g.akademik)!==JSON.stringify(o.akademik))){o.tahun=g.tahun;o.semester=g.semester;o.akademik=g.akademik;simpanSesi()}}),new Promise(r=>setTimeout(r,2500))]).catch(()=>{})}
+return Promise.race([api('profil').then(j=>{const g=j.guru,o=S.guru;if(o&&(g.tahun!==o.tahun||g.semester!==o.semester||JSON.stringify(g.akademik)!==JSON.stringify(o.akademik))){o.tahun=g.tahun;o.semester=g.semester;o.akademik=g.akademik;simpanSesi()}selarasSek(g)}),new Promise(r=>setTimeout(r,2500))]).catch(()=>{})}
 function akadIsi(ed){const box=$('#akd');if(!box)return;const A=AKAD;
 if(!A){box.innerHTML='<p class="sub">Memuat pengaturan akademik...</p>';return}
 const a=A.aktif,n=new Date(),e=ed||a||{tahun:tahunAjaranList()[1],semester:n.getMonth()>=6?'Ganjil':'Genap',aktif:'ya',mulai:'',selesai:''};
@@ -2960,7 +2960,8 @@ const adminSek=()=>!!(S.guru&&S.guru.peran==='admin'); // admin selalu mengelola
 const VIEW_PIMPINAN=['beranda','identitas','pengaturan','lihat'];
 const bolehSiswa=()=>adminSek()||boleh('siswa.pindah'); // kepala sekolah dan admin membuka Data Siswa untuk Naik Kelas / Pindah
 const PERAN_L={guru:'Guru',kepsek:'Kepala Sekolah',admin:'Admin Sekolah'};
-function segarPeran(){return api('profil').then(j=>{const o=S.guru,g=j.guru;if(!o||!g)return false;const b=JSON.stringify([o.peran,o.izin,o.mengajar])!==JSON.stringify([g.peran,g.izin,g.mengajar]);o.peran=g.peran;o.izin=g.izin;o.mengajar=g.mengajar;simpanSesi();return b}).catch(()=>false)}
+function selarasSek(g){const o=S.guru;if(!o||!g)return false;let b=false;SEK_ALL.concat(['logo']).forEach(k=>{const v=g[k]===undefined||g[k]===null?'':g[k],l=o[k]===undefined||o[k]===null?'':o[k];if(String(l)!==String(v)){o[k]=v;b=true}});if(b){simpanSesi();try{sekCache({nama:o.sekolah||'',logo:o.logo||''})}catch(e){}const im=document.querySelector('.brand img.lg');if(im)im.src=logoSek()}return b}
+function segarPeran(){return api('profil').then(j=>{const o=S.guru,g=j.guru;if(!o||!g)return false;const b=JSON.stringify([o.peran,o.izin,o.mengajar])!==JSON.stringify([g.peran,g.izin,g.mengajar]);o.peran=g.peran;o.izin=g.izin;o.mengajar=g.mengajar;const c=selarasSek(g);simpanSesi();return b||c}).catch(()=>false)}
 function dialogPengguna(){
 const md=document.createElement('div');md.className='md';
 md.innerHTML=`<div class="sheet"><h2>👥 Manajemen Pengguna</h2><p class="sub" style="margin-bottom:10px">Perubahan langsung berlaku pada permintaan berikutnya. Akun yang dihapus tidak bisa masuk lagi, tetapi jurnal yang pernah dibuat tetap tersimpan.</p><div id="kpl">${muat()}</div><div class="act"><button class="btn gh" data-x>Tutup</button><button class="btn" data-add type="button">+ Tambah pengguna</button></div></div>`;
