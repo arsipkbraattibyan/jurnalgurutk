@@ -574,6 +574,7 @@ html:has(#app.lgmode),html:has(#app.lgmode) body{overscroll-behavior-y:none}
 .lgx-card{margin:auto}
 .ptr{position:fixed;left:50%;top:0;width:40px;height:40px;margin-left:-20px;border-radius:50%;background:#fff;color:#1e88e5;box-shadow:0 4px 14px #1e88e555;display:grid;place-items:center;font-size:22px;font-weight:700;z-index:9999;opacity:0;pointer-events:none;transform:translateY(-50px)}
 .ptr.spin{animation:ptrs .7s linear infinite}
+.prs{max-height:420px;overflow-y:auto}.prs th{position:sticky;top:0;z-index:1}.pst{display:inline-block;padding:2px 10px;border-radius:999px;font-weight:800;font-size:12px}.pst.hadir{background:#dcf5e3;color:#14702e}.pst.sakit{background:#fff1c9;color:#8a5a00}.pst.izin{background:#d9ecff;color:#0b5394}.pst.alpha{background:#ffdcdc;color:#b3261e}
 @keyframes ptrs{to{rotate:360deg}}
 #app.lgmode :is(h1,h2,h3,button,input,select){font-family:inherit}
 
@@ -1016,7 +1017,7 @@ f:[TGL,K,TM,{k:'aspek',l:'Elemen CP yang dinilai',t:'sel',o:ELEMEN_CP},
 {k:'tindak',l:'Tindak lanjut',t:'area',o:['Stimulasi tambahan','Pengayaan kegiatan','Pendampingan individu','Koordinasi dengan orang tua','Masuk laporan perkembangan']}],
 t:r=>`${r.jenis||''} - ${r.aspek||''} (${kelTampil(r.kelas)})`},
 kokurikuler:{n:'Jurnal Kegiatan Kokurikuler',no:6,ic:'🎨',per:'Sesuai kegiatan',
-f:[TGL,K,{k:'tema',l:'Tema kegiatan',t:'combo',o:['Aku Sayang Bumi','Aku Cinta Indonesia','Kita Semua Bersaudara','Imajinasiku dan Kreativitasku','Bermain dan Bekerja Sama','Aku Anak Mandiri','Aku Sayang Diriku dan Hidup Sehat','Aku Cinta Keluarga dan Lingkunganku','Kearifan Lokal']},
+f:[TGL,K,{k:'tema',l:'Tema kegiatan',t:'combo',o:['Aku sayang bumi','Aku cinta Indonesia','Kita semua bersaudara','Imajinasiku','Bermain dan bekerja sama','Gaya hidup berkelanjutan','Kearifan lokal']},
 {k:'tujuan',l:'Tujuan kegiatan',t:'txa',ph:'Contoh: Anak belajar merawat tanaman dan peduli pada lingkungan'},{k:'pancacinta',l:'Nilai Panca Cinta',t:'pc',ph:'Pilih nilai Panca Cinta yang ingin ditumbuhkan melalui kegiatan ini (boleh lebih dari satu).'},{k:'dimensi',l:'Dimensi Profil Pelajar Pancasila',t:'sel',o:['Beriman, bertakwa, dan berakhlak mulia','Berkebinekaan global','Bergotong royong','Mandiri','Bernalar kritis','Kreatif']},
 {k:'bentuk',l:'Bentuk kegiatan',t:'sel',o:['Projek kelompok','Karyawisata','Pentas seni','Berkebun bersama','Pameran karya','Kerja bakti kecil','Pembiasaan ibadah']},
 {k:'aktivitas',l:'Aktivitas anak',t:'txa',ph:'Apa yang dilakukan anak selama kegiatan (menanam, bernyanyi, bergotong royong, dst.)'},{k:'peserta',l:'Jumlah anak ikut',t:'sel',o:N(1,30)},{k:'hasil',l:'Hasil kegiatan',t:'sel',o:['Sangat baik','Baik','Cukup','Perlu pendampingan']},{k:'uraianhasil',l:'Uraian hasil kegiatan',t:'txa',opt:1,ph:'Hasil karya, perubahan sikap, atau capaian yang tampak pada anak'},
@@ -2399,7 +2400,21 @@ let PJ=null; // hasil presensi terakhir; nama anak dan status disaring di sini, 
 function presTampil(){const sr=$('#sr'),n=$('#sn'),s=$('#st'),j=PJ;if(!sr||!n||!s||!j||S.view!=='siswa'||SISTAB!=='pres')return;
 if(j.err||j.loading||!j.hari)return sr.innerHTML=presTabel(j,'ap');
 const q=kunci(n.value),st=s.value,rs=j.rows.filter(r=>(!q||kunci(r.nama)===q)&&(!st||(st==='hadir'?r.hadir>0&&r.sakit+r.izin+r.alpha===0:r[st]>0)));
-sr.innerHTML=rs.length?presTabel({...j,rows:rs},'ap'):'<div class="empty" style="padding:16px">Data tidak ditemukan</div>'}
+sr.innerHTML=rs.length?presTabel({...j,rows:rs},'ap'):'<div class="empty" style="padding:16px">Data tidak ditemukan</div>';
+if(q&&rs.length===1)presRinci(rs[0],st)}
+/* rincian tanggal tidak hadir untuk satu anak (dihitung dari catatan Jurnal Kehadiran, tanpa memanggil server baru) */
+const PRL={hadir:'Hadir',sakit:'Sakit',izin:'Izin',alpha:'Alpa'};
+async function presRinci(r,st){const sr=$('#sr');if(!sr)return;let bx=$('#prr');if(!bx){bx=document.createElement('div');bx.id='prr';bx.style.marginTop='16px';sr.appendChild(bx)}
+const tanda=r.nama+'|'+(($('#sb')||{}).value||'')+'|'+(($('#sd')||{}).value||'')+'|'+(($('#ss')||{}).value||'')+'|'+st;bx.dataset.k=tanda;
+if(!ROWS.kehadiran||!SISWA){bx.innerHTML='<p class="sub">Memuat rincian tanggal...</p>';try{await Promise.all([loadSiswa(),ROWS.kehadiran?0:KHmuat()])}catch(e){}if(!bx.isConnected||bx.dataset.k!==tanda)return}
+const b=($('#sb')||{}).value||'',sd=($('#sd')||{}).value||'',ss=($('#ss')||{}).value||'',k=kunci(r.nama),kn=kelNorm(r.kelas),L=[],sw=(SISWA||[]).find(z=>kunci(z.nama)===k&&kelNorm(z.kelas)===kn);
+(ROWS.kehadiran||[]).forEach(x=>{const d=String(x.tanggal).slice(0,10);if(kelNorm(x.kelas)!==kn)return;
+if(sd||ss){if((sd&&d<sd)||(ss&&d>ss))return}else if(b&&d.slice(0,7)!==b)return;
+if(sw&&sw.mulai&&String(sw.mulai).slice(0,10)>d)return;const v=khPeta(x).get(k);if(v&&PRL[v]&&(!['sakit','izin','alpha'].includes(st)||v===st))L.push([d,v])});
+L.sort((a,c)=>a[0]<c[0]?-1:1);
+const hr=d=>new Date(d+'T00:00').toLocaleDateString('id-ID',{weekday:'long'});
+const C={hadir:0,sakit:0,izin:0,alpha:0};L.forEach(x=>C[x[1]]++);
+bx.innerHTML=`<h3 style="margin:0 0 6px;font-size:16px">📅 Rincian kehadiran: ${esc(r.nama)}</h3>`+(L.length?`<p style="margin:0 0 6px">Hadir <b>${C.hadir}</b>, Sakit <b>${C.sakit}</b>, Izin <b>${C.izin}</b>, Alpa <b>${C.alpha}</b> (${L.length} hari tercatat)</p><div class="ov prs"><table class="rt ap"><thead><tr><th>No</th><th>Tanggal</th><th>Hari</th><th>Status</th></tr></thead><tbody>${L.map((x,i)=>`<tr><td class="c">${i+1}</td><td>${tgl(x[0])}</td><td>${hr(x[0])}</td><td><span class="pst ${x[1]}">${PRL[x[1]]}</span></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty" style="padding:16px">Belum ada catatan kehadiran pada periode ini.</div>')}
 function tabSiswa(){{const LP=$('#lap');if(LP)LP.innerHTML=''}document.querySelectorAll('#stb button').forEach(b=>b.classList.toggle('on',b.dataset.t===SISTAB));const sr=$('#sr');sr.onclick=null;
 if(SISTAB==='data'){$('#sfil').innerHTML=`<div class="sf2"><h3 class="sfh">🔎 Filter Data Siswa</h3><div class="sdq"><label for="sq">Cari nama</label><div class="sdrow"><input id="sq" placeholder="Ketik nama anak" autocomplete="off"><button type="button" class="btn y" id="qc">Cari</button><button type="button" class="btn gh" id="qx">Reset</button></div></div>${boleh('siswa.tambah')?'<div class="sdact"><button type="button" class="btn" id="sbaru">➕ Tambah Siswa</button><button type="button" class="btn gh" id="snk">🗂️ Nonaktif</button></div>':''}<div style="flex:1 1 100%">${ukrHtml()}</div><small class="sub sfn"></small></div>`;
 $('#sfil .ukr').onclick=e=>{const b=e.target.closest('[data-ak]');if(b)aksiLap(b.dataset.uk,b.dataset.ak)};
