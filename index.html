@@ -1637,11 +1637,22 @@ f.scrollIntoView({behavior:'smooth',block:h>vh?'start':'nearest'})},60)};
 md._bk=buka;
 fds.forEach(f=>{f.classList.add('acc');const b=document.createElement('button');b.type='button';b.className='ah';b.innerHTML='<span>'+f.querySelector('label').innerHTML+'</span><i></i><em>›</em>';f.prepend(b);segar(f)});
 md._ak=()=>buka(null);
+const gulir=(el,to,dur=650)=>{const s=el.scrollTop,d=to-s;if(Math.abs(d)<4)return;
+if(matchMedia('(prefers-reduced-motion:reduce)').matches){el.scrollTop=to;return}
+const t0=performance.now(),e=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const f=n=>{const p=Math.min(1,(n-t0)/dur);el.scrollTop=s+d*e(p);if(p<1)requestAnimationFrame(f)};
+requestAnimationFrame(f)};
+const gulir=(el,to,dur=650)=>{const s=el.scrollTop,d=to-s;if(Math.abs(d)<4)return;
+if(matchMedia('(prefers-reduced-motion:reduce)').matches){el.scrollTop=to;return}
+const t0=performance.now(),e=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const f=n=>{const p=Math.min(1,(n-t0)/dur);el.scrollTop=s+d*e(p);if(p<1)requestAnimationFrame(f)};
+requestAnimationFrame(f)};
 const lanjut=f=>{const sh=md.querySelector('.sheet.frm');if(!sh)return;
 const kids=[...sh.querySelectorAll('.fg>.fd')],i=kids.indexOf(f);if(i<0)return;
 const nx=kids.slice(i+1).find(g=>g.offsetParent!==null&&(!g.classList.contains('acc')||!val(g)));if(!nx)return;
-setTimeout(()=>{const h=nx.querySelector(':scope>.ah')||nx,a=h.getBoundingClientRect(),b=sh.getBoundingClientRect();
-sh.scrollTo({top:sh.scrollTop+(a.top-b.top)-70,behavior:'smooth'})},320)};
+setTimeout(()=>{const h=nx.querySelector(':scope>.ah')||nx,a=h.getBoundingClientRect(),b=sh.getBoundingClientRect(),H=sh.clientHeight;
+if(a.top>=b.top+H*.12&&a.top<=b.top+H*.5)return;
+gulir(sh,Math.max(0,sh.scrollTop+(a.top-b.top)-H*.35))},350)};
 md.addEventListener('change',e=>{const f=e.target.closest&&e.target.closest('.fd.acc');if(!f)return;segar(f);
 if(e.target.type==='radio'&&!e.target.disabled){buka(null);if(e.target.checked)lanjut(f)}
 else if(e.target.classList&&e.target.classList.contains('ex')&&e.target.tagName==='INPUT'&&e.target.value.trim())lanjut(f)});
