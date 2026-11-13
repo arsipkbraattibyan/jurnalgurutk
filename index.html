@@ -568,6 +568,10 @@ select option,datalist option{background:#fff;color:#2b3a67}
 /* halaman login tidak ikut desain/tema aplikasi: tanpa menu samping, warna dan huruf tetap seperti desain login */
 #app.lgmode{padding:0!important;min-height:0!important;--blue:#1e88e5;--blued:#1565c0;--navy:#243b7b;--ink:#2b3a67;--mut:#6c7aa5;--ln:#cfe6fa;--sh:0 8px 24px #1e88e51f;font-family:'Nunito',system-ui,sans-serif}
 #app.lgmode::before{display:none!important}
+html:has(#app.lgmode),html:has(#app.lgmode) body{overscroll-behavior-y:none}
+.ptr{position:fixed;left:50%;top:0;width:40px;height:40px;margin-left:-20px;border-radius:50%;background:#fff;color:#1e88e5;box-shadow:0 4px 14px #1e88e555;display:grid;place-items:center;font-size:22px;font-weight:700;z-index:9999;opacity:0;pointer-events:none;transform:translateY(-50px)}
+.ptr.spin{animation:ptrs .7s linear infinite}
+@keyframes ptrs{to{rotate:360deg}}
 #app.lgmode :is(h1,h2,h3,button,input,select){font-family:inherit}
 
 /* foto beranda sebagai latar kartu (Ceria Biru, Kindergarten Ceria, Portal Ujian) */
@@ -1631,6 +1635,14 @@ new MutationObserver(()=>{clearTimeout(tm);tm=setTimeout(semua,60)}).observe(doc
 /* kotak pilihan berbentuk <details> (tujuan, indikator, Panca Cinta, KBC): ikut scroll otomatis seperti kotak Tema */
 document.addEventListener('toggle',e=>{const d=e.target;if(!d||d.tagName!=='DETAILS'||!d.open||!d.classList.contains('fd'))return;const sh=d.closest('.sheet');if(!sh)return;
 setTimeout(()=>{const h=d.getBoundingClientRect().height,vh=sh.clientHeight-90;d.scrollIntoView({behavior:'smooth',block:h>vh?'start':'nearest'})},60)},true);
+/* Login: layar tidak ikut bergeser saat ditarik, tapi tarik ke bawah tetap bisa refresh (indikator kecil, bukan menggeser halaman) */
+(()=>{let y0=null,d=0,el=null;const AMBANG=90,login=()=>{const a=document.getElementById('app');return !!a&&a.classList.contains('lgmode')},
+ind=()=>{if(!el){el=document.createElement('div');el.className='ptr';el.textContent='↻';el.setAttribute('aria-hidden','true');document.body.appendChild(el)}return el},
+reset=()=>{y0=null;d=0;if(el&&!el.classList.contains('spin')){el.style.opacity='0';el.style.transform='translateY(-50px)'}};
+document.addEventListener('touchstart',e=>{if(!login()||e.touches.length!==1||(window.scrollY||0)>0||e.target.closest('.dd-l,input,select,textarea'))return;y0=e.touches[0].clientY;d=0},{passive:true});
+document.addEventListener('touchmove',e=>{if(y0===null)return;d=Math.max(0,e.touches[0].clientY-y0);if(!d)return;const k=Math.min(d*.5,AMBANG*.7),n=ind();n.style.opacity=String(Math.min(1,d/AMBANG));n.style.transform='translateY('+(k-10)+'px) rotate('+d*2+'deg)'},{passive:true});
+document.addEventListener('touchend',()=>{if(y0===null)return;if(d>=AMBANG&&login()){const n=ind();n.style.opacity='1';n.style.transform='translateY(20px)';n.classList.add('spin');setTimeout(()=>location.reload(),250)}else reset();y0=null;d=0},{passive:true});
+document.addEventListener('touchcancel',reset,{passive:true})})();
 function akordeon(md){
 const fds=[...md.querySelectorAll('.fd[data-m]')].filter(f=>!(md.id==='pf'&&/^(jenjang|kelas)$/.test((f.querySelector('input[type=hidden]')||{}).name||''))),val=f=>f.querySelector('input[type=hidden]').value,ok=f=>f.style.display!=='none';
 const segar=f=>{const b=f.querySelector('.ah'),v=val(f);b.querySelector('i').textContent=v||'Belum dipilih';b.classList.toggle('kosong',!v)};
