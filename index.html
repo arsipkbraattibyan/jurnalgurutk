@@ -807,7 +807,7 @@ const pct=(a,b)=>b?Math.round(a/b*1000)/10+'%':'-';
 let S={token:null,guru:null,view:'beranda'},ROWS={},tt;
 try{const x=JSON.parse(localStorage.getItem('jg')||'null');if(x){S.token=x.token;S.guru=x.guru}}catch(e){}
 // akun dengan jabatan Kepala sekolah: nama, NIP, dan HP kepala sekolah di data sekolah otomatis mengikuti data pribadinya
-const aplKepsek=()=>{const g=S.guru;if(!g||!(/kepala\s*sekolah/i.test(g.jabatan||'')||g.peran==='kepsek'))return;const n=String(g.nama||'').trim(),p=String(g.nip||'').trim(),h=String(g.telepon||'').trim();if(n&&!String(g.kepsek||'').trim())g.kepsek=n;if(p&&!String(g.nipkepsek||'').trim())g.nipkepsek=p;if(h&&!String(g.hpkepsek||'').trim())g.hpkepsek=h};
+const aplKepsek=()=>{const g=S.guru;if(!g)return;const ks=g.peran==='kepsek';if(!ks&&!/kepala\s*sekolah/i.test(g.jabatan||''))return;if(ks)g.jabatan='Kepala sekolah';const n=String(g.nama||'').trim(),p=String(g.nip||'').trim(),h=String(g.telepon||'').trim();if(n&&(ks||!String(g.kepsek||'').trim()))g.kepsek=n;if(p&&(ks||!String(g.nipkepsek||'').trim()))g.nipkepsek=p;if(h&&(ks||!String(g.hpkepsek||'').trim()))g.hpkepsek=h};
 try{aplKepsek()}catch(e){}
 const simpanSesi=()=>{try{aplKepsek()}catch(e){}try{localStorage.setItem('jg',JSON.stringify({token:S.token,guru:S.guru}))}catch(e){}};
 
@@ -1465,6 +1465,11 @@ ${sek('📞','D. Kontak','Cara menghubungi sekolah.',['telpsekolah','emailsekola
 ${sek('🧑‍💼','E. Kepala sekolah','Nama, NIP, dan nomor HP kepala sekolah (nama tampil di tanda tangan laporan).',['kepsek','nipkepsek','hpkepsek'])}
 <div class="card"><h3>🖼️ F. Identitas visual</h3><div class="fup"><img class="lgprev" id="lgp" src="${logoSek()}" alt=""><div><button class="btn o s" id="lgb" type="button">Unggah / Ganti Logo</button> <button class="btn gh s" id="lgh" type="button"${g.logo?'':' style="display:none"'}>Pakai logo bawaan</button> <button class="btn o s" id="lgz" type="button"${g.logo?'':' style="display:none"'}>Unduh paket ikon aplikasi</button><input type="file" id="lgi" accept="image/*" style="display:none"><p class="sub" style="font-size:12px;margin-top:6px">Logo sekolah. Tampil di pojok kiri atas dan kop laporan. Logo langsung tersimpan setelah dipilih, tanpa menunggu tombol Simpan Identitas.</p></div></div></div></div>
 <div class="act"><button class="btn y" id="sv">Simpan Identitas</button></div></div><div id="lap" class="hid"></div>`;
+if(S.guru&&S.guru.peran==='kepsek'){ // akun kepala sekolah: kartu Kepala sekolah di data sekolah mengikuti data pribadi dan jabatan
+const pfx=$('#pf'),el=n=>pfx.querySelector('[name='+n+']'),peta=[['nama','kepsek'],['nip','nipkepsek'],['telepon','hpkepsek']];
+const sj=el('jabatan');if(sj){sj.value='Kepala sekolah'}
+const sinkron=()=>peta.forEach(([a,b])=>{const x=el(a),y=el(b);if(x&&y){const v=String(x.value||'').trim();if(v)y.value=v;y.readOnly=true;y.title='Otomatis dari Data pribadi'}});
+sinkron();peta.forEach(([a])=>{const x=el(a);if(x)['input','change'].forEach(ev=>x.addEventListener(ev,sinkron))})}
 const cards=[...$('#pf').children];cards.forEach((c,i)=>c.dataset.g=[0,1,2,3].includes(i)?'guru':'sekolah');
 if(!boleh('sekolah.ubah'))cards.filter(c=>c.dataset.g==='sekolah').forEach(c=>{c.querySelectorAll('input,select,textarea').forEach(x=>{x.disabled=true});c.querySelectorAll('#lgb,#lgh,#lgz').forEach(x=>{x.style.display='none'});c.title='Hanya Admin Sekolah yang dapat mengubah data sekolah'}); // tampilan saja; server tetap memeriksa izin 'sekolah.ubah'
 const fl=()=>{const j=nilai('dj')||'guru';cards.forEach(c=>c.style.display=(j==='semua'||c.dataset.g===j)?'':'none');const ak=$('#akc');if(ak)ak.style.display=j==='guru'?'none':''}; // Pengaturan Akademik milik sekolah: tampil di Data sekolah dan Data guru + sekolah
