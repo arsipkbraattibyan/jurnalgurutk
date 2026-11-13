@@ -2212,7 +2212,8 @@ return`<div class="paper"><div class="kop"><img class="kl" src="${logoSek()}" al
 ${bag}
 <div class="ttd"><div><p>Mengetahui,<br>Kepala ${esc(g.sekolah||'sekolah')}</p><div class="sp"></div><b><u>${esc(g.kepsek||'..............................')}</u></b></div>
 <div><p>${esc(kotaTtd(g))}, ${today}<br>Guru ${esc(kelTampil(g.kelas)||'kelompok')}</p><div class="sp"></div><b><u>${esc(g.nama)}</u></b></div></div></div>`}
-function sdDetail(i){const r=SD.rows[i],md=document.createElement('div');md.className='md';
+function sdDetail(i){try{return sdDetail0(i)}catch(e){console.error(e);toast('Lembar detail gagal dibuka: '+((e&&e.message)||e),1)}}
+function sdDetail0(i){const r=SD.rows[i],md=document.createElement('div');md.className='md';
 const g=[[],[],[],[]];SD.kolom.forEach((k,n)=>g[sdGrup(k)].push(n));
 const nilaiHtml=(k,v)=>{const t=sdv(k,v);return sdTel(k)&&t!=='-'&&/^[+\d][\d\s\-+]{6,}$/.test(t)?`<a href="tel:${esc(t.replace(/[\s-]/g,''))}">${esc(t)}</a>`:esc(t)};
 const lk=!!(SD.lokal&&SD.lokal[i]),lid=(SD.lokalId&&SD.lokalId[i])||'',rp=(SD.pindah&&SD.pindah[i])||[];
