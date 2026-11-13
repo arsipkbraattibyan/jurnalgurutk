@@ -899,24 +899,24 @@ html[data-tema=coretax] .cu span{display:none}}
 @media(prefers-reduced-motion:reduce){html[data-tema=coretax] *{transition:none!important}}
 @media print{html[data-tema=coretax] body{background:#fff}}
 
-/* ===== Desain 6: Sekolah Modern (rel ikon terang yang melebar saat disentuh, latar hangat, aksen tosca, kartu bento, dock terang di HP) ===== */
+/* ===== Desain 6: Sekolah Modern (menu samping terang yang selalu tampak, latar hangat, aksen tosca, kartu bento, dock terang di HP) ===== */
 html[data-tema=modern]{--blue:#0d9488;--blued:#0b756b;--navy:#0f172a;--yel:#f59e0b;--pink:#f43f5e;--grn:#10b981;--ink:#1e293b;--mut:#64748b;--ln:#e8e6df;--soft:#e6f7f4;--sh:0 1px 2px #0f172a0a,0 10px 30px #0f172a0a;--sh2:0 16px 40px #0f172a1c}
 html[data-tema=modern] body{background:radial-gradient(900px 420px at 8% -6%,#d9f3ee 0,#d9f3ee00 70%),radial-gradient(700px 380px at 100% 0,#fdf0d2 0,#fdf0d200 70%),#f7f6f2 fixed;font-family:'Inter','Plus Jakarta Sans',system-ui,sans-serif;font-size:15px;line-height:1.55;color:var(--ink)}
 html[data-tema=modern] :is(h1,h2,h3,.btn,.nv,.pad button,.pg b,.tabs button,.stp2,.sti b,.dn span,.bdg,.sheet h2,.pt,.sec){font-family:'Sora','Inter',system-ui,sans-serif}
 html[data-tema=modern] :focus-visible{outline:3px solid #0d948855;outline-offset:2px}
-html[data-tema=modern] #app{padding:18px 26px 40px 118px;min-height:100vh}
+html[data-tema=modern] #app{padding:18px 26px 40px 296px;min-height:100vh}
 html[data-tema=modern] .top{display:contents}
 html[data-tema=modern] .brand{position:fixed;left:18px;top:18px;z-index:12;width:240px;height:78px;padding:17px 0 0 16px;gap:12px;pointer-events:none;overflow:hidden}
 html[data-tema=modern] .brand img.lg{height:44px;width:44px;object-fit:contain;background:#fff;border:1px solid var(--ln);border-radius:14px;padding:4px;flex:none}
-html[data-tema=modern] .brand>div{opacity:0;transition:opacity .2s;white-space:nowrap}
+html[data-tema=modern] .brand>div{opacity:1;white-space:nowrap}
 html[data-tema=modern] #app:has(.menu:hover) .brand>div,html[data-tema=modern] #app:has(.menu:focus-within) .brand>div{opacity:1}
 html[data-tema=modern] .brand b{font:700 15px/1.15 'Sora',sans-serif;color:var(--navy)}html[data-tema=modern] .brand small{color:var(--blued);font-weight:600;font-size:10px;letter-spacing:.6px;display:block;max-width:150px;overflow:hidden;text-overflow:ellipsis}
-html[data-tema=modern] .menu{position:fixed;left:18px;top:18px;bottom:18px;width:80px;z-index:11;display:flex;flex-direction:column;flex-wrap:nowrap;justify-content:flex-start;align-items:stretch;gap:3px;margin:0;max-width:none;padding:92px 14px 12px;border-radius:30px;background:#fff;border:1px solid var(--ln);box-shadow:var(--sh2);overflow-x:hidden;overflow-y:auto;scrollbar-width:none;transition:width .25s cubic-bezier(.3,.8,.3,1),box-shadow .25s}
+html[data-tema=modern] .menu{position:fixed;left:18px;top:18px;bottom:18px;width:250px;z-index:11;display:flex;flex-direction:column;flex-wrap:nowrap;justify-content:flex-start;align-items:stretch;gap:3px;margin:0;max-width:none;padding:92px 14px 12px;border-radius:30px;background:#fff;border:1px solid var(--ln);box-shadow:var(--sh2);overflow-x:hidden;overflow-y:auto;scrollbar-width:none;transition:width .25s cubic-bezier(.3,.8,.3,1),box-shadow .25s}
 html[data-tema=modern] .menu::-webkit-scrollbar{display:none}
-html[data-tema=modern] .menu:hover,html[data-tema=modern] .menu:focus-within{width:250px;box-shadow:0 24px 60px #0f172a26}
+html[data-tema=modern] .menu:hover,html[data-tema=modern] .menu:focus-within{width:250px}
 html[data-tema=modern] .nv{overflow:hidden;display:flex;flex-direction:row;align-items:center;gap:12px;width:100%;max-width:none;min-width:0;height:48px;flex:none;padding:0 4px;border:0;border-radius:16px;background:none;color:#5b6b80;font:500 13.5px 'Inter',sans-serif;text-align:left;white-space:nowrap;transition:background .15s,color .15s}
 html[data-tema=modern] .nv .ni{display:grid;place-items:center;width:40px;height:40px;margin:0;font-size:18px;border-radius:13px;background:#f1f6f4;flex:none}
-html[data-tema=modern] .nv span{opacity:0;transition:opacity .15s}
+html[data-tema=modern] .nv span{opacity:1;min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:13px}
 html[data-tema=modern] .menu:hover .nv span,html[data-tema=modern] .menu:focus-within .nv span{opacity:1}
 html[data-tema=modern] .nv:hover{background:#f1f7f5;color:var(--navy)}
 html[data-tema=modern] .nv.on{background:linear-gradient(135deg,#14b8a6,#0d9488);color:#fff;font-weight:700;box-shadow:0 8px 20px #0d948866}
@@ -3287,7 +3287,7 @@ const TM3=[['ceria','Ceria Biru','Desain bawaan: biru, kuning, dan hijau yang ce
 ['belajar','LMS Sekolah','Menu samping biru tua, kartu putih rapi, dan kartu ringkasan pastel ala dashboard Learning Management System.',['#0c2a72','#2f6df0','#22b573','#f5a623'],'linear-gradient(90deg,#0c2a72 28%,#eef3fc 28%)'],
 ['ujian','Portal Ujian','Modern dan cerah: menu samping putih dengan ikon warna-warni, banner biru langit, kartu menu besar dengan tombol yang jelas.',['#1676e6','#16a05a','#7c4de0','#ffb020'],'linear-gradient(90deg,#fff 28%,#d9ecff 28%)'],
 ['coretax','Coretax','Gaya portal layanan resmi: bilah atas biru tua dengan garis oranye, menu samping putih, kartu layanan rapi, dan tabel datar.',['#0a2a66','#1b56b7','#f28c28','#1f9d55'],'linear-gradient(180deg,#0a2a66 24%,#f2f5fa 24%)'],
-['modern','Sekolah Modern','Terang dan segar: rel ikon ramping yang melebar saat disentuh, latar krem hangat, aksen tosca dan kuning, kartu gaya bento. Di HP berubah jadi dock di bawah.',['#0d9488','#f59e0b','#10b981','#f43f5e'],'linear-gradient(90deg,#fff 14%,#e3f6f1 14%,#fff6dc 100%)']];
+['modern','Sekolah Modern','Terang dan segar: menu samping putih yang selalu tampak lengkap dengan nama menu, latar krem hangat, aksen tosca dan kuning, kartu gaya bento. Di HP berubah jadi dock di bawah.',['#0d9488','#f59e0b','#10b981','#f43f5e'],'linear-gradient(90deg,#fff 28%,#e3f6f1 28%,#fff6dc 100%)']];
 $('#main').innerHTML=`<div class="card"><h3>🎨 Ganti desain</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Pilih tampilan aplikasi. Pilihan tersimpan di perangkat ini.</p>
 <div class="tmg" id="tmg">${TM3.map(([v,n,k,c,bg])=>`<button type="button" class="tmc${SET.tema===v?' on':''}" data-tm="${v}"><div class="tmv" style="background:${bg}">${c.map((x,i)=>`<i style="background:${x};height:${[70,46,58,34][i]}%"></i>`).join('')}</div><b>${n}</b><small>${k}</small></button>`).join('')}</div></div>
 <div class="card"><h3>🖼️ Foto beranda</h3><p class="sub" style="font-size:13px;margin:-6px 0 12px">Pasang foto sendiri (misalnya foto sekolah atau kelas) sebagai latar kartu beranda. Berlaku untuk semua desain kecuali LMS Sekolah. Tersimpan di perangkat ini.${SET.tema==='belajar'?' Desain LMS Sekolah tidak menampilkan gambar di kartu beranda.':''}</p>
