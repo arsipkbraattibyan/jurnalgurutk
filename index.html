@@ -2398,12 +2398,14 @@ try{const j=await api('dataSiswa',{kelas:klf()||nilai('sk')});cSet(kc,j);if(S.vi
 catch(e){if(!cd&&S.view==='siswa'&&SISTAB==='data')$('#sr').innerHTML=`<div class="empty">${esc(/tidak dikenal/i.test(e.message)?'Backend belum diperbarui. Pasang Code.gs versi terbaru lalu Deploy > Manage deployments > Edit > Version baru.':e.message)}</div>`}}
 let PJ=null; // hasil presensi terakhir; nama anak dan status disaring di sini, tanpa memanggil server lagi
 function presTampil(){const sr=$('#sr'),n=$('#sn'),s=$('#st'),j=PJ;if(!sr||!n||!s||!j||S.view!=='siswa'||SISTAB!=='pres')return;
-if(j.err||j.loading||!j.hari)return sr.innerHTML=presTabel(j,'ap');
+if(j.err||j.loading||!j.hari){presBersih();return sr.innerHTML=presTabel(j,'ap')}
 const q=kunci(n.value),st=s.value,rs=j.rows.filter(r=>(!q||kunci(r.nama)===q)&&(!st||(st==='hadir'?r.hadir>0&&r.sakit+r.izin+r.alpha===0:r[st]>0)));
 sr.innerHTML=rs.length?presTabel({...j,rows:rs},'ap'):'<div class="empty" style="padding:16px">Data tidak ditemukan</div>';
-if(q&&rs.length===1)presRinci(rs[0],st)}
+if(q&&rs.length===1)presRinci(rs[0],st);else presBersih()}
 /* rincian tanggal tidak hadir untuk satu anak (dihitung dari catatan Jurnal Kehadiran, tanpa memanggil server baru) */
 const PRL={hadir:'Hadir',sakit:'Sakit',izin:'Izin',alpha:'Alpa'};
+let PRN='';
+function presBersih(){PRN='';const l=$('#lap');if(l)l.innerHTML='';const u=$('#pku');if(u)u.style.display='none'}
 async function presRinci(r,st){const sr=$('#sr');if(!sr)return;let bx=$('#prr');if(!bx){bx=document.createElement('div');bx.id='prr';bx.style.marginTop='16px';sr.appendChild(bx)}
 const tanda=r.nama+'|'+(($('#sb')||{}).value||'')+'|'+(($('#sd')||{}).value||'')+'|'+(($('#ss')||{}).value||'')+'|'+st;bx.dataset.k=tanda;
 if(!ROWS.kehadiran||!SISWA){bx.innerHTML='<p class="sub">Memuat rincian tanggal...</p>';try{await Promise.all([loadSiswa(),ROWS.kehadiran?0:KHmuat()])}catch(e){}if(!bx.isConnected||bx.dataset.k!==tanda)return}
@@ -2414,13 +2416,27 @@ if(sw&&sw.mulai&&String(sw.mulai).slice(0,10)>d)return;const v=khPeta(x).get(k);
 L.sort((a,c)=>a[0]<c[0]?-1:1);
 const hr=d=>new Date(d+'T00:00').toLocaleDateString('id-ID',{weekday:'long'});
 const C={hadir:0,sakit:0,izin:0,alpha:0};L.forEach(x=>C[x[1]]++);
-bx.innerHTML=`<h3 style="margin:0 0 6px;font-size:16px">📅 Rincian kehadiran: ${esc(r.nama)}</h3>`+(L.length?`<p style="margin:0 0 6px">Hadir <b>${C.hadir}</b>, Sakit <b>${C.sakit}</b>, Izin <b>${C.izin}</b>, Alpa <b>${C.alpha}</b> (${L.length} hari tercatat)</p><div class="ov prs"><table class="rt ap"><thead><tr><th>No</th><th>Tanggal</th><th>Hari</th><th>Status</th></tr></thead><tbody>${L.map((x,i)=>`<tr><td class="c">${i+1}</td><td>${tgl(x[0])}</td><td>${hr(x[0])}</td><td><span class="pst ${x[1]}">${PRL[x[1]]}</span></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty" style="padding:16px">Belum ada catatan kehadiran pada periode ini.</div>')}
+bx.innerHTML=`<h3 style="margin:0 0 6px;font-size:16px">📅 Rincian kehadiran: ${esc(r.nama)}</h3>`+(L.length?`<p style="margin:0 0 6px">Hadir <b>${C.hadir}</b>, Sakit <b>${C.sakit}</b>, Izin <b>${C.izin}</b>, Alpa <b>${C.alpha}</b> (${L.length} hari tercatat)</p><div class="ov prs"><table class="rt ap"><thead><tr><th>No</th><th>Tanggal</th><th>Hari</th><th>Status</th></tr></thead><tbody>${L.map((x,i)=>`<tr><td class="c">${i+1}</td><td>${tgl(x[0])}</td><td>${hr(x[0])}</td><td><span class="pst ${x[1]}">${PRL[x[1]]}</span></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty" style="padding:16px">Belum ada catatan kehadiran pada periode ini.</div>')
+PRN=r.nama;const lp=$('#lap');if(lp)lp.innerHTML=presPaper(r,L,C,st);const pk=$('#pku');if(pk)pk.style.display='';}
+function presPaper(r,L,C,st){const g=S.guru,today=new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}),
+b=($('#sb')||{}).value||'',sd=($('#sd')||{}).value||'',ss=($('#ss')||{}).value||'',
+per=(sd||ss)?(sd?tgl(sd):'awal')+' s.d. '+(ss?tgl(ss):'sekarang'):(b?blnNama(b):'Seluruh periode'),
+fl=['sakit','izin','alpha'].includes(st)?' (hanya status '+PRL[st]+')':'',
+idn=[['Nama anak',r.nama],['Kelompok',kelTampil(r.kelas)||'-'],['Guru kelas',g.nama],['Sekolah',g.sekolah]],
+hr=d=>new Date(d+'T00:00').toLocaleDateString('id-ID',{weekday:'long'}),tot=C.hadir+C.sakit+C.izin+C.alpha;
+return`<div class="paper"><div class="kop"><img class="kl" src="${logoSek()}" alt=""><div class="kt"><h2>${esc((g.sekolah||'NAMA SEKOLAH').toUpperCase())}</h2><p>${esc(g.jenjang||'')}${g.npsn?' - NPSN '+esc(g.npsn):''}</p>${alamatSek(g)?`<p>${esc(alamatSek(g))}${g.telpsekolah?' | Telp. '+esc(g.telpsekolah):''}</p>`:''}</div></div>
+<h1 class="jd">REKAP KEHADIRAN ANAK</h1><p class="sj">Tahun ajaran ${esc(g.tahun||'-')}, semester ${esc(g.semester||'-')}<br>Periode: ${esc(per)}${fl}</p>
+<h3>A. Identitas anak</h3><table class="rt id">${idn.map(x=>`<tr><td>${x[0]}</td><td>${esc(x[1]||'-')}</td></tr>`).join('')}</table>
+<h3>B. Ringkasan kehadiran</h3><table class="rt sm"><thead><tr><th>Hari tercatat</th><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Alpa</th><th>Persentase hadir</th></tr></thead><tbody><tr><td class="c">${tot}</td><td class="c">${C.hadir}</td><td class="c">${C.sakit}</td><td class="c">${C.izin}</td><td class="c">${C.alpha}</td><td class="c">${pct(C.hadir,tot)}</td></tr></tbody></table>
+<h3>C. Rincian kehadiran per tanggal</h3><div class="ov"><table class="rt"><thead><tr><th>No</th><th>Tanggal</th><th>Hari</th><th>Status</th></tr></thead><tbody>${L.length?L.map((x,i)=>`<tr><td class="c">${i+1}</td><td>${tgl(x[0])}</td><td>${hr(x[0])}</td><td>${PRL[x[1]]}</td></tr>`).join(''):'<tr><td class="c" colspan="4">Belum ada catatan kehadiran pada periode ini.</td></tr>'}</tbody></table></div>
+<div class="ttd"><div><p>Mengetahui,<br>Kepala ${esc(g.sekolah||'sekolah')}</p><div class="sp"></div><b><u>${esc(g.kepsek||'..............................')}</u></b></div>
+<div><p>${esc(kotaTtd(g))}, ${today}<br>Guru ${esc(kelTampil(g.kelas)||'kelompok')}</p><div class="sp"></div><b><u>${esc(g.nama)}</u></b></div></div></div>`}
 function tabSiswa(){{const LP=$('#lap');if(LP)LP.innerHTML=''}document.querySelectorAll('#stb button').forEach(b=>b.classList.toggle('on',b.dataset.t===SISTAB));const sr=$('#sr');sr.onclick=null;
 if(SISTAB==='data'){$('#sfil').innerHTML=`<div class="sf2"><h3 class="sfh">🔎 Filter Data Siswa</h3><div class="sdq"><label for="sq">Cari nama</label><div class="sdrow"><input id="sq" placeholder="Ketik nama anak" autocomplete="off"><button type="button" class="btn y" id="qc">Cari</button><button type="button" class="btn gh" id="qx">Reset</button></div></div>${boleh('siswa.tambah')?'<div class="sdact"><button type="button" class="btn" id="sbaru">➕ Tambah Siswa</button><button type="button" class="btn gh" id="snk">🗂️ Nonaktif</button></div>':''}<div style="flex:1 1 100%">${ukrHtml()}</div><small class="sub sfn"></small></div>`;
 $('#sfil .ukr').onclick=e=>{const b=e.target.closest('[data-ak]');if(b)aksiLap(b.dataset.uk,b.dataset.ak)};
 if($('#sbaru'))$('#sbaru').onclick=sdBaru;if($('#snk'))$('#snk').onclick=sdNonaktif;
 $('#sq').oninput=renderDataSiswa;$('#qc').onclick=renderDataSiswa;$('#qx').onclick=()=>{$('#sq').value='';renderDataSiswa()};sr.onclick=e=>{const t=e.target.closest('[data-i]');if(t)sdDetail(+t.dataset.i)};muatDataSiswa()}
-else if(SISTAB==='pres'){$('#sfil').innerHTML=`<div class="filt sf"><h3 class="sfh">🔎 Filter Presensi</h3><div class="fd"><label for="sb">Bulan dan tahun</label><input type="month" id="sb" value="${hari().slice(0,7)}"></div><div class="fd h"><label for="sd">Dari tanggal</label><input type="date" id="sd"></div><div class="fd h"><label for="ss">Sampai tanggal</label><input type="date" id="ss"></div><div class="fd"><label for="sn">Nama anak</label><select id="sn"><option value="">Semua anak</option></select></div><div class="fd"><label for="st">Status presensi</label><select id="st"><option value="">Semua</option><option value="sakit">Pernah sakit</option><option value="izin">Pernah izin</option><option value="alpha">Pernah tanpa keterangan</option><option value="hadir">Selalu hadir</option></select></div><div class="fd bt"><button type="button" class="btn y" id="sc">Cari</button><button type="button" class="btn gh" id="sx">Reset</button></div><small class="sub sfn"></small></div>`;
+else if(SISTAB==='pres'){$('#sfil').innerHTML=`<div class="filt sf"><h3 class="sfh">🔎 Filter Presensi</h3><div class="fd"><label for="sb">Bulan dan tahun</label><input type="month" id="sb" value="${hari().slice(0,7)}"></div><div class="fd h"><label for="sd">Dari tanggal</label><input type="date" id="sd"></div><div class="fd h"><label for="ss">Sampai tanggal</label><input type="date" id="ss"></div><div class="fd"><label for="sn">Nama anak</label><select id="sn"><option value="">Semua anak</option></select></div><div class="fd"><label for="st">Status presensi</label><select id="st"><option value="">Semua</option><option value="sakit">Pernah sakit</option><option value="izin">Pernah izin</option><option value="alpha">Pernah tanpa keterangan</option><option value="hadir">Selalu hadir</option></select></div><div class="fd bt"><button type="button" class="btn y" id="sc">Cari</button><button type="button" class="btn gh" id="sx">Reset</button></div><div id="pku" style="flex:1 1 100%;display:none">${ukrHtml()}</div><small class="sub sfn"></small></div>`;
 PJ=null;const sb=$('#sb'),sd=$('#sd'),ss=$('#ss'),kl=()=>klf()||nilai('sk')||'';
 const rg=()=>!!(sd.value||ss.value),kc=()=>rg()?'pr_r'+sd.value+'_'+ss.value+'_'+kl():'pr_'+sb.value+'_'+kl();
 const prm=()=>rg()?{dari:sd.value,sampai:ss.value,kelas:kl()}:{bulan:sb.value,kelas:kl()};
@@ -2431,7 +2447,7 @@ try{const j=await api('presensi',prm());cSet(c,j);if(S.view==='siswa'&&SISTAB===
 catch(e){if(!cd&&S.view==='siswa'&&SISTAB==='pres')sr.innerHTML=`<div class="empty">${esc(e.message)}</div>`}};
 sb.onchange=()=>{sd.value='';ss.value='';ld()};
 sd.onchange=ss.onchange=()=>{if(rg())sb.value='';ld()};
-$('#sn').onchange=presTampil;$('#st').onchange=presTampil;$('#sc').onclick=ld;
+$('#sn').onchange=presTampil;$('#st').onchange=presTampil;$('#sc').onclick=ld;$('#pku .ukr').onclick=e=>{const b=e.target.closest('[data-ak]');if(b)aksiLap(b.dataset.uk,b.dataset.ak)};
 $('#sx').onclick=()=>{sb.value=hari().slice(0,7);sd.value=ss.value='';$('#sn').value='';$('#st').value='';ld()};
 ld()}else galeriSiswa()}
 /* ===== Kehadiran otomatis + manual =====
@@ -2750,6 +2766,7 @@ const url=URL.createObjectURL(blob);unduh(url,nama+'.docx');setTimeout(()=>URL.r
 const nmGuru=()=>String((S.guru&&S.guru.nama)||'guru').replace(/[^\w]+/g,'_');
 function namaBerkas(u,ak){return namaBerkas0(u).replace(/-(A4|HVS)$/,ak==='xls'?'':'$&')}
 function namaBerkas0(u){if(S.view==='kalender')return'Kalender-Pendidikan-'+String((S.guru&&S.guru.tahun)||'').replace(/[^\w]+/g,'_')+'-'+u.n;
+if(S.view==='siswa'&&SISTAB==='pres')return'Kehadiran-'+String(PRN||'anak').replace(/[^\w]+/g,'_')+'-'+u.n;
 if(S.view==='siswa')return'Data-Siswa-'+String(klf()||nilai('sk')||'Semua').replace(/[^\w]+/g,'_')+'-'+u.n;
 if(S.view==='portofolio')return'Portofolio-'+String(S.pfNama||'anak').replace(/[^\w]+/g,'_')+'-'+u.n;
 if(S.view==='identitas')return'Data-'+({guru:'Guru',sekolah:'Sekolah',semua:'Guru-dan-Sekolah'}[nilai('dj')]||'Data')+'-'+nmGuru()+'-'+u.n;
