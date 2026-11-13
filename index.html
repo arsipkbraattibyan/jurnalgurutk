@@ -1628,6 +1628,9 @@ semua=()=>document.querySelectorAll('.sheet textarea').forEach(tumbuh);let tm=0;
 document.addEventListener('input',e=>tumbuh(e.target));document.addEventListener('focusin',e=>tumbuh(e.target));
 document.addEventListener('click',()=>setTimeout(semua,90));window.addEventListener('resize',()=>setTimeout(semua,90));
 new MutationObserver(()=>{clearTimeout(tm);tm=setTimeout(semua,60)}).observe(document.body,{childList:true,subtree:true})})();
+/* kotak pilihan berbentuk <details> (tujuan, indikator, Panca Cinta, KBC): ikut scroll otomatis seperti kotak Tema */
+document.addEventListener('toggle',e=>{const d=e.target;if(!d||d.tagName!=='DETAILS'||!d.open||!d.classList.contains('fd'))return;const sh=d.closest('.sheet');if(!sh)return;
+setTimeout(()=>{const h=d.getBoundingClientRect().height,vh=sh.clientHeight-90;d.scrollIntoView({behavior:'smooth',block:h>vh?'start':'nearest'})},60)},true);
 function akordeon(md){
 const fds=[...md.querySelectorAll('.fd[data-m]')].filter(f=>!(md.id==='pf'&&/^(jenjang|kelas)$/.test((f.querySelector('input[type=hidden]')||{}).name||''))),val=f=>f.querySelector('input[type=hidden]').value,ok=f=>f.style.display!=='none';
 const segar=f=>{const b=f.querySelector('.ah'),v=val(f);b.querySelector('i').textContent=v||'Belum dipilih';b.classList.toggle('kosong',!v)};
