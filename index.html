@@ -1999,8 +1999,11 @@ if(t.name==='kelas'||t.name==='nama')setTimeout(gDok,0)});
 md._dokSimpan=async(b,list,d)=>{
 for(const p of PH)if(!p.a.length)throw new Error('Pilih minimal satu anak pada setiap foto dokumentasi');
 if(list&&k==='perkembangan'){const dn=new Set(list.map(x=>x.nama));for(const p of PH){const luar=p.a.filter(n=>!dn.has(n)&&!(p.pre||[]).includes(n));if(luar.length)throw new Error('Pilih tingkat capaian untuk '+luar.join(', ')+' agar fotonya ikut tersimpan')}}
-const baru=PH.filter(p=>p.b64);let i=0;
-for(const p of baru){i++;b.textContent=`Mengunggah foto ${i}/${baru.length}...`;const j=await api('unggahLampiran',{b64:p.b64.split(',')[1]});p.id=j.id;delete p.b64}
+const baru=PH.filter(p=>p.b64);
+if(baru.length){b.textContent=baru.length>1?`Mengunggah ${baru.length} foto...`:'Mengunggah foto...';let gagal=null;
+const hs=await Promise.allSettled(baru.map(p=>api('unggahLampiran',{b64:p.b64.split(',')[1]})));
+hs.forEach((r,i)=>{if(r.status==='fulfilled'){baru[i].id=r.value.id;delete baru[i].b64}else gagal=gagal||r.reason}); // yang sudah terunggah tidak diunggah ulang
+if(gagal)throw gagal}
 b.textContent='Menyimpan...';
 const paket=ps=>({foto:ps.map(p=>p.id).join(' '),info:ps.length?JSON.stringify(ps.map(p=>({t:p.t,k:p.k,a:p.a}))):''});
 if(list&&k==='perkembangan')list.forEach(x=>{const q=paket(PH.filter(p=>p.a.includes(x.nama)));x.foto=q.foto;if(q.info)x.fotoinfo=q.info});
