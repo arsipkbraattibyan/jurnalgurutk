@@ -2202,9 +2202,11 @@ function sdv(l,v){v=String(v||'').trim();if(!v)return'-';if(l==='Kelompok')retur
 function sdCols(){const used=new Set();return SDF.map(([l,res,ex])=>{let i=-1;for(const re of res){i=SD.kolom.findIndex((k,n)=>!used.has(n)&&re.test(k)&&!(ex&&ex.test(k)));if(i>=0)break}if(i>=0)used.add(i);return{l,i}}).filter(c=>c.i>=0)}
 /* data satu anak (biodata) untuk Cetak / PDF / Excel / Word, mengikuti pola portofolio anak */
 let PDN='';
-function sdPaperAnak(i){const r=SD.rows[i],g=S.guru,nm=String(r[SD.iNama]||''),today=new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}),
+// pilihan sertakan foto anak pada cetak/simpan (diingat di perangkat; bawaan: dengan foto)
+function sdFotoPref(v){try{if(v===undefined)return localStorage.getItem('jgsdfp')!=='0';localStorage.setItem('jgsdfp',v?'1':'0')}catch(e){return true}}
+function sdPaperAnak(i,tf){const r=SD.rows[i],g=S.guru,nm=String(r[SD.iNama]||''),today=new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}),
 kc=sdCols().find(x=>x.l==='Kelompok'),kl=kc?sdv('Kelompok',r[kc.i]):'-',G=[[],[],[],[]];SD.kolom.forEach((k,n)=>G[sdGrup(k)].push(n));
-const tb=a=>`<table class="rt id">${a.map(n=>`<tr><td>${esc(SD.kolom[n])}</td><td>${esc(sdv(SD.kolom[n],r[n]))}</td></tr>`).join('')}</table>`,fo=faGet(nm);let hr=0;
+const tb=a=>`<table class="rt id">${a.map(n=>`<tr><td>${esc(SD.kolom[n])}</td><td>${esc(sdv(SD.kolom[n],r[n]))}</td></tr>`).join('')}</table>`,fo=tf===false?'':faGet(nm);let hr=0;
 const bag=SDG.map(([jd],gi)=>{if(!G[gi].length)return'';const hd='ABCD'[hr++]+'. '+jd.replace(/^[^\p{L}]+/u,''),t=tb(G[gi]);
 return`<h3>${esc(hd)}</h3>`+((gi===0&&fo)?`<div class="pfr fa"><div class="pfw"><img src="${esc(fo)}" alt="Foto ${esc(nm)}"></div><div class="pfd">${t}</div></div>`:t)}).join('\n');
 return`<div class="paper"><div class="kop"><img class="kl" src="${logoSek()}" alt=""><div class="kt"><h2>${esc((g.sekolah||'NAMA SEKOLAH').toUpperCase())}</h2><p>${esc(g.jenjang||'')}${g.npsn?' - NPSN '+esc(g.npsn):''}</p>${alamatSek(g)?`<p>${esc(alamatSek(g))}${g.telpsekolah?' | Telp. '+esc(g.telpsekolah):''}</p>`:''}</div></div>
@@ -2218,9 +2220,9 @@ const g=[[],[],[],[]];SD.kolom.forEach((k,n)=>g[sdGrup(k)].push(n));
 const nilaiHtml=(k,v)=>{const t=sdv(k,v);return sdTel(k)&&t!=='-'&&/^[+\d][\d\s\-+]{6,}$/.test(t)?`<a href="tel:${esc(t.replace(/[\s-]/g,''))}">${esc(t)}</a>`:esc(t)};
 const lk=!!(SD.lokal&&SD.lokal[i]),lid=(SD.lokalId&&SD.lokalId[i])||'',rp=(SD.pindah&&SD.pindah[i])||[];
 const nmA=String(r[SD.iNama]||''),klA=(()=>{const c=sdCols().find(x=>x.l==='Kelompok');return c?sdv('Kelompok',r[c.i]):''})();
-md.innerHTML=`<div class="sheet"><div class="sdhd"><span class="sav" id="sdav" style="position:relative">${faHtml(nmA)}</span><div><h2>${esc(nmA)}</h2>${klA&&klA!=='-'?`<span class="bdg">${esc(klA)}</span>`:''}</div></div>${boleh('siswa.ubah')&&ngajar()?`<div class="sdfo"><button type="button" class="btn gh" data-fo><span>📷</span>${faGet(nmA)?'Ganti foto':'Tambah foto'}</button>${faGet(nmA)?'<button type="button" class="btn gh" data-fh><span>🗑️</span>Hapus foto</button>':''}<input type="file" accept="image/*" id="sdfi" hidden></div><p class="sub" style="font-size:12px;margin:0">Foto tersimpan di server dan tampil di semua perangkat.</p>`:'<p class="sub" style="font-size:12px;margin:0">Foto hanya dapat diubah oleh admin atau guru kelompok ini. Akun Kepala Sekolah hanya dapat melihat.</p>'}${SDG.map(([jd],gi)=>g[gi].length?`<h3 class="sdh">${jd}</h3><div class="dl">${g[gi].map(n=>`<div><small>${esc(SD.kolom[n])}</small><b>${nilaiHtml(SD.kolom[n],r[n])}</b></div>`).join('')}</div>`:'').join('')}${lk&&rp.length?`<h3 class="sdh">🔁 Riwayat kelompok</h3><div class="dl">${rp.map(x=>`<div><small>Efektif ${esc(tgl(x.efektif))}</small><b>${esc(x.dari)} → ${esc(x.ke)}</b></div>`).join('')}</div>`:''}${lk?'':'<p class="sub" style="font-size:12px;margin:8px 0 0">Siswa otomatis: kelompok dan status mengikuti spreadsheet sumber, tidak dapat dipindahkan, dinonaktifkan, atau dihapus dari aplikasi.</p>'}${ukrHtml()}<div class="sda">${(()=>{const sec=(lk&&boleh('siswa.pindah')&&sdTujuan(r[SD.iKelas]).length?'<button class="btn gh" data-pk><span>⬆️</span>Naik Kelas</button>':'')+(lk&&boleh('siswa.tambah')?'<button class="btn gh" data-nk><span>⏸️</span>Nonaktifkan</button>':'')+(lk&&boleh('siswa.hapus')?'<button class="btn rd" data-hp><span>🗑️</span>Hapus</button>':'');return sec?'<div class="sdg">'+sec+'</div>':''})()}<div class="sdm"><button class="btn o" data-ub><span>✏️</span>Ubah</button><button class="btn" data-x>Tutup</button></div></div></div>`;
+md.innerHTML=`<div class="sheet"><div class="sdhd"><span class="sav" id="sdav" style="position:relative">${faHtml(nmA)}</span><div><h2>${esc(nmA)}</h2>${klA&&klA!=='-'?`<span class="bdg">${esc(klA)}</span>`:''}</div></div>${boleh('siswa.ubah')&&ngajar()?`<div class="sdfo"><button type="button" class="btn gh" data-fo><span>📷</span>${faGet(nmA)?'Ganti foto':'Tambah foto'}</button>${faGet(nmA)?'<button type="button" class="btn gh" data-fh><span>🗑️</span>Hapus foto</button>':''}<input type="file" accept="image/*" id="sdfi" hidden></div><p class="sub" style="font-size:12px;margin:0">Foto tersimpan di server dan tampil di semua perangkat.</p>`:'<p class="sub" style="font-size:12px;margin:0">Foto hanya dapat diubah oleh admin atau guru kelompok ini. Akun Kepala Sekolah hanya dapat melihat.</p>'}${SDG.map(([jd],gi)=>g[gi].length?`<h3 class="sdh">${jd}</h3><div class="dl">${g[gi].map(n=>`<div><small>${esc(SD.kolom[n])}</small><b>${nilaiHtml(SD.kolom[n],r[n])}</b></div>`).join('')}</div>`:'').join('')}${lk&&rp.length?`<h3 class="sdh">🔁 Riwayat kelompok</h3><div class="dl">${rp.map(x=>`<div><small>Efektif ${esc(tgl(x.efektif))}</small><b>${esc(x.dari)} → ${esc(x.ke)}</b></div>`).join('')}</div>`:''}${lk?'':'<p class="sub" style="font-size:12px;margin:8px 0 0">Siswa otomatis: kelompok dan status mengikuti spreadsheet sumber, tidak dapat dipindahkan, dinonaktifkan, atau dihapus dari aplikasi.</p>'}${faGet(nmA)?`<label class="sdfp" style="display:flex;align-items:center;gap:8px;margin:12px 0 0;font-weight:700;cursor:pointer"><input type="checkbox" id="sdfp"${sdFotoPref()?' checked':''} style="width:20px;height:20px"><span>Sertakan foto anak pada cetak, PDF, Word, dan Excel</span></label>`:''}${ukrHtml()}<div class="sda">${(()=>{const sec=(lk&&boleh('siswa.pindah')&&sdTujuan(r[SD.iKelas]).length?'<button class="btn gh" data-pk><span>⬆️</span>Naik Kelas</button>':'')+(lk&&boleh('siswa.tambah')?'<button class="btn gh" data-nk><span>⏸️</span>Nonaktifkan</button>':'')+(lk&&boleh('siswa.hapus')?'<button class="btn rd" data-hp><span>🗑️</span>Hapus</button>':'');return sec?'<div class="sdg">'+sec+'</div>':''})()}<div class="sdm"><button class="btn o" data-ub><span>✏️</span>Ubah</button><button class="btn" data-x>Tutup</button></div></div></div>`;
 const fi=md.querySelector('#sdfi');if(fi)fi.onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let d;try{d=await pangkas(f,{judul:'Atur foto '+nmA,out:240})}catch(er){return toast('Berkas bukan gambar yang valid',1)}if(!d)return;if(!faSet(nmA,d))return toast('Penyimpanan perangkat penuh, foto tidak tersimpan',1);md.remove();renderDataSiswa();sdDetail(i);const ok=await faKirim(nmA,d);toast(ok?'Foto tersimpan':'Foto tersimpan di perangkat ini, belum terkirim ke server'+(FA_ERR?'. Penyebab: '+FA_ERR:''),!ok)};
-md.onclick=async e=>{const abk=e.target.closest('.ukr [data-ak]');if(abk){const lp=$('#lap');if(!lp)return;lp.innerHTML=sdPaperAnak(i);PDN=nmA;try{await aksiLap(abk.dataset.uk,abk.dataset.ak)}finally{PDN='';const l2=$('#lap');if(l2&&SISTAB==='data'&&SD)l2.innerHTML=dataSiswaPaper()}return}
+md.onclick=async e=>{const abk=e.target.closest('.ukr [data-ak]');if(abk){const lp=$('#lap');if(!lp)return;const cf=md.querySelector('#sdfp'),pakaiFoto=!cf||cf.checked;if(cf)sdFotoPref(pakaiFoto);lp.innerHTML=sdPaperAnak(i,pakaiFoto);PDN=nmA;try{await aksiLap(abk.dataset.uk,abk.dataset.ak)}finally{PDN='';const l2=$('#lap');if(l2&&SISTAB==='data'&&SD)l2.innerHTML=dataSiswaPaper()}return}
 if(e.target===md||e.target.closest('[data-x]'))return md.remove();if(e.target.closest('[data-fo]'))return fi.click();if(e.target.closest('[data-fh]')){faSet(nmA,'');md.remove();renderDataSiswa();sdDetail(i);const ok=await faKirim(nmA,'');return toast(ok?'Foto dihapus':'Foto dihapus di perangkat ini, belum terkirim ke server'+(FA_ERR?'. Penyebab: '+FA_ERR:''),!ok)}if(e.target.closest('[data-ub]')){md.remove();sdEdit(i)}
 if(e.target.closest('[data-pk]')){md.remove();sdPindah(i)}
 if(e.target.closest('[data-hp]')){md.remove();sdHapus(lid,r[SD.iNama],true)}
@@ -2637,17 +2639,19 @@ const blank=()=>{R++};
 const pend=[];
 const flush=()=>{if(pend.length){pend.forEach((q,i)=>{if(i===0||q.sec)blank();addRow([{c:0,s:G,v:q.t,st:q.st}])});pend.length=0}else if(tabelN>0)blank()};
 const num=t=>/^(-?[1-9]\d{0,8}|0)$/.test(t)?+t:t;
+const BDY=5,FW=2;
 const tabel=(t,off,ph)=>{off=off||0;const trs=[...t.querySelectorAll('tr')].filter(r=>r.closest('table')===t);if(!trs.length)return;
 const nc=ncOf(t),wt=Array(nc).fill(3);
 trs.forEach(r=>{let i=0;[...r.children].forEach(c=>{const sp=c.colSpan||1;if(sp===1)wt[i]=Math.max(wt[i],Math.min(36,Math.max.apply(null,cellTeks(c).split('\n').map(x=>x.length).concat([1]))));i+=sp})});
 const sp=Array(nc).fill(1);let rest=G-off-nc;while(rest>0){let b=0,bv=-1;for(let i=0;i<nc;i++){const q=wt[i]/sp[i];if(q>bv){bv=q;b=i}}sp[b]++;rest--}
+if(nc===2&&t.classList.contains('id')){sp[0]=BDY-off;sp[1]=G-BDY}
 const st0=[];let p=off;sp.forEach(x=>{st0.push(p);p+=x});
 flush();const i0=rows.length;
 trs.forEach(r=>{const head=!!r.closest('thead'),tot=r.classList.contains('tt');let i=0;const cells=[];
 [...r.children].forEach(c=>{const cs=c.colSpan||1,a=st0[Math.min(i,nc-1)],e=Math.min(nc-1,i+cs-1),span=st0[e]+sp[e]-a;i+=cs;
 const hd=head||c.tagName==='TH',v=cellTeks(c),ctr=hd||c.classList.contains('c');
 cells.push({c:a,s:span,v:num(v),st:hd?ST.hd:tot?(ctr?ST.tC:ST.tL):(ctr?ST.bC:ST.bL)})});
-addRow(cells)});if(ph&&rows.length>i0){ph.r0=rows[i0].r;ph.r1=rows[rows.length-1].r;ph.h=rows.slice(i0).reduce((a,r)=>a+r.ht,0)}tabelN++};
+addRow(cells)});if(ph&&rows.length>i0){const rr=rows.slice(i0),tot=rr.reduce((a,r)=>a+r.ht,0),need=FW*(CWD*7+5)*.75*1.25;if(tot<need){const ex=(need-tot)/rr.length;rr.forEach(r=>{r.ht+=ex})}ph.r0=rows[i0].r;ph.r1=rows[rows.length-1].r;ph.h=rr.reduce((a,r)=>a+r.ht,0)}tabelN++};
 const ident=g=>{const ds=[...g.children].filter(d=>d.querySelector('table'));if(!ds.length)return;flush();
 const pos=[[0,2,4],[2+4+1,2,4]];
 const tb=ds.slice(0,2).map(d=>{const t=d.querySelector('table');return{h:d.querySelector('h4'),r:[...t.querySelectorAll('tr')].filter(x=>x.closest('table')===t).map(r=>[...r.children].map(cellTeks))}});
@@ -2673,7 +2677,7 @@ const walk=n=>[...n.children].forEach(e=>{const g=e.tagName.toLowerCase(),cl=e.c
 if(cl.contains('noprint')||cl.contains('kop')||cl.contains('gal')||g==='svg'||g==='img'||g==='script'||g==='style'||g==='h1'||cl.contains('sj'))return;
 if(g==='h3'){pend.push({t:selTeks(e.textContent),st:ST.sec,sec:1});return}
 if(g==='h4'){pend.push({t:selTeks(e.textContent),st:ST.sub});return}
-if(cl.contains('pfr')){const im=e.querySelector('.pfw img'),t=e.querySelector('table');if(t&&im&&/^data:image\/(jpeg|png);base64,/.test(im.src||'')&&im.naturalWidth>1){const ph={im:im};fx.push(ph);tabel(t,1,ph)}else walk(e);return}
+if(cl.contains('pfr')){const im=e.querySelector('.pfw img'),t=e.querySelector('table');if(t&&im&&/^data:image\/(jpeg|png);base64,/.test(im.src||'')&&im.naturalWidth>1){const ph={im:im};fx.push(ph);tabel(t,FW,ph)}else walk(e);return}
 if(g==='table'){tabel(e);return}
 if(cl.contains('idgrid')){ident(e);return}
 if(cl.contains('ttd')){ttd(e);return}
@@ -2702,16 +2706,37 @@ z.file('_rels/.rels',HD+'<Relationships xmlns="http://schemas.openxmlformats.org
 z.file('xl/workbook.xml',HD+'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="'+(S.view==='portofolio'?'Portofolio':S.view==='kalender'?'Kalender':S.view==='identitas'?'Data':'Laporan')+'" sheetId="1" r:id="rId1"/></sheets></workbook>');
 z.file('xl/_rels/workbook.xml.rels',HD+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>');
 z.file('xl/styles.xml',styles);z.file('xl/worksheets/sheet1.xml',sheet);
-if(foto){const m=/^data:image\/(png|jpe?g);base64,(.+)$/i.exec(foto.im.src),ext=m[1].toLowerCase().replace('jpeg','jpg'),wpx=CWD*7+5,hpx=Math.max(20,foto.h*96/72),tr=wpx/hpx,sr=foto.im.naturalWidth/foto.im.naturalHeight;
+if(foto){const m=/^data:image\/(png|jpe?g);base64,(.+)$/i.exec(foto.im.src),ext=m[1].toLowerCase().replace('jpeg','jpg'),wpx=FW*(CWD*7+5),hpx=Math.max(20,foto.h*96/72),tr=wpx/hpx,sr=foto.im.naturalWidth/foto.im.naturalHeight;
 let cl=0,ct=0;if(sr>tr)cl=Math.round((1-tr/sr)/2*100000);else if(sr<tr)ct=Math.round((1-sr/tr)/2*100000);
 z.file('xl/worksheets/_rels/sheet1.xml.rels',HD+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing1.xml"/></Relationships>');
 z.file('xl/drawings/_rels/drawing1.xml.rels',HD+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image1.'+ext+'"/></Relationships>');
-z.file('xl/drawings/drawing1.xml',HD+'<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><xdr:twoCellAnchor editAs="oneCell"><xdr:from><xdr:col>0</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>'+(foto.r0-1)+'</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:to><xdr:col>1</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>'+foto.r1+'</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="2" name="Foto profil"/><xdr:cNvPicPr/></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="rId1"/><a:srcRect l="'+cl+'" t="'+ct+'" r="'+cl+'" b="'+ct+'"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="'+Math.round(wpx*9525)+'" cy="'+Math.round(hpx*9525)+'"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:ln w="9525"><a:solidFill><a:srgbClr val="333333"/></a:solidFill></a:ln></xdr:spPr></xdr:pic><xdr:clientData/></xdr:twoCellAnchor></xdr:wsDr>');
+z.file('xl/drawings/drawing1.xml',HD+'<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><xdr:twoCellAnchor editAs="oneCell"><xdr:from><xdr:col>0</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>'+(foto.r0-1)+'</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:to><xdr:col>'+FW+'</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>'+foto.r1+'</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="2" name="Foto profil"/><xdr:cNvPicPr/></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="rId1"/><a:srcRect l="'+cl+'" t="'+ct+'" r="'+cl+'" b="'+ct+'"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="'+Math.round(wpx*9525)+'" cy="'+Math.round(hpx*9525)+'"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:ln w="9525"><a:solidFill><a:srgbClr val="333333"/></a:solidFill></a:ln></xdr:spPr></xdr:pic><xdr:clientData/></xdr:twoCellAnchor></xdr:wsDr>');
 z.file('xl/media/image1.'+ext,m[2],{base64:true})}
 const blob=await z.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',compression:'DEFLATE'});
 const url=URL.createObjectURL(blob);unduh(url,nama+'.xlsx');setTimeout(()=>URL.revokeObjectURL(url),5000)}
 
 const xe=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+/* Word Data Siswa: muat satu kertas (A4/HVS). Tinggi isi diperkirakan dari XML, lalu huruf, jarak, tinggi baris, dan foto diperkecil seperlunya. */
+function skalaWord(x,k){const r=v=>Math.round(v*k);
+return x.replace(/<w:r><w:t><\/w:t><\/w:r>/g,'<w:r><w:rPr><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr><w:t></w:t></w:r>')
+.replace(/<w:(sz|szCs) w:val="(\d+)"\/>/g,(m,a,v)=>'<w:'+a+' w:val="'+(+v<=8?+v:Math.max(12,r(+v)))+'"/>')
+.replace(/w:(before|after)="(\d+)"/g,(m,a,v)=>'w:'+a+'="'+r(+v)+'"')
+.replace(/<w:trHeight w:val="(\d+)"/g,(m,v)=>'<w:trHeight w:val="'+r(+v)+'"')
+.replace(/(<wp:extent|<a:ext) cx="(\d+)" cy="(\d+)"/g,(m,a,cx,cy)=>a+' cx="'+r(+cx)+'" cy="'+r(+cy)+'"')}
+function taksirWord(x,NS){const d=new DOMParser().parseFromString('<root '+NS+'>'+x+'</root>','application/xml');if(d.getElementsByTagName('parsererror').length)return 0;
+const kids=(n,nm)=>[...n.children].filter(c=>c.nodeName===nm),num=(e,a)=>e?+e.getAttribute(a)||0:0;
+const pH=(p,wd)=>{const sz=Math.max.apply(null,[...p.getElementsByTagName('w:sz')].map(e=>num(e,'w:val')).concat([0]))||20,sp=p.getElementsByTagName('w:spacing')[0];
+let ln=240,exact=0;if(sp&&sp.getAttribute('w:lineRule')==='exact'){exact=num(sp,'w:line')}
+const lh=exact||sz*11.5,pc=sz*5,av=Math.max(300,wd-140);let lines=1,cur=0;
+[...p.getElementsByTagName('w:r')].forEach(r=>{if(r.getElementsByTagName('w:br').length){lines++;cur=0}const t=[...r.getElementsByTagName('w:t')].map(e=>e.textContent).join('');cur+=t.length*pc});
+lines=Math.max(1,lines+Math.floor(cur/av));if(cur>0&&cur%av===0)lines--;
+let h=lines*lh;const ex=p.getElementsByTagName('wp:extent')[0];if(ex)h=Math.max(h,num(ex,'cy')/635);
+return h+(sp?num(sp,'w:before')+num(sp,'w:after'):0)};
+const tH=(t,wd)=>{let tot=0;kids(t,'w:tr').forEach(tr=>{const tp=kids(tr,'w:trPr')[0],th=tp?kids(tp,'w:trHeight')[0]:null;let mx=0;
+kids(tr,'w:tc').forEach(tc=>{const pr=kids(tc,'w:tcPr')[0],w=pr?num(kids(pr,'w:tcW')[0],'w:w'):wd;let h=0;kids(tc,'w:p').forEach(p=>{h+=pH(p,w)});kids(tc,'w:tbl').forEach(q=>{h+=tH(q,w)});mx=Math.max(mx,h)});
+if(th){const v=num(th,'w:val');mx=th.getAttribute('w:hRule')==='exact'?v:Math.max(mx,v)}tot+=mx+10});return tot};
+let tot=0;[...d.documentElement.children].forEach(n=>{if(n.nodeName==='w:p')tot+=pH(n,9000);else if(n.nodeName==='w:tbl'){const g=kids(n,'w:tblGrid')[0];tot+=tH(n,g?kids(g,'w:gridCol').reduce((a,c)=>a+num(c,'w:w'),0):9000)}});return tot}
 async function simpanWord(nama,u,ori){const src=$('#lap .paper');if(!src)throw new Error('Laporan belum siap dimuat.');
 await loadJs(ZIP_URL);await siapFoto();
 const media=[],TW=56.7,ls=ori==='landscape',W=Math.round((ls?u.h:u.w)*TW),H=Math.round((ls?u.w:u.h)*TW),M=Math.round(15*TW),cw=W-2*M;
@@ -2794,8 +2819,10 @@ if(g==='ul'||g==='ol'){let i=0;return[...n.children].map(li=>{i++;const p=P(li,{
 if(g==='p'||g==='b'||g==='u'||g==='strong'||g==='span'||inl(n))return P(n,Object.assign({},o,{b:o.b||g==='b'||g==='strong'||g==='u'?1:0,u:g==='u'?1:0}));
 return blok(n,o)}
 function blok(el,o){let x='';[...el.children].forEach(n=>{x+=satu(n,o)});return x}
-const body=blok(src,{})+'<w:p/>';
-const NS='xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"';
+let body=blok(src,{});
+const NS='xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"';
+const akhir='<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="20" w:lineRule="exact"/><w:rPr><w:sz w:val="2"/></w:rPr></w:pPr></w:p>';
+if(PDN){const ok=(H-2*M)*.93;if(taksirWord(body,NS)>ok){let k=1;while(k>.5){k-=.03;if(taksirWord(skalaWord(body,k),NS)<=ok)break}body=skalaWord(body,k)}body+=akhir}else body+='<w:p/>';
 const HD='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
 const z=new JSZip();
 z.file('[Content_Types].xml',HD+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Default Extension="jpg" ContentType="image/jpeg"/><Default Extension="gif" ContentType="image/gif"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>');
