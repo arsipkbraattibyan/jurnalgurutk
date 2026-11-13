@@ -2402,7 +2402,7 @@ function presTampil(){const sr=$('#sr'),n=$('#sn'),s=$('#st'),j=PJ;if(!sr||!n||!
 if(j.err||j.loading||!j.hari){presBersih();return sr.innerHTML=presTabel(j,'ap')}
 const q=kunci(n.value),st=s.value,rs=j.rows.filter(r=>(!q||kunci(r.nama)===q)&&(!st||(st==='hadir'?r.hadir>0&&r.sakit+r.izin+r.alpha===0:r[st]>0)));
 sr.innerHTML=rs.length?presTabel({...j,rows:rs},'ap'):'<div class="empty" style="padding:16px">Data tidak ditemukan</div>';
-if(q&&rs.length===1)presRinci(rs[0],st);else presBersih()}
+if(q&&rs.length===1)presRinci(rs[0],st);else if(rs.length)presSemua(j,rs,st);else presBersih()}
 /* rincian tanggal tidak hadir untuk satu anak (dihitung dari catatan Jurnal Kehadiran, tanpa memanggil server baru) */
 const PRL={hadir:'Hadir',sakit:'Sakit',izin:'Izin',alpha:'Alpa'};
 let PRN='';
@@ -2419,6 +2419,19 @@ const hr=d=>new Date(d+'T00:00').toLocaleDateString('id-ID',{weekday:'long'});
 const C={hadir:0,sakit:0,izin:0,alpha:0};L.forEach(x=>C[x[1]]++);
 bx.innerHTML=`<h3 style="margin:0 0 6px;font-size:16px">📅 Rincian kehadiran: ${esc(r.nama)}</h3>`+(L.length?`<p style="margin:0 0 6px">Hadir <b>${C.hadir}</b>, Sakit <b>${C.sakit}</b>, Izin <b>${C.izin}</b>, Alpa <b>${C.alpha}</b> (${L.length} hari tercatat)</p><div class="ov prs"><table class="rt ap"><thead><tr><th>No</th><th>Tanggal</th><th>Hari</th><th>Status</th></tr></thead><tbody>${L.map((x,i)=>`<tr><td class="c">${i+1}</td><td>${tgl(x[0])}</td><td>${hr(x[0])}</td><td><span class="pst ${x[1]}">${PRL[x[1]]}</span></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty" style="padding:16px">Belum ada catatan kehadiran pada periode ini.</div>')
 PRN=r.nama;const lp=$('#lap');if(lp)lp.innerHTML=presPaper(r,L,C,st);const pk=$('#pku');if(pk)pk.style.display='';}
+/* rekap total semua anak (sesuai filter yang sedang dipakai) untuk Cetak / PDF / Excel / Word */
+function presSemua(j,rs,st){PRN='Semua-Anak';const lp=$('#lap'),pk=$('#pku');if(pk)pk.style.display='';if(!lp)return;
+const g=S.guru,today=new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}),
+b=($('#sb')||{}).value||'',sd=($('#sd')||{}).value||'',ss=($('#ss')||{}).value||'',
+per=(sd||ss)?(sd?tgl(sd):'awal')+' s.d. '+(ss?tgl(ss):'sekarang'):(b?blnNama(b):'Seluruh periode'),
+kl=[...new Set(rs.map(r=>kelTampil(r.kelas)).filter(Boolean))],klt=kl.length===1?kl[0]:'Semua kelompok',
+fl={sakit:'Pernah sakit',izin:'Pernah izin',alpha:'Pernah tanpa keterangan',hadir:'Selalu hadir'}[st],
+T=['hadir','sakit','izin','alpha'].map(k=>sum(rs,k)),tot=T.reduce((x,y)=>x+y,0);
+lp.innerHTML=`<div class="paper"><div class="kop"><img class="kl" src="${logoSek()}" alt=""><div class="kt"><h2>${esc((g.sekolah||'NAMA SEKOLAH').toUpperCase())}</h2><p>${esc(g.jenjang||'')}${g.npsn?' - NPSN '+esc(g.npsn):''}</p>${alamatSek(g)?`<p>${esc(alamatSek(g))}${g.telpsekolah?' | Telp. '+esc(g.telpsekolah):''}</p>`:''}</div></div>
+<h1 class="jd">REKAP KEHADIRAN ANAK</h1><p class="sj">Tahun ajaran ${esc(g.tahun||'-')}, semester ${esc(g.semester||'-')}<br>Kelompok: ${esc(klt)} | Periode: ${esc(per)}${fl?' | Filter: '+esc(fl):''}<br>Hari jurnal kehadiran: ${j.hari} | Jumlah anak: ${rs.length}</p>
+<div class="ov"><table class="rt"><thead><tr><th>No</th><th>Nama anak</th><th>Kelompok</th><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Alpa</th><th>% hadir</th></tr></thead><tbody>${rs.map((r,i)=>{const t=r.hadir+r.sakit+r.izin+r.alpha;return`<tr><td class="c">${i+1}</td><td>${esc(r.nama)}</td><td>${esc(kelTampil(r.kelas))}</td><td class="c">${r.hadir}</td><td class="c">${r.sakit}</td><td class="c">${r.izin}</td><td class="c">${r.alpha}</td><td class="c">${pct(r.hadir,t)}</td></tr>`}).join('')}<tr class="tt"><td colspan="3">Total</td>${T.map(x=>`<td class="c">${x}</td>`).join('')}<td class="c">${pct(T[0],tot)}</td></tr></tbody></table></div>
+<div class="ttd"><div><p>Mengetahui,<br>Kepala ${esc(g.sekolah||'sekolah')}</p><div class="sp"></div><b><u>${esc(g.kepsek||'..............................')}</u></b></div>
+<div><p>${esc(kotaTtd(g))}, ${today}<br>Guru ${esc(kelTampil(g.kelas)||'kelompok')}</p><div class="sp"></div><b><u>${esc(g.nama)}</u></b></div></div></div>`}
 function presPaper(r,L,C,st){const g=S.guru,today=new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}),
 b=($('#sb')||{}).value||'',sd=($('#sd')||{}).value||'',ss=($('#ss')||{}).value||'',
 per=(sd||ss)?(sd?tgl(sd):'awal')+' s.d. '+(ss?tgl(ss):'sekarang'):(b?blnNama(b):'Seluruh periode'),
