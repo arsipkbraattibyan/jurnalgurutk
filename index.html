@@ -1480,13 +1480,13 @@ const muat=()=>'<div class="empty">Memuat data...</div>';
 
 /* ---------- wajib pilih kelompok jika belum diisi ---------- */
 function pilihKelompok(){const md=document.createElement('div');md.className='md';
-md.innerHTML=`<div class="sheet"><h2>Pilih kelompok Anda</h2><p class="sub" style="margin-bottom:12px">Cukup sekali. Setelah itu seluruh jurnal, data siswa, dan laporan otomatis hanya untuk kelompok ini.</p><div class="fd">${radioGrup('kp',['Kelompok A','Kelompok B','KB','Semua kelompok'].map(x=>[x,x]),'','kp')}</div><div class="act"><button class="btn" data-s>Simpan</button></div></div>`;
+const OPSI=['KB','TK A / RA A','TK B / RA B','Guru Pendamping','Guru Pengganti','Semua Kelompok','Lainnya']; // sama persis dengan Identitas > Data mengajar
+md.innerHTML=`<div class="sheet"><h2>Pilih kelompok Anda</h2><p class="sub" style="margin-bottom:12px">Cukup sekali. Setelah itu seluruh jurnal, data siswa, dan laporan otomatis hanya untuk kelompok ini. Bisa diubah kapan saja di menu Identitas.</p><div class="fd">${radioGrup('kp',OPSI.map(x=>[x,x]),'','kp')}</div><div class="act"><button class="btn" data-s>Simpan</button></div></div>`;
 document.body.appendChild(md);
-md.onclick=async e=>{const b=e.target.closest('[data-s]');if(!b)return;const v=nilai('kp');if(!v)return toast('Pilih kelompok dulu',1);
+md.onclick=async e=>{const b=e.target.closest('[data-s]');if(!b)return;const v=nilai('kp');if(!v)return toast('Pilih dulu',1);
 b.disabled=true;
-try{const j=await api('simpanProfil',{data:{kelas:v}});S.guru=j.guru;simpanSesi();md.remove();isiAkun();go(S.view);toast('Kelompok tersimpan')}
+try{const j=await api('simpanProfil',{data:{kelas:kelSimpan(v)}});S.guru=j.guru;simpanSesi();md.remove();isiAkun();go(S.view);toast('Kelompok tersimpan')}
 catch(er){toast(er.message,1);b.disabled=false}}}
-
 /* ---------- dashboard ---------- */
 const WARNA=['#1e88e5','#fdb913','#ee4f9a','#7cc243','#f89a2c','#8e6bd8','#26b5c9'];
 const PEND=['Harian','Hadir','Kembang','Nilai','Projek','Refleksi','Tambahan'];
