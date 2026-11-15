@@ -2467,7 +2467,7 @@ const b=e.target.closest('[data-sv]');if(!b)return;
 const data={};md.querySelectorAll('[name^=c]').forEach(el=>{const n=+el.name.slice(1);let o=String(r[n]||'');if(sdTel(SD.kolom[n])&&/^8\d{7,12}$/.test(o))o='0'+o;if(el.value.trim()!==o)data[n]=el.value.trim()});
 if(!Object.keys(data).length){md.remove();return toast('Tidak ada perubahan')}
 b.disabled=true;b.textContent='Menyimpan...';
-try{await api('simpanSiswa',{nama:r[SD.iNama],kelas:r[SD.iKelas],data});Object.keys(data).forEach(n=>{SD.rows[i][n]=data[n]});md.remove();cSet('ds_'+(klf()||nilai('sk')||''),SD);renderDataSiswa();toast('Data siswa tersimpan')}
+try{await api('simpanSiswa',{nama:r[SD.iNama],kelas:r[SD.iKelas],data});Object.keys(data).forEach(n=>{SD.rows[i][n]=data[n]});md.remove();cSet('ds_'+(klf()||nilai('sk')||''),SD);renderDataSiswa();toast('Data siswa tersimpan');ucap('Data siswa berhasil diubah')}
 catch(er){toast(/tidak dikenal/i.test(er.message)?'Backend belum diperbarui. Pasang Code.gs terbaru.':er.message,1);b.disabled=false;b.textContent='Simpan'}};
 document.body.appendChild(md)}
 function sdSegarkan(){svBersih();try{Object.keys(localStorage).filter(x=>x.indexOf(CK())===0&&/^(ds_|pr_)/.test(x.slice(CK().length))).forEach(x=>localStorage.removeItem(x))}catch(e){}SD=null;segarSiswa();if(S.view==='siswa'&&SISTAB==='data')muatDataSiswa()}
@@ -2492,7 +2492,7 @@ if(!aktif){toast(p,1);return false}
 if(await tanya('Tidak dapat dihapus',p+' Nonaktifkan saja agar tidak muncul di daftar anak?','Nonaktifkan',false)){try{await api('siswaLokalNonaktif',{nama,id:lid});sdSegarkan();toast('Siswa dinonaktifkan')}catch(er){toast(er.message,1)}}
 return false}
 if(!await tanya('Hapus permanen?',nama+' belum memiliki riwayat jurnal, kehadiran, penilaian, atau perkembangan. Siswa akan dihapus permanen dan tidak dapat dikembalikan.','Ya, hapus permanen'))return false;
-try{await api('siswaHapus',{data:{id:lid,nama,konfirmasi:'ya'}});sdSegarkan();toast('Siswa dihapus permanen');return true}catch(er){toast(er.message,1);return false}}
+try{await api('siswaHapus',{data:{id:lid,nama,konfirmasi:'ya'}});sdSegarkan();toast('Siswa dihapus permanen');ucap('Siswa berhasil dihapus');return true}catch(er){toast(er.message,1);return false}}
 function sdNonaktif(){const md=document.createElement('div');md.className='md';let L=[];
 md.innerHTML=`<div class="sheet"><h2>🗂️ Siswa manual nonaktif</h2><div id="nkl">${muat()}</div><div class="act"><button class="btn" data-x>Tutup</button></div></div>`;
 const isi=async()=>{const w=md.querySelector('#nkl');try{const j=await api('siswaNonaktifDaftar');L=j.rows;
@@ -2511,7 +2511,7 @@ const nama=md.querySelector('[name=nm]').value.trim().replace(/\s+/g,' '),kelas=
 if(!nama)return toast('Nama wajib diisi',1);
 if(!await tanya('Simpan siswa baru?',nama+' ('+kelas+') akan ditambahkan mulai '+tgl(mulai)+'.','Ya, simpan'))return;
 b.disabled=true;b.textContent='Menyimpan...';
-try{await api('siswaBaru',{data:{nama,kelas,mulai}});md.remove();sdSegarkan();toast('Siswa ditambahkan')}
+try{await api('siswaBaru',{data:{nama,kelas,mulai}});md.remove();sdSegarkan();toast('Siswa ditambahkan');ucap('Siswa baru berhasil disimpan')}
 catch(er){toast(/tidak dikenal/i.test(er.message)?'Backend belum diperbarui. Pasang Code.gs terbaru.':er.message,1);b.disabled=false;b.textContent='Simpan'}};
 document.body.appendChild(md)}
 /* foto anak: disimpan di perangkat ini saja (tidak mengubah spreadsheet atau server) */
