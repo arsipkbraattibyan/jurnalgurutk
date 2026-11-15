@@ -108,7 +108,7 @@ async function kirim(action, p, token, ms) {
 async function core(action, p, ms, noLogout) {
   const j = await kirim(action, p, S.token, ms);
   if (!j.ok) {
-    if (j.auth && !noLogout) { sesiHabis = true; keluar(); }
+    if (j.auth && !noLogout) keluar();
     const e = new Error(j.error || 'Terjadi kesalahan');
     e.auth = !!j.auth;
     throw e;
@@ -118,7 +118,7 @@ async function core(action, p, ms, noLogout) {
 
 /* ---------- antrean (di memori + IndexedDB) ---------- */
 const Q = new Map();
-let Qgid = null, ready = Promise.resolve(), perluLogin = false, jalan = false, sesiHabis = false;
+let Qgid = null, ready = Promise.resolve(), perluLogin = false, jalan = false;
 function pastikan() {
   const g = gid();
   if (Qgid !== g) {
@@ -668,16 +668,16 @@ if (typeof shellAsli === 'function') window.shell = function () {
   return r;
 };
 // Logout manual: hapus salinan baca (snap) guru itu. Antrean (q) dan foto TIDAK disentuh karena belum tentu terkirim.
-// Sesi habis (dikeluarkan server) tidak membersihkan apa pun, supaya guru tetap bisa membaca data offline.
+// index.html memanggil keluar(true) hanya untuk logout manual; sesi habis memanggil keluar() tanpa argumen dan tidak membersihkan apa pun.
 async function bersihkanSnap(g) {
   if (!g) return;
   try { for (const x of await idbAll('snap')) if (String(x.k).indexOf(g + '|') === 0) await idbDel('snap', x.k).catch(() => {}); } catch (e) {}
 }
 const keluarAsli = window.keluar;
-if (typeof keluarAsli === 'function') window.keluar = function () {
-  const g = gid(), habis = sesiHabis; sesiHabis = false;
+if (typeof keluarAsli === 'function') window.keluar = function (manual) {
+  const g = gid();
   const r = keluarAsli.apply(this, arguments);
-  if (!habis) bersihkanSnap(g);
+  if (manual) bersihkanSnap(g);
   statusBaru();
   return r;
 };
