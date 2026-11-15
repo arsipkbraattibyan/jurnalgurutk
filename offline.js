@@ -108,7 +108,7 @@ async function kirim(action, p, token, ms) {
 async function core(action, p, ms, noLogout) {
   const j = await kirim(action, p, S.token, ms);
   if (!j.ok) {
-    if (j.auth && !noLogout) keluar();
+    if (j.auth && !noLogout) { sesiHabis = true; keluar(); }
     const e = new Error(j.error || 'Terjadi kesalahan');
     e.auth = !!j.auth;
     throw e;
@@ -118,7 +118,7 @@ async function core(action, p, ms, noLogout) {
 
 /* ---------- antrean (di memori + IndexedDB) ---------- */
 const Q = new Map();
-let Qgid = null, ready = Promise.resolve(), perluLogin = false, jalan = false;
+let Qgid = null, ready = Promise.resolve(), perluLogin = false, jalan = false, sesiHabis = false;
 function pastikan() {
   const g = gid();
   if (Qgid !== g) {
@@ -512,6 +512,11 @@ async function segarkan(ks) {
 /* ---------- indikator dan panel ---------- */
 function buatPil() {
   if (el('ofl')) return;
+  if (!el('ofl-css')) { // tema Sekolah Modern di HP: dock menu ada di bawah, naikkan indikator dan tombol sinkron
+    const st = document.createElement('style'); st.id = 'ofl-css';
+    st.textContent = '@media(max-width:820px){html[data-tema=modern] #ofl{bottom:90px!important}html[data-tema=modern] #ofs{bottom:128px!important}}';
+    document.head.appendChild(st);
+  }
   const b = document.createElement('button');
   b.id = 'ofl'; b.type = 'button'; b.className = 'noprint';
   b.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:15;border:0;border-radius:99px;padding:6px 14px;font:700 12px/1.4 Nunito,system-ui,sans-serif;box-shadow:0 4px 14px #0003;cursor:pointer;display:none';
@@ -662,9 +667,17 @@ if (typeof shellAsli === 'function') window.shell = function () {
   pastikan().then(() => { statusBaru(); sinkron(); });
   return r;
 };
+// Logout manual: hapus salinan baca (snap) guru itu. Antrean (q) dan foto TIDAK disentuh karena belum tentu terkirim.
+// Sesi habis (dikeluarkan server) tidak membersihkan apa pun, supaya guru tetap bisa membaca data offline.
+async function bersihkanSnap(g) {
+  if (!g) return;
+  try { for (const x of await idbAll('snap')) if (String(x.k).indexOf(g + '|') === 0) await idbDel('snap', x.k).catch(() => {}); } catch (e) {}
+}
 const keluarAsli = window.keluar;
 if (typeof keluarAsli === 'function') window.keluar = function () {
+  const g = gid(), habis = sesiHabis; sesiHabis = false;
   const r = keluarAsli.apply(this, arguments);
+  if (!habis) bersihkanSnap(g);
   statusBaru();
   return r;
 };
