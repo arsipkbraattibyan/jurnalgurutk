@@ -147,8 +147,11 @@ function sHadir(F) {
   const kh = dat('kehadiran', F);
   let h;
   if (F.anak) {
-    const ak = (SISWA || []).find(s => kunci(s.nama) === F.anak), kl = ak ? ak.kelas : '', k0 = F.anakNama.trim().toLowerCase();
-    const rows = kh.filter(r => !kl || kelNorm(r.kelas) === kl).map(r => ({ t: r.tanggal, s: absenDari(r)[k0] || 'hadir' }));
+    const ak = (SISWA || []).find(s => kunci(s.nama) === F.anak), kl = ak ? ak.kelas : '', k0 = kunci(F.anakNama);
+    const mulai = ak && ak.mulai ? T10(ak.mulai) : '';
+    const rows = kh.filter(r => !kl || kelNorm(r.kelas) === kl)
+      .map(r => ({ t: r.tanggal, s: khPeta(r).get(k0) }))
+      .filter(r => r.s && (!mulai || T10(r.t) >= mulai));
     const c = x => rows.filter(r => r.s === x).length;
     h = '<h4>Rekap kehadiran ' + E(F.anakNama) + '</h4><table class="rt sm"><thead><tr><th>Hari tercatat</th><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Tanpa keterangan</th><th>Persentase hadir</th></tr></thead><tbody><tr><td class="c">'
       + rows.length + '</td><td class="c">' + c('hadir') + '</td><td class="c">' + c('sakit') + '</td><td class="c">' + c('izin') + '</td><td class="c">' + c('alpha') + '</td><td class="c">' + pct(c('hadir'), rows.length) + '</td></tr></tbody></table>'
@@ -497,8 +500,8 @@ function bagianPorto(rs, o) {
   return h + '<p style="font-size:11px;margin:4px 0 0">Pengamatan autentik tanpa nilai angka, bersumber dari Jurnal Perkembangan dan Jurnal Penilaian.</p>';
 }
 
-window.portofolio = function (o, dari, sampai, tuj) {
-  const html = portoAsli(o, dari, sampai, tuj);
+window.portofolio = function (o, dari, sampai, tuj, foto) {
+  const html = portoAsli(o, dari, sampai, tuj, foto);
   if (!KBP) return html;
   try {
     const rs = KBP.filter(r => r.anakid && kunci(r.anaknama) === o.k && (!dari || String(r.tanggal) >= dari) && (!sampai || String(r.tanggal) <= sampai))
@@ -506,57 +509,5 @@ window.portofolio = function (o, dari, sampai, tuj) {
     const sec = bagianPorto(rs, o), i = html.lastIndexOf('<div class="ttd">');
     return i < 0 ? html + sec : html.slice(0, i) + sec + html.slice(i);
   } catch (e) { return html; }
-};
-
-/* ---------- 3. Dashboard: ringkasan KBC bulan ini ---------- */
-const berandaAsli = window.gambarBeranda;
-let KBD = null; // data terakhir, supaya langsung tampil saat dashboard digambar ulang
-const IKON = { PC1: '🕌', PC2: '📚', PC3: '🌿', PC4: '🤝', PC5: '🇮🇩' }, WARNA_K = ['#fde7bf', '#d7ecfb', '#e1f2c9', '#fbd3e0', '#ede3fb'];
-
-// hitung per nilai dari rekap (bulan ini); dipakai bila pengguna boleh melihat semua guru
-function hitungDariRekap(D, bln) {
-  const n = {};
-  (D.kub || []).forEach(x => { if (x[0] === bln) n[x[2]] = (n[x[2]] || 0) + x[3]; });
-  return n;
-}
-
-function htmlDash(rows, bln, rekap, tunggu) {
-  const ns = (KBCN || KBCN0), hit = rekap ? hitungDariRekap(rekap, bln) : null;
-  return '<div id="kbcdash"><div class="strip">'
-    + ns.map(([id, n], i) => '<div class="sti"><i style="background:' + WARNA_K[i % 5] + '">' + (IKON[id] || '💗') + '</i><div><b>'
-      + (tunggu ? '…' : rekap ? (hit[id] || 0) : rows.filter(r => nilaiKbc(r).indexOf(id) >= 0).length)
-      + '</b><small>' + E(n) + '</small></div></div>').join('')
-    + '</div></div>';
-}
-
-function pasangDash(rows, bln) {
-  const m = $('#main'); if (!m || S.view !== 'beranda') return;
-  const st = m.querySelector('.strip'); if (!st) return;
-  const lama = $('#kbcdash'); if (lama) lama.remove();
-  const rekap = boleh('kbc.rekapSemua') && !ngajar() ? cGet('kbcrekap') : null;
-  const tunggu = !ngajar() && !rekap;  // rekap belum termuat: tampilkan "…" dulu
-  st.insertAdjacentHTML('afterend', htmlDash(rows || [], bln, rekap, tunggu));
-}
-
-// Mulai ambil data KBC bersamaan dengan data jurnal, agar lima kartu KBC muncul bersama empat kartu di atasnya
-const berandaView = window.viewBeranda;
-window.viewBeranda = function () {
-  try {
-    const bln = hari().slice(0, 7);
-    kbcAmbil(bln + '-01', bln + '-31').then(rows => { if (rows) { KBD = rows; pasangDash(rows, bln); try { localStorage.setItem('kbcdash:' + bln, JSON.stringify(rows)); } catch (e) {} } });
-  } catch (e) {}
-  return berandaView.apply(this, arguments);
-};
-
-window.gambarBeranda = function () {
-  const r = berandaAsli.apply(this, arguments);
-  try {
-    const bln = hari().slice(0, 7);
-    const ck = 'kbcdash:' + bln;
-    if (!KBD) { try { const t = JSON.parse(localStorage.getItem(ck) || 'null'); if (t) KBD = t; } catch (e) {} } // tampil langsung dari data terakhir
-    pasangDash(KBD, bln); // langsung tampil; angka '…' bila data belum ada, lalu terisi saat data datang
-    kbcAmbil(bln + '-01', bln + '-31').then(rows => { if (rows) { KBD = rows; pasangDash(rows, bln); try { localStorage.setItem(ck, JSON.stringify(rows)); } catch (e) {} } });
-  } catch (e) {}
-  return r;
 };
 })();
