@@ -49,7 +49,7 @@ const BUTUH = {
   simpanSiswa: 'Menyimpan data siswa memerlukan internet.',
   siswaBaru: 'Menambah siswa memerlukan internet.', siswaLokalNonaktif: 'Menonaktifkan siswa memerlukan internet.',
   siswaPindah: 'Memindahkan kelompok siswa memerlukan internet.', siswaAktifkan: 'Mengaktifkan siswa memerlukan internet.',
-  siswaHapus: 'Menghapus siswa memerlukan internet.', siswaNonaktifDaftar: 'Daftar siswa nonaktif memerlukan internet.'
+  siswaHapus: 'Menghapus siswa memerlukan internet.', siswaGantiNama: 'Mengganti nama siswa memerlukan internet.', siswaNonaktifDaftar: 'Daftar siswa nonaktif memerlukan internet.'
 };
 
 /* ---------- pembantu ---------- */
