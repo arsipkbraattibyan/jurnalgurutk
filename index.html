@@ -1110,15 +1110,40 @@ function siapAudio(){try{ac=ac||new(window.AudioContext||window.webkitAudioConte
 function stopNada(){if(NADA_STOP)NADA_STOP()}
 function mainNada(n){const d=NADA[n-1];if(!d)return;
 try{siapAudio();stopNada();
-const vol={1:.06,2:.12,3:.22}[SET.vol]*(d.g||1),tot=d.m.reduce((a,x)=>a+x[1],0),k=9.6/tot,master=ac.createGain(),oscs=[];
-master.connect(ac.destination);let t=ac.currentTime+.05;
-d.m.forEach(([hz,b])=>{const dur=b*k;
-if(hz)[[hz,1]].concat(d.h?[[hz*2,.3]]:[]).forEach(([f,a])=>{const o=ac.createOscillator(),g=ac.createGain(),ek=t+dur*(d.h?1.6:.95);
-o.type=d.w;o.frequency.value=f;o.connect(g);g.connect(master);
-g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(vol*a,t+.03);g.gain.exponentialRampToValueAtTime(.0001,ek);
-o.start(t);o.stop(ek+.05);oscs.push(o)});
+const vol={1:.12,2:.22,3:.38}[SET.vol]*(d.g||1),tot=d.m.reduce((a,x)=>a+x[1],0),k=9.6/tot,t0=ac.currentTime+.08,oscs=[];
+/* rantai keluaran: master -> kompresor (cegah pecah) -> lowpass lembut -> keluar, plus gema ruangan (reverb) */
+const master=ac.createGain(),comp=ac.createDynamicsCompressor(),lp=ac.createBiquadFilter(),dry=ac.createGain(),wet=ac.createGain(),conv=ac.createConvolver();
+master.gain.value=.9;comp.threshold.value=-14;comp.ratio.value=4;lp.type='lowpass';lp.frequency.value=5200;lp.Q.value=.3;
+const sr=ac.sampleRate,len=Math.floor(sr*2.2),imp=ac.createBuffer(2,len,sr);
+for(let c=0;c<2;c++){const ch=imp.getChannelData(c);for(let i=0;i<len;i++)ch[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.6)}
+conv.buffer=imp;dry.gain.value=.78;wet.gain.value=.30;
+master.connect(comp);comp.connect(lp);lp.connect(dry);dry.connect(ac.destination);lp.connect(conv);conv.connect(wet);wet.connect(ac.destination);
+/* bunyi palu (hammer) singkat: derau yang disaring */
+const nb=ac.createBuffer(1,Math.floor(sr*.06),sr),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;
+/* komposisi harmonik piano: amplitudo relatif tiap nada parsial */
+const PART=[1,.62,.38,.22,.13,.08,.05],SUM=PART.reduce((a,b)=>a+b,0);
+let t=t0;
+d.m.forEach(([hz,b],i)=>{const dur=b*k;
+if(hz){
+ const vel=(.82+Math.random()*.16)*(hz>600?1.05:1),                 // sedikit variasi tekanan jari
+  base=Math.min(5.5,Math.max(1.6,2.4*Math.pow(440/hz,.45))),        // nada rendah bergema lebih lama
+  ring=Math.min(base,dur*2.6+.9),                                    // pedal sustain: nada masih mengalun setelah berganti
+  amp=vol*vel/SUM;
+ PART.forEach((a,pi)=>{const p=pi+1,f=hz*p*Math.sqrt(1+.0004*p*p);if(f>9000)return;
+  [0,pi===0?1:null].forEach(det=>{if(det===null)return;
+   const o=ac.createOscillator(),g=ac.createGain(),tau=ring/(1+.55*pi),end=t+tau;
+   o.type='sine';o.frequency.value=f;if(det)o.detune.value=3;       // dua senar sedikit tidak sama persis
+   const A=amp*a*(det?.5:1);
+   g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(A,t+.006);       // serangan sangat cepat
+   g.gain.exponentialRampToValueAtTime(A*.35,t+Math.min(.35,tau*.18));           // jatuh cepat setelah dipukul
+   g.gain.exponentialRampToValueAtTime(.0001,end);                               // lalu memudar pelan
+   o.connect(g);g.connect(master);o.start(t);o.stop(end+.05);oscs.push(o)})});
+ const ns=ac.createBufferSource(),bp=ac.createBiquadFilter(),ng=ac.createGain();
+ ns.buffer=nb;bp.type='bandpass';bp.frequency.value=Math.min(4000,hz*3);bp.Q.value=.8;
+ ng.gain.setValueAtTime(vol*.18*vel,t);ng.gain.exponentialRampToValueAtTime(.0001,t+.05);
+ ns.connect(bp);bp.connect(ng);ng.connect(master);ns.start(t);ns.stop(t+.06)}
 t+=dur});
-NADA_STOP=()=>{try{master.gain.cancelScheduledValues(ac.currentTime);master.gain.setValueAtTime(master.gain.value,ac.currentTime);master.gain.linearRampToValueAtTime(0,ac.currentTime+.15);oscs.forEach(o=>{try{o.stop(ac.currentTime+.2)}catch(e){}})}catch(e){}NADA_STOP=null}
+NADA_STOP=()=>{try{const now=ac.currentTime;master.gain.cancelScheduledValues(now);master.gain.setValueAtTime(master.gain.value,now);master.gain.linearRampToValueAtTime(0,now+.2);oscs.forEach(o=>{try{o.stop(now+.25)}catch(e){}})}catch(e){}NADA_STOP=null}
 }catch(e){}}
 document.addEventListener('input',e=>{const t=e.target;if(t&&t.matches&&t.matches('#kbct,#kbca,#kbcc')){const m=t.closest('.md');if(m&&typeof kpSeg==='function')kpSeg(m)}if(t&&t.matches&&t.matches('.dtw input')){const sp=t.parentNode.querySelector('.dv');if(sp)sp.textContent=t.parentNode.classList.contains('ds')?tglS(t.value):(t.value?tgl(t.value):'dd mmmm yyyy')}},true);document.addEventListener('change',e=>{const t=e.target;if(t&&t.matches&&t.matches('.dtw input')){const sp=t.parentNode.querySelector('.dv');if(sp)sp.textContent=t.parentNode.classList.contains('ds')?tglS(t.value):(t.value?tgl(t.value):'dd mmmm yyyy')}},true);
 function toast(m,er){const e=$('#toast');e.textContent=m;e.className='show'+(er?' er':'');bunyi(er?'err':'ok');clearTimeout(tt);tt=setTimeout(()=>e.className='',m.length>60?4000:2800)}
@@ -3332,7 +3357,7 @@ ${boleh('pengguna.kelola')?`<div class="card"><h3>👥 Manajemen Pengguna</h3><p
 <p class="sub" style="font-size:13px;margin:14px 0 6px">Volume</p>
 <div class="fg" style="grid-template-columns:repeat(3,1fr);max-width:460px" id="spv">${[[1,'Pelan'],[2,'Sedang'],[3,'Keras']].map(([v,l])=>`<label class="op"><input type="radio" name="vo" value="${v}"${SET.vol===v?' checked':''}><span>${l}</span></label>`).join('')}</div></div>
 <div class="card"><h3>🎵 Nada login</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Nada sekitar 10 detik yang diputar saat berhasil masuk dan tiba di beranda. Nada login tidak terdengar jika Suara di atas dimatikan. Tombol Dengarkan tetap berbunyi.</p>
-<div class="fg" style="grid-template-columns:repeat(2,1fr);max-width:460px" id="snd">${[[0,'Tanpa nada'],[1,'1. Pagi Ceria'],[2,'2. Lonceng Sekolah'],[3,'3. Taman Bermain'],[4,'4. Fanfare Semangat']].map(([v,l])=>`<label class="op"><input type="radio" name="nd" value="${v}"${SET.nada===v?' checked':''}><span>${l}</span></label>`).join('')}</div>
+<div class="fg" style="grid-template-columns:repeat(2,1fr);max-width:460px" id="snd">${[[0,'Tanpa nada'],[1,'1. Surat untuk Elise'],[2,'2. Cahaya Bulan'],[3,'3. Greensleeves Syahdu'],[4,'4. Nocturne Malam'],[5,'5. Kenangan Senja']].map(([v,l])=>`<label class="op"><input type="radio" name="nd" value="${v}"${SET.nada===v?' checked':''}><span>${l}</span></label>`).join('')}</div>
 <div class="act" style="justify-content:flex-start;gap:10px"><button class="btn y s" id="ndp" type="button">▶ Dengarkan</button><button class="btn gh s" id="nds" type="button">⏹ Berhenti</button></div></div>
 ${boleh('demo')?`<div class="card"><h3>🧪 Data demo</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Mengisi contoh jurnal Senin sampai Sabtu minggu ini untuk percobaan atau pelatihan. Data demo bertanda khusus, jadi bisa dihapus tanpa menyentuh data asli. Tanggal yang sudah berisi Jurnal Harian atau Kehadiran asli dilewati. Perlu koneksi internet.</p><div class="act" style="justify-content:flex-start;gap:10px;flex-wrap:wrap"><button class="btn y s" id="dmi" type="button">Isi data demo</button><button class="btn gh s" id="dmh" type="button">Hapus data demo</button></div></div>`:''}
 <div class="card"><h3>📲 Pasang di HP atau komputer</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Tampil seperti aplikasi biasa dengan ikon logo sekolah, tanpa bilah alamat browser.</p>${cara}</div>`;
