@@ -1098,6 +1098,7 @@ f.forEach((hz,i)=>{const o=ac.createOscillator(),g=ac.createGain(),s=ac.currentT
 g.gain.setValueAtTime({1:.05,2:.12,3:.25}[SET.vol],s);g.gain.exponentialRampToValueAtTime(.001,s+.1);o.start(s);o.stop(s+.11)})}catch(e){}}
 // suara ucapan (bahasa Indonesia) lewat speechSynthesis peramban; mengikuti pengaturan Suara dan Volume
 function ucap(t){if(!SET.suara)return;try{const s=window.speechSynthesis;if(!s)return;s.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='id-ID';
+const v=(s.getVoices()||[]).find(x=>/^id([-_]|$)/i.test(x.lang));if(v)u.voice=v;u.volume={1:.45,2:.75,3:1}[SET.vol]||.75;u.rate=1;setTimeout(()=>s.speak(u),250)}catch(e){}}
 /* ---------- nada login (4 pilihan, sekitar 10 detik) ---------- */
 const NADA=[
 {n:'Pagi Ceria',w:'sine',m:[[523,1],[587,1],[659,1],[784,1],[659,1],[784,1],[880,2],[784,1],[659,1],[587,1],[523,1],[587,1],[659,1],[523,2],[392,1],[523,1],[659,1],[784,1],[1047,3]]},
@@ -1119,7 +1120,6 @@ o.start(t);o.stop(ek+.05);oscs.push(o)});
 t+=dur});
 NADA_STOP=()=>{try{master.gain.cancelScheduledValues(ac.currentTime);master.gain.setValueAtTime(master.gain.value,ac.currentTime);master.gain.linearRampToValueAtTime(0,ac.currentTime+.15);oscs.forEach(o=>{try{o.stop(ac.currentTime+.2)}catch(e){}})}catch(e){}NADA_STOP=null}
 }catch(e){}}
-const v=(s.getVoices()||[]).find(x=>/^id([-_]|$)/i.test(x.lang));if(v)u.voice=v;u.volume={1:.45,2:.75,3:1}[SET.vol]||.75;u.rate=1;setTimeout(()=>s.speak(u),250)}catch(e){}}
 document.addEventListener('input',e=>{const t=e.target;if(t&&t.matches&&t.matches('#kbct,#kbca,#kbcc')){const m=t.closest('.md');if(m&&typeof kpSeg==='function')kpSeg(m)}if(t&&t.matches&&t.matches('.dtw input')){const sp=t.parentNode.querySelector('.dv');if(sp)sp.textContent=t.parentNode.classList.contains('ds')?tglS(t.value):(t.value?tgl(t.value):'dd mmmm yyyy')}},true);document.addEventListener('change',e=>{const t=e.target;if(t&&t.matches&&t.matches('.dtw input')){const sp=t.parentNode.querySelector('.dv');if(sp)sp.textContent=t.parentNode.classList.contains('ds')?tglS(t.value):(t.value?tgl(t.value):'dd mmmm yyyy')}},true);
 function toast(m,er){const e=$('#toast');e.textContent=m;e.className='show'+(er?' er':'');bunyi(er?'err':'ok');clearTimeout(tt);tt=setTimeout(()=>e.className='',m.length>60?4000:2800)}
 document.addEventListener('click',e=>{const t=e.target;if(t.closest('button')||(t.closest('.op')&&t.tagName!=='INPUT'))bunyi()});
