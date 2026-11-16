@@ -2580,7 +2580,7 @@ if(h){const x=L[+h.dataset.hp];if(await sdHapus(x.id,x.nama,false))isi()}};
 document.body.appendChild(md);isi()}
 function sdBaru(){const md=document.createElement('div'),kf=klf();md.className='md';
 md.innerHTML=`<div class="sheet"><h2>➕ Tambah Siswa Baru</h2><p class="sub" style="font-size:13px;margin-bottom:6px">Siswa disimpan di aplikasi ini saja (tidak mengubah spreadsheet absensi). Selama aktif ia dihitung hadir pada Jurnal Kehadiran mulai tanggal masuk, kecuali guru mengubahnya. Nama hanya dapat diganti lewat tombol Ganti nama di lembar detail siswa.</p><div class="fg"><div class="fd full"><label>Nama lengkap</label><input name="nm" maxlength="60" autocomplete="off"></div><div class="fd"><label>Kelompok</label>${kf?`<input value="${esc(kelTampil(kf))}" disabled>`:`<select name="kl">${['KB',...KELAS].map(x=>`<option value="${x}">${kelTampil(x)}</option>`).join('')}</select>`}</div><div class="fd"><label>Tanggal masuk</label><input type="date" name="tm" value="${hari()}"></div></div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn y" data-sv>Simpan</button></div></div>`;
-md.onclick=async e=>{if(e.target===md||e.target.closest('[data-x]'))return md.remove();const b=e.target.closest('[data-sv]');if(!b)return;
+md.onclick=async e=>{if(e.target.closest('[data-x]'))return md.remove();const b=e.target.closest('[data-sv]');if(!b)return;
 const nama=md.querySelector('[name=nm]').value.trim().replace(/\s+/g,' '),kelas=kf||md.querySelector('[name=kl]').value,mulai=md.querySelector('[name=tm]').value;
 if(!nama)return toast('Nama wajib diisi',1);
 if(!await tanya('Simpan siswa baru?',nama+' ('+kelas+') akan ditambahkan mulai '+tgl(mulai)+'.','Ya, simpan'))return;
