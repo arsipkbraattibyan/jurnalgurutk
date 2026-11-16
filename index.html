@@ -3351,6 +3351,9 @@ v.onpointerup=v.onpointercancel=()=>{if(st){st=null;simpanSet()}};
 const g=$('#fgl');g.oninput=()=>{SET.fgel=+g.value;$('#fbo').style.setProperty('--ov',SET.fgel/100)};g.onchange=()=>simpanSet()}}
 $('#sps').onchange=e=>{SET.suara=e.target.value==='1';simpanSet();bunyi('ok')};
 $('#spv').onchange=e=>{SET.vol=+e.target.value;simpanSet();bunyi('ok')};
+$('#snd').onchange=e=>{SET.nada=+e.target.value;simpanSet();stopNada();if(SET.nada)mainNada(SET.nada)};
+$('#ndp').onclick=()=>{if(!SET.nada)return toast('Pilih salah satu nada dulu',1);mainNada(SET.nada)};
+$('#nds').onclick=stopNada;
 $('#gp').onclick=()=>dialogPin(false);
 if($('#kpb'))$('#kpb').onclick=dialogPengguna;if($('#lgb'))$('#lgb').onclick=dialogLog;if($('#srk'))sumberKartu();
 if($('#dmi'))$('#dmi').onclick=async()=>{if(!await tanya('Isi data demo?','Contoh jurnal Senin sampai Sabtu minggu ini akan dibuat, memakai nama anak dari kelompok Anda. Demo sebelumnya diganti. Data asli tidak diubah.','Ya, isi demo',false))return;const b=$('#dmi');b.disabled=true;b.textContent='Mengisi...';
