@@ -1048,7 +1048,7 @@ const simpanSesi=()=>{try{aplKepsek()}catch(e){}try{localStorage.setItem('jg',JS
 
 /* ---------- suara tombol dan pilihan ---------- */
 const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('jgset')||'{}')}catch(e){}return{suara:o.suara!==false,vol:[1,2,3].includes(o.vol)?o.vol:2,tema:['ceria','main','belajar','ujian','coretax','modern'].includes(o.tema)?o.tema:'ceria',foto:/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(o.foto||'')?o.foto:'',fmode:'isi',fgel:typeof o.fgel==='number'?Math.min(85,Math.max(0,o.fgel)):55,fx:typeof o.fx==='number'?Math.min(100,Math.max(0,o.fx)):50,fy:typeof o.fy==='number'?Math.min(100,Math.max(0,o.fy)):50}})();
-try{const _o=JSON.parse(localStorage.getItem('jgset')||'{}');SET.nada=[0,1,2,3,4].includes(_o.nada)?_o.nada:1}catch(e){SET.nada=1}
+try{const _o=JSON.parse(localStorage.getItem('jgset')||'{}');SET.nada=Number.isInteger(_o.nada)&&_o.nada>=0&&_o.nada<=5?_o.nada:1}catch(e){SET.nada=1}
 const applyTema=()=>{document.documentElement.dataset.tema=SET.tema;const m=document.querySelector('meta[name=theme-color]');if(m)m.content={ceria:'#1e88e5',main:'#7a3fe0',belajar:'#0c2a72',ujian:'#1676e6',coretax:'#0a2a66',modern:'#f7f6f2'}[SET.tema]};applyTema();
 const simpanSet=()=>{try{localStorage.setItem('jgset',JSON.stringify(SET));return true}catch(e){return false}};
 const fotoLatar=()=>`<img class="hbg" src="${SET.foto}" alt="" style="object-position:${SET.fx}% ${SET.fy}%"><div class="hov" style="--ov:${SET.fgel/100}"></div>`;
@@ -1101,10 +1101,16 @@ function ucap(t){if(!SET.suara)return;try{const s=window.speechSynthesis;if(!s)r
 const v=(s.getVoices()||[]).find(x=>/^id([-_]|$)/i.test(x.lang));if(v)u.voice=v;u.volume={1:.45,2:.75,3:1}[SET.vol]||.75;u.rate=1;setTimeout(()=>s.speak(u),250)}catch(e){}}
 /* ---------- nada login (4 pilihan, sekitar 10 detik) ---------- */
 const NADA=[
-{n:'Pagi Ceria',w:'sine',m:[[523,1],[587,1],[659,1],[784,1],[659,1],[784,1],[880,2],[784,1],[659,1],[587,1],[523,1],[587,1],[659,1],[523,2],[392,1],[523,1],[659,1],[784,1],[1047,3]]},
-{n:'Lonceng Sekolah',w:'sine',h:1,m:[[659,1],[523,1],[587,1],[392,2],[392,1],[587,1],[659,1],[523,2],[659,1],[587,1],[523,1],[392,2],[440,1],[494,1],[523,1],[587,1],[659,1],[784,3]]},
-{n:'Taman Bermain',w:'triangle',m:[[523,.5],[659,.5],[784,.5],[1047,.5],[784,.5],[659,.5],[523,1],[587,.5],[740,.5],[880,.5],[1175,.5],[880,.5],[740,.5],[587,1],[659,.5],[784,.5],[988,.5],[1319,.5],[988,.5],[784,.5],[659,1],[523,.5],[659,.5],[784,.5],[1047,2]]},
-{n:'Fanfare Semangat',w:'square',g:.4,m:[[392,1],[392,1],[523,2],[392,1],[523,1],[659,2],[523,1],[659,1],[784,2],[659,1],[784,1],[1047,3]]}];
+/* 1. Für Elise (Beethoven) */
+{n:'Für Elise',m:[[659,1],[622,1],[659,1],[622,1],[659,1],[494,1],[587,1],[523,1],[440,2],[262,1],[330,1],[440,1],[494,2],[330,1],[415,1],[494,1],[523,2],[330,1],[659,1],[622,1],[659,1],[622,1],[659,1],[494,1],[587,1],[523,1],[440,3]]},
+/* 2. Canon in D (Pachelbel) */
+{n:'Canon in D',m:[[740,1],[659,1],[587,1],[554,1],[494,1],[440,1],[494,1],[554,1],[587,1],[554,1],[494,1],[440,1],[392,1],[370,1],[392,1],[330,3]]},
+/* 3. Greensleeves (tradisional) */
+{n:'Greensleeves',m:[[440,1],[523,2],[587,1],[659,1.5],[698,.5],[659,1],[587,2],[494,1],[392,1.5],[440,.5],[494,1],[523,2],[440,1],[440,1.5],[415,.5],[440,1],[494,2],[415,1],[330,3]]},
+/* 4. Auld Lang Syne (lagu perpisahan, versi sederhana) */
+{n:'Auld Lang Syne',m:[[294,1],[392,1.5],[392,.5],[392,1],[494,1],[440,1.5],[392,.5],[440,1],[494,.5],[440,.5],[392,1.5],[392,.5],[494,1],[587,1],[659,3],[659,1.5],[587,.5],[494,1],[494,1],[392,1.5],[392,.5],[440,1],[392,.5],[392,.5],[392,3]]},
+/* 5. Ode to Joy (Beethoven) */
+{n:'Ode to Joy',m:[[330,1],[330,1],[349,1],[392,1],[392,1],[349,1],[330,1],[294,1],[262,1],[262,1],[294,1],[330,1],[330,1.5],[294,.5],[294,2],[330,1],[330,1],[349,1],[392,1],[392,1],[349,1],[330,1],[294,1],[262,1],[262,1],[294,1],[330,1],[294,1.5],[262,.5],[262,3]]}];
 let NADA_STOP=null;
 function siapAudio(){try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume()}catch(e){}}
 function stopNada(){if(NADA_STOP)NADA_STOP()}
@@ -3357,7 +3363,7 @@ ${boleh('pengguna.kelola')?`<div class="card"><h3>👥 Manajemen Pengguna</h3><p
 <p class="sub" style="font-size:13px;margin:14px 0 6px">Volume</p>
 <div class="fg" style="grid-template-columns:repeat(3,1fr);max-width:460px" id="spv">${[[1,'Pelan'],[2,'Sedang'],[3,'Keras']].map(([v,l])=>`<label class="op"><input type="radio" name="vo" value="${v}"${SET.vol===v?' checked':''}><span>${l}</span></label>`).join('')}</div></div>
 <div class="card"><h3>🎵 Nada login</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Nada sekitar 10 detik yang diputar saat berhasil masuk dan tiba di beranda. Nada login tidak terdengar jika Suara di atas dimatikan. Tombol Dengarkan tetap berbunyi.</p>
-<div class="fg" style="grid-template-columns:repeat(2,1fr);max-width:460px" id="snd">${[[0,'Tanpa nada'],[1,'1. Surat untuk Elise'],[2,'2. Cahaya Bulan'],[3,'3. Greensleeves Syahdu'],[4,'4. Nocturne Malam'],[5,'5. Kenangan Senja']].map(([v,l])=>`<label class="op"><input type="radio" name="nd" value="${v}"${SET.nada===v?' checked':''}><span>${l}</span></label>`).join('')}</div>
+<div class="fg" style="grid-template-columns:repeat(2,1fr);max-width:460px" id="snd">${[[0,'Tanpa nada']].concat(NADA.map((x,i)=>[i+1,(i+1)+'. '+x.n])).map(([v,l])=>`<label class="op"><input type="radio" name="nd" value="${v}"${SET.nada===v?' checked':''}><span>${l}</span></label>`).join('')}</div>
 <div class="act" style="justify-content:flex-start;gap:10px"><button class="btn y s" id="ndp" type="button">▶ Dengarkan</button><button class="btn gh s" id="nds" type="button">⏹ Berhenti</button></div></div>
 ${boleh('demo')?`<div class="card"><h3>🧪 Data demo</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Mengisi contoh jurnal Senin sampai Sabtu minggu ini untuk percobaan atau pelatihan. Data demo bertanda khusus, jadi bisa dihapus tanpa menyentuh data asli. Tanggal yang sudah berisi Jurnal Harian atau Kehadiran asli dilewati. Perlu koneksi internet.</p><div class="act" style="justify-content:flex-start;gap:10px;flex-wrap:wrap"><button class="btn y s" id="dmi" type="button">Isi data demo</button><button class="btn gh s" id="dmh" type="button">Hapus data demo</button></div></div>`:''}
 <div class="card"><h3>📲 Pasang di HP atau komputer</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Tampil seperti aplikasi biasa dengan ikon logo sekolah, tanpa bilah alamat browser.</p>${cara}</div>`;
