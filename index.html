@@ -1048,6 +1048,7 @@ const simpanSesi=()=>{try{aplKepsek()}catch(e){}try{localStorage.setItem('jg',JS
 
 /* ---------- suara tombol dan pilihan ---------- */
 const SET=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('jgset')||'{}')}catch(e){}return{suara:o.suara!==false,vol:[1,2,3].includes(o.vol)?o.vol:2,tema:['ceria','main','belajar','ujian','coretax','modern'].includes(o.tema)?o.tema:'ceria',foto:/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(o.foto||'')?o.foto:'',fmode:'isi',fgel:typeof o.fgel==='number'?Math.min(85,Math.max(0,o.fgel)):55,fx:typeof o.fx==='number'?Math.min(100,Math.max(0,o.fx)):50,fy:typeof o.fy==='number'?Math.min(100,Math.max(0,o.fy)):50}})();
+try{const _o=JSON.parse(localStorage.getItem('jgset')||'{}');SET.nada=[0,1,2,3,4].includes(_o.nada)?_o.nada:1}catch(e){SET.nada=1}
 const applyTema=()=>{document.documentElement.dataset.tema=SET.tema;const m=document.querySelector('meta[name=theme-color]');if(m)m.content={ceria:'#1e88e5',main:'#7a3fe0',belajar:'#0c2a72',ujian:'#1676e6',coretax:'#0a2a66',modern:'#f7f6f2'}[SET.tema]};applyTema();
 const simpanSet=()=>{try{localStorage.setItem('jgset',JSON.stringify(SET));return true}catch(e){return false}};
 const fotoLatar=()=>`<img class="hbg" src="${SET.foto}" alt="" style="object-position:${SET.fx}% ${SET.fy}%"><div class="hov" style="--ov:${SET.fgel/100}"></div>`;
@@ -1097,6 +1098,27 @@ f.forEach((hz,i)=>{const o=ac.createOscillator(),g=ac.createGain(),s=ac.currentT
 g.gain.setValueAtTime({1:.05,2:.12,3:.25}[SET.vol],s);g.gain.exponentialRampToValueAtTime(.001,s+.1);o.start(s);o.stop(s+.11)})}catch(e){}}
 // suara ucapan (bahasa Indonesia) lewat speechSynthesis peramban; mengikuti pengaturan Suara dan Volume
 function ucap(t){if(!SET.suara)return;try{const s=window.speechSynthesis;if(!s)return;s.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='id-ID';
+/* ---------- nada login (4 pilihan, sekitar 10 detik) ---------- */
+const NADA=[
+{n:'Pagi Ceria',w:'sine',m:[[523,1],[587,1],[659,1],[784,1],[659,1],[784,1],[880,2],[784,1],[659,1],[587,1],[523,1],[587,1],[659,1],[523,2],[392,1],[523,1],[659,1],[784,1],[1047,3]]},
+{n:'Lonceng Sekolah',w:'sine',h:1,m:[[659,1],[523,1],[587,1],[392,2],[392,1],[587,1],[659,1],[523,2],[659,1],[587,1],[523,1],[392,2],[440,1],[494,1],[523,1],[587,1],[659,1],[784,3]]},
+{n:'Taman Bermain',w:'triangle',m:[[523,.5],[659,.5],[784,.5],[1047,.5],[784,.5],[659,.5],[523,1],[587,.5],[740,.5],[880,.5],[1175,.5],[880,.5],[740,.5],[587,1],[659,.5],[784,.5],[988,.5],[1319,.5],[988,.5],[784,.5],[659,1],[523,.5],[659,.5],[784,.5],[1047,2]]},
+{n:'Fanfare Semangat',w:'square',g:.4,m:[[392,1],[392,1],[523,2],[392,1],[523,1],[659,2],[523,1],[659,1],[784,2],[659,1],[784,1],[1047,3]]}];
+let NADA_STOP=null;
+function siapAudio(){try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume()}catch(e){}}
+function stopNada(){if(NADA_STOP)NADA_STOP()}
+function mainNada(n){const d=NADA[n-1];if(!d)return;
+try{siapAudio();stopNada();
+const vol={1:.06,2:.12,3:.22}[SET.vol]*(d.g||1),tot=d.m.reduce((a,x)=>a+x[1],0),k=9.6/tot,master=ac.createGain(),oscs=[];
+master.connect(ac.destination);let t=ac.currentTime+.05;
+d.m.forEach(([hz,b])=>{const dur=b*k;
+if(hz)[[hz,1]].concat(d.h?[[hz*2,.3]]:[]).forEach(([f,a])=>{const o=ac.createOscillator(),g=ac.createGain(),ek=t+dur*(d.h?1.6:.95);
+o.type=d.w;o.frequency.value=f;o.connect(g);g.connect(master);
+g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(vol*a,t+.03);g.gain.exponentialRampToValueAtTime(.0001,ek);
+o.start(t);o.stop(ek+.05);oscs.push(o)});
+t+=dur});
+NADA_STOP=()=>{try{master.gain.cancelScheduledValues(ac.currentTime);master.gain.setValueAtTime(master.gain.value,ac.currentTime);master.gain.linearRampToValueAtTime(0,ac.currentTime+.15);oscs.forEach(o=>{try{o.stop(ac.currentTime+.2)}catch(e){}})}catch(e){}NADA_STOP=null}
+}catch(e){}}
 const v=(s.getVoices()||[]).find(x=>/^id([-_]|$)/i.test(x.lang));if(v)u.voice=v;u.volume={1:.45,2:.75,3:1}[SET.vol]||.75;u.rate=1;setTimeout(()=>s.speak(u),250)}catch(e){}}
 document.addEventListener('input',e=>{const t=e.target;if(t&&t.matches&&t.matches('#kbct,#kbca,#kbcc')){const m=t.closest('.md');if(m&&typeof kpSeg==='function')kpSeg(m)}if(t&&t.matches&&t.matches('.dtw input')){const sp=t.parentNode.querySelector('.dv');if(sp)sp.textContent=t.parentNode.classList.contains('ds')?tglS(t.value):(t.value?tgl(t.value):'dd mmmm yyyy')}},true);document.addEventListener('change',e=>{const t=e.target;if(t&&t.matches&&t.matches('.dtw input')){const sp=t.parentNode.querySelector('.dv');if(sp)sp.textContent=t.parentNode.classList.contains('ds')?tglS(t.value):(t.value?tgl(t.value):'dd mmmm yyyy')}},true);
 function toast(m,er){const e=$('#toast');e.textContent=m;e.className='show'+(er?' er':'');bunyi(er?'err':'ok');clearTimeout(tt);tt=setTimeout(()=>e.className='',m.length>60?4000:2800)}
@@ -1417,7 +1439,7 @@ const salah=m=>{E.textContent=m;E.hidden=!m};
 P.oninput=()=>{P.value=P.value.replace(/\D/g,'').slice(0,6);salah('')};
 U.onchange=()=>{GID=U.value;salah('');if(GID)P.focus()};
 $('#lgxT').onclick=e=>{const b=e.currentTarget,t=P.type==='password';P.type=t?'text':'password';b.textContent=t?'Sembunyikan':'Tampilkan';b.setAttribute('aria-pressed',String(t));b.setAttribute('aria-label',t?'Sembunyikan PIN':'Tampilkan PIN');P.focus()};
-$('#lgxF').onsubmit=e=>{e.preventDefault();if(busy)return;
+$('#lgxF').onsubmit=e=>{e.preventDefault();if(busy)return;siapAudio();
 if(!U.value)return salah('Pilih nama Anda dulu.');
 if(!/^\d{6}$/.test(P.value))return salah('PIN harus 6 angka.');
 GID=U.value;PIN=P.value;masuk()};
@@ -1439,7 +1461,7 @@ E.innerHTML='Tidak bisa memuat daftar nama. Periksa koneksi internet. <button ty
 $('#lgxR').onclick=()=>{E.hidden=true;muatGuruLogin()}}}
 async function masuk(){busy=true;const G=$('#lgxG'),P=$('#lgxP'),E=$('#lgxE');G.disabled=true;G.textContent='Memeriksa...';
 try{const j=await api('login',{id:GID,pin:PIN,dev:devAmbil(GID)}),lama=PIN;if(j.dev)devSimpan(GID,j.dev);
-S.token=j.token;S.guru=j.guru;simpanSesi();if(S.guru&&S.guru.logo!==undefined)sekCache({nama:sekCache().nama,logo:S.guru.logo||''});PIN='';busy=false;bunyi('ok');shell();if(j.lemah)dialogPin(true,lama,j.wajib?'admin':'');return}
+S.token=j.token;S.guru=j.guru;simpanSesi();if(S.guru&&S.guru.logo!==undefined)sekCache({nama:sekCache().nama,logo:S.guru.logo||''});PIN='';busy=false;bunyi('ok');S.view='beranda';shell();if(SET.nada&&SET.suara)mainNada(SET.nada);if(j.lemah)dialogPin(true,lama,j.wajib?'admin':'');return}
 catch(e){if(S.mode==='login'&&E){E.textContent=e.message||'PIN salah.';E.hidden=false;P.value='';PIN='';P.focus();const c=document.querySelector('.lgx-card');if(c){c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake')}bunyi('err')}}
 busy=false;G.disabled=false;G.textContent='Masuk'}
 function keluar(manual){if(manual&&S.token){try{fetch(API_URL,{method:'POST',body:JSON.stringify({action:'logout',token:S.token}),keepalive:true}).catch(()=>{})}catch(e){}}KBD=null;KBDT=0;document.querySelectorAll('.md').forEach(x=>x.remove());cHapusSemua();S.token=null;S.guru=null;ROWS={};SISWA=null;Object.keys(FP).forEach(k=>delete FP[k]);LH.data=null;LH.id='';Object.keys(FL).forEach(k=>delete FL[k]);try{localStorage.removeItem('jg')}catch(e){}viewLogin()}
@@ -3309,6 +3331,9 @@ ${boleh('pengguna.kelola')?`<div class="card"><h3>👥 Manajemen Pengguna</h3><p
 <div class="fg" style="grid-template-columns:repeat(2,1fr);max-width:360px" id="sps"><label class="op"><input type="radio" name="su" value="1"${SET.suara?' checked':''}><span>Hidup</span></label><label class="op"><input type="radio" name="su" value="0"${SET.suara?'':' checked'}><span>Mati</span></label></div>
 <p class="sub" style="font-size:13px;margin:14px 0 6px">Volume</p>
 <div class="fg" style="grid-template-columns:repeat(3,1fr);max-width:460px" id="spv">${[[1,'Pelan'],[2,'Sedang'],[3,'Keras']].map(([v,l])=>`<label class="op"><input type="radio" name="vo" value="${v}"${SET.vol===v?' checked':''}><span>${l}</span></label>`).join('')}</div></div>
+<div class="card"><h3>🎵 Nada login</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Nada sekitar 10 detik yang diputar saat berhasil masuk dan tiba di beranda. Nada login tidak terdengar jika Suara di atas dimatikan. Tombol Dengarkan tetap berbunyi.</p>
+<div class="fg" style="grid-template-columns:repeat(2,1fr);max-width:460px" id="snd">${[[0,'Tanpa nada'],[1,'1. Pagi Ceria'],[2,'2. Lonceng Sekolah'],[3,'3. Taman Bermain'],[4,'4. Fanfare Semangat']].map(([v,l])=>`<label class="op"><input type="radio" name="nd" value="${v}"${SET.nada===v?' checked':''}><span>${l}</span></label>`).join('')}</div>
+<div class="act" style="justify-content:flex-start;gap:10px"><button class="btn y s" id="ndp" type="button">▶ Dengarkan</button><button class="btn gh s" id="nds" type="button">⏹ Berhenti</button></div></div>
 ${boleh('demo')?`<div class="card"><h3>🧪 Data demo</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Mengisi contoh jurnal Senin sampai Sabtu minggu ini untuk percobaan atau pelatihan. Data demo bertanda khusus, jadi bisa dihapus tanpa menyentuh data asli. Tanggal yang sudah berisi Jurnal Harian atau Kehadiran asli dilewati. Perlu koneksi internet.</p><div class="act" style="justify-content:flex-start;gap:10px;flex-wrap:wrap"><button class="btn y s" id="dmi" type="button">Isi data demo</button><button class="btn gh s" id="dmh" type="button">Hapus data demo</button></div></div>`:''}
 <div class="card"><h3>📲 Pasang di HP atau komputer</h3><p class="sub" style="font-size:13px;margin:-6px 0 14px">Tampil seperti aplikasi biasa dengan ikon logo sekolah, tanpa bilah alamat browser.</p>${cara}</div>`;
 $('#tmg').onclick=e=>{const b=e.target.closest('[data-tm]');if(!b)return;SET.tema=b.dataset.tm;simpanSet();applyTema();bunyi('ok');viewPengaturan()};
