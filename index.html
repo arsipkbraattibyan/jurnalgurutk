@@ -1101,8 +1101,8 @@ function ucap(t){if(!SET.suara)return;try{const s=window.speechSynthesis;if(!s)r
 const v=(s.getVoices()||[]).find(x=>/^id([-_]|$)/i.test(x.lang));if(v)u.voice=v;u.volume={1:.45,2:.75,3:1}[SET.vol]||.75;u.rate=1;setTimeout(()=>s.speak(u),250)}catch(e){}}
 /* ---------- nada login (4 pilihan, sekitar 10 detik) ---------- */
 const NADA=[
-/* 1. Gymnopédie No.1 (Satie), tenang dan sendu, versi disederhanakan */
-{n:'Gymnopédie',m:[[740,2],[880,1],[784,3],[740,2],[554,1],[494,2],[554,1],[587,3],[440,2],[587,1],[554,3],[494,2],[440,1],[370,4]]},
+/* 1. EDM, tenang dan sendu, versi disederhanakan */
+{n:'EDM Emosional',m:[[659,.5],[659,.5],[784,1],[659,.5],[587,.5],[523,1],[587,.5],[659,.5],[587,1],[440,2],[523,.5],[523,.5],[659,1],[523,.5],[494,.5],[440,1],[494,.5],[523,.5],[494,1],[392,2],[440,3]]},
 /* 2. Turkish March / Rondo alla Turca (Mozart), ceria dan terkenal */
 {n:'Turkish March',m:[[494,.5],[440,.5],[415,.5],[440,.5],[523,2],[587,.5],[523,.5],[494,.5],[523,.5],[659,2],[698,.5],[659,.5],[622,.5],[659,.5],[988,.5],[880,.5],[831,.5],[880,.5],[988,.5],[880,.5],[831,.5],[880,.5],[1047,3]]},
 /* 3. Greensleeves (tradisional), TETAP */
