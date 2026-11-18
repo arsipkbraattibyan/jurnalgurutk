@@ -1019,6 +1019,15 @@ html[data-tema=modern] .card{padding:16px;border-radius:22px}}
 @media(max-width:380px){html[data-tema=modern] .pgs{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){html[data-tema=modern] *{transition:none!important}}
 @media print{html[data-tema=modern] body{background:#fff}}
+/* Portofolio / Data siswa dengan foto anak: di HP foto di atas, tabel selebar penuh */
+@media screen and (max-width:600px){
+#lap .pfr.fa{flex-direction:column;align-items:center;gap:12px}
+#lap .pfr.fa .pfw{flex:none;width:3.4cm;height:4.4cm;min-height:0;margin:0 auto}
+#lap .pfr.fa .pfw img{min-height:0;height:100%}
+#lap .pfr.fa .pfd{flex:none;width:100%}
+#lap .pfr.fa .rt.id td{word-break:break-word;overflow-wrap:anywhere}
+#lap .pfr.fa .rt.id td:first-child{width:40%}
+}
 </style>
 </head>
 <body>
