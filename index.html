@@ -2592,14 +2592,25 @@ b.disabled=true;b.textContent='Memindahkan...';
 try{await api('siswaPindah',{data:{id:lid,nama,ke,efektif:ef}});md.remove();sdSegarkan();toast(nama+' dipindahkan ke '+ke)}
 catch(er){toast(/tidak dikenal/i.test(er.message)?'Backend belum diperbarui. Pasang Code.gs dan Pindah.gs terbaru.':er.message,1);b.disabled=false;b.textContent='Pindahkan'}};
 document.body.appendChild(md)}
-async function sdHapus(lid,nama,aktif){let c;
-try{c=await api('siswaHapus',{data:{id:lid,nama,cek:true}})}catch(er){toast(/tidak dikenal/i.test(er.message)?'Backend belum diperbarui. Pasang Code.gs dan Pindah.gs terbaru.':er.message,1);return false}
-if(!c.boleh){const p=nama+' sudah memiliki riwayat ('+c.alasan.join(', ')+') sehingga tidak boleh dihapus permanen.';
-if(!aktif){toast(p,1);return false}
-if(await tanya('Tidak dapat dihapus',p+' Nonaktifkan saja agar tidak muncul di daftar anak?','Nonaktifkan',false)){try{await api('siswaLokalNonaktif',{nama,id:lid});sdSegarkan();toast('Siswa dinonaktifkan')}catch(er){toast(er.message,1)}}
-return false}
-if(!await tanya('Hapus permanen?',nama+' belum memiliki riwayat jurnal, kehadiran, penilaian, atau perkembangan. Siswa akan dihapus permanen dan tidak dapat dikembalikan.','Ya, hapus permanen'))return false;
-try{await api('siswaHapus',{data:{id:lid,nama,konfirmasi:'ya'}});sdSegarkan();toast('Siswa dihapus permanen');ucap('Siswa berhasil dihapus');return true}catch(er){toast(er.message,1);return false}}
+async function sdHapus(lid,nama,aktif){
+  let c;
+  try{c=await api('siswaHapus',{data:{id:lid,nama,cek:true}})}
+  catch(er){toast(/tidak dikenal/i.test(er.message)?'Backend belum diperbarui. Pasang HapusSiswa.gs dan Code.gs terbaru.':er.message,1);return false}
+
+  const rw=Object.keys(c.riwayat||{}).map(k=>k+' '+c.riwayat[k]).join(', ');
+
+  // Tanpa riwayat: hapus permanen seperti biasa
+  if(c.langsung){
+    if(!await tanya('Hapus permanen?',nama+' belum memiliki riwayat jurnal, kehadiran, penilaian, atau perkembangan. Siswa akan dihapus permanen dan tidak dapat dikembalikan.','Ya, hapus permanen'))return false;
+    try{await api('siswaHapus',{data:{id:lid,nama,konfirmasi:'ya'}});sdSegarkan();toast('Siswa dihapus permanen');ucap('Siswa berhasil dihapus');return true}
+    catch(er){toast(er.message,1);return false}
+  }
+
+  // Punya riwayat: dipindah ke Sampah (bisa dipulihkan admin)
+  if(!await tanya('Pindahkan ke Sampah?',nama+' memiliki riwayat ('+rw+'). Siswa akan dipindah ke Sampah dan hilang dari semua daftar. Admin Sekolah dapat memulihkannya dalam '+(c.hari||30)+' hari, setelah itu dihapus permanen. Datanya tidak diubah.','Ya, pindahkan',true))return false;
+  try{const j=await api('siswaHapus',{data:{id:lid,nama,konfirmasi:'ya'}});sdSegarkan();toast(j.pesan||'Siswa dipindahkan ke Sampah');ucap('Siswa dipindahkan ke Sampah');return true}
+  catch(er){toast(er.message,1);return false}
+}
 function sdNonaktif(){const md=document.createElement('div');md.className='md';let L=[];
 md.innerHTML=`<div class="sheet"><h2>🗂️ Siswa manual nonaktif</h2><div id="nkl">${muat()}</div><div class="act"><button class="btn" data-x>Tutup</button></div></div>`;
 const isi=async()=>{const w=md.querySelector('#nkl');try{const j=await api('siswaNonaktifDaftar');L=j.rows;
