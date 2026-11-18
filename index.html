@@ -2502,7 +2502,7 @@ return`<p style="margin:0 0 6px">Hari jurnal kehadiran pada periode ini: <b>${j.
 
 let SISTAB='data',SD=null;
 const RX_ORTU=/ayah|ibu|bapak|orang ?tua|wali/i,RX_ALM=/alamat|domisili|\brt\b|\brw\b|kelurahan|desa|kecamatan|kota|kabupaten|provinsi|kode ?pos/i,RX_KON=/telp|telepon|\bhp\b|\bwa\b|whatsapp|phone|kontak|email/i;
-const SDF=[['Nama',[/^nama(\s+(lengkap|siswa|murid|anak))?$/i,/nama/i],RX_ORTU],['Kelompok',[/kelas|kelompok/i]],['Tempat lahir',[/tempat/i]],
+const SDF=[['Nama',[/^nama(\s+(lengkap|siswa|murid|anak))?$/i,/nama/i],RX_ORTU],['Nama lengkap',[/^nama lengkap$/i]],['Kelompok',[/kelas|kelompok/i]],['Tempat lahir',[/tempat/i]],
 ['Tanggal lahir',[/tanggal.*lahir|tgl.*lahir|^lahir$|^ttl$/i,/lahir/i],/tempat/i],['L/P',[/jenis kelamin|^jk$|gender|^l\/p$/i]],['Alamat',[/^alamat/i,/alamat/i],/ayah|ibu|wali|kantor|kerja/i],
 ['Ayah',[/^(nama )?ayah|^nama bapak|^bapak/i],/telp|telepon|hp|wa\b|alamat|pekerjaan|kerja|penghasilan/i],['Ibu',[/^(nama )?ibu|^nama mama/i],/telp|telepon|hp|wa\b|alamat|pekerjaan|kerja|penghasilan/i],
 ['Wali',[/^(nama )?wali/i],/telp|telepon|hp|wa\b|alamat|pekerjaan|kerja|kode/i],['Telepon',[/telp|telepon|\bhp\b|no\.? ?hp|\bwa\b|whatsapp|phone|kontak/i]]];
