@@ -1205,16 +1205,7 @@ if(k==='perkembangan')cekDup();const sm=md.querySelector('#sm');if(sm)sm.textCon
 const isiNama=()=>{const dl=md.querySelector('#dl_nama');if(!dl||!SISWA)return;const kl=E('kelas').value;dl.innerHTML=SISWA.filter(s=>!kl||s.kelas===kl).map(s=>`<option value="${esc(s.nama)}">`).join('')};
 const gPk=n=>{const c=[...md.querySelectorAll('.pk')].find(x=>x.dataset.pk===n);if(!c)return;const a=FA[n]||{lama:[],baru:[]},tot=a.lama.length+a.baru.length;
 c.innerHTML=`<button type="button" class="btn o s" data-pkb="${esc(n)}">📷 ${tot?'Tambah foto':'Foto '+esc(n)}</button>`+a.lama.map((id,i)=>`<div class="fth"><img class="ft" data-fid="${esc(id)}" src="${BLANK}" alt="Foto"><button type="button" data-pl="${i}" aria-label="Hapus foto">×</button></div>`).join('')+a.baru.map((s,i)=>`<div class="fth"><img class="ft" data-loaded="1" src="${s}" alt="Foto"><button type="button" data-pb="${i}" aria-label="Hapus foto">×</button></div>`).join('');isiFoto(c)};
-const pkRows=()=>{if(k!=='penilaian'||row)return[];const tg=E('tanggal').value,kl=kelNorm(E('kelas').value),asp=String(E('aspek').value||'').trim().toLowerCase();if(!tg||!kl||!asp)return[];
-const cocok=a=>{
- a=String(a||'').trim().toLowerCase();
- // Cocokkan Elemen CP baru dengan catatan lama yang masih memakai kategori/aspek terdahulu.
- if(asp==='nilai agama dan budi pekerti')return ['nilai agama dan budi pekerti'].includes(a);
- if(asp==='jati diri')return ['jati diri','fisik motorik'].includes(a);
- if(asp.indexOf('dasar-dasar literasi')===0)return a===asp||['literasi','matematika dan sains','teknologi dan rekayasa','seni'].includes(a);
- return a===asp;
-};
-return(ROWS.perkembangan||[]).filter(r=>String(r.tanggal).slice(0,10)===tg&&kelNorm(r.kelas)===kl&&cocok(r.aspek)&&lvl(r)>=0)};
+const pkRows=()=>[]; // Jurnal Penilaian TIDAK lagi terisi otomatis dari Jurnal Perkembangan: guru memilih capaian tiap anak sendiri
 const pkInfo=n=>{if(k!=='penilaian'||row)return;let w=md.querySelector('#pki');if(!w){w=document.createElement('div');w.id='pki';w.className='abn';w.style.display='none';const bx=md.querySelector('#tbl');if(bx)bx.before(w);else return}
 w.style.display=n?'':'none';w.textContent=n?'✅ Terisi otomatis dari Jurnal Perkembangan Anak ('+n+' anak, tanggal dan aspek yang sama). Boleh diubah sebelum disimpan.':''};
 const pkReset=()=>{if(k!=='penilaian')return;md._au.forEach(n=>delete T[n]);md._au.clear()};
@@ -1323,7 +1314,6 @@ if(tb||k==='perkembangan')loadSiswa().then(()=>{isiNama();gambar();hitung()});
 cekDup();
 if(k==='harian'){md.addEventListener('change',e=>{if(e.target.name==='tanggal'||e.target.name==='kelas')setTimeout(()=>cekDup(1),0)});(md._mu=JRmuat('harian')).then(()=>cekDup())}
 if(k==='perkembangan'){['input','change'].forEach(ev=>md.addEventListener(ev,e=>{if(e.target.name==='nama')cekDup()}));JRmuat('perkembangan').then(()=>cekDup())}
-if(k==='penilaian'&&!row)JRmuat('perkembangan').then(()=>{if(md.isConnected){gambar();hitung()}});
 if(k==='penilaian'){
  md.addEventListener('change',e=>{
   if(['tanggal','kelas','aspek'].includes(e.target.name))setTimeout(()=>{
