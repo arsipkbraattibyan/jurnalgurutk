@@ -1435,8 +1435,10 @@ if(k==='kehadiran'||k==='harian'){await (md._mu||(k==='harian'?(ROWS.harian||JRm
 try{if(DOKK.includes(k)&&md._dokSimpan){await md._dokSimpan(b,list,d)}else if(FOTO[k]){if(list&&k==='perkembangan'){for(const x of list){const a=FA[x.nama];x.foto='';if(a){await kirimFoto(a,b);x.foto=a.lama.join(' ')}}}
 else{await kirimFoto(Fo,b);d.foto=Fo.lama.join(' ');if(list)list.forEach(x=>x.foto=d.foto)}}
 let kbE='',antri=false,rs=null;if(list){const sb=await simpanBanyak(k,list);kbE=(sb&&sb.kbcError)||'';antri=!!(sb&&sb.queued)}else{rs=await api('simpan',{jenis:k,data:d});kbE=rs.kbcError||'';antri=!!rs.queued}md.remove();toast(kbE?'Jurnal tersimpan, tetapi KBC belum tersimpan: '+kbE:(row?'Catatan berhasil diubah':(list?`${list.length} catatan tersimpan`:'Jurnal tersimpan')),!!kbE);if(!kbE&&!antri)ucap(row?'Catatan berhasil diubah':'Catatan berhasil disimpan'); // saat offline, ucapan "tersimpan di perangkat" diberikan oleh offline.js
-KBDT=0;try{if(!list&&rs&&rs.ID&&ROWS[k]){const o={...d,ID:rs.ID,GuruID:S.guru.id},ix=ROWS[k].findIndex(x=>String(x.ID)===String(rs.ID));if(ix>=0)ROWS[k][ix]={...ROWS[k][ix],...o};else ROWS[k].unshift(o);ROWS[k]=urut(ROWS[k]);cRows(k)}}catch(e){} // tampil langsung; viewJurnal menyegarkan dari server di latar
-if(k==='kehadiran')presSegar();viewJurnal(k)}
+KBDT=0;try{if(!list&&rs&&rs.ID&&ROWS[k]){const o={...d,ID:rs.ID,GuruID:S.guru.id};delete o.kbc;const ix=ROWS[k].findIndex(x=>String(x.ID)===String(rs.ID));if(ix>=0)ROWS[k][ix]={...ROWS[k][ix],...o};else ROWS[k].unshift(o);ROWS[k]=urut(ROWS[k]);cRows(k)}}catch(e){} // tampil langsung; viewJurnal menyegarkan dari server di latar
+if(k==='kehadiran')presSegar();
+if(k==='harian'&&!list&&rs&&rs.ID&&S.view===k&&$('#ls'))tampil(k); // daftar langsung tampil dari data lokal, tanpa muat ulang dari server
+else viewJurnal(k)}
 catch(er){toast(er.message,1);gFoto();b.disabled=false;b.textContent='Simpan'}}}}
 
 /* ---------- data siswa dan presensi ----------
