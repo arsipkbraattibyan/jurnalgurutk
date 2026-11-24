@@ -5432,3 +5432,548 @@ html[data-tema=modern] .wkx {
     width: 40%;
   }
 }
+
+/* ===== Desain 7: Dasbor Sekolah (menu samping biru tua bergradasi dengan foto sekolah di bawahnya, kartu ringkasan pastel, kartu putih bergaris tipis, tab navy) ===== */
+html[data-tema=dasbor] {
+  --blue: #1f6fe0;
+  --blued: #164fb0;
+  --navy: #0b2a6b;
+  --yel: #f5a623;
+  --pink: #ef4d6a;
+  --grn: #1fa75a;
+  --ink: #1f2d52;
+  --mut: #6b7ba4;
+  --ln: #e3ebf7;
+  --soft: #eaf2ff;
+  --sh: 0 2px 10px #0b2a6b0f;
+  --side: #0b3280;
+  --fotosek: none;
+}
+html[data-tema=dasbor] body {
+  background: #f2f6fc;
+  font-family: 'Plus Jakarta Sans','Nunito',system-ui,sans-serif;
+}
+html[data-tema=dasbor] :is(h1,h2,h3,.btn,.nv,.pad button,.pg b,.tabs button,.stp2,.sti b,.dn span,.bdg,.sheet h2,.pt,.sec) {
+  font-family: 'Plus Jakarta Sans',system-ui,sans-serif;
+}
+html[data-tema=dasbor] #app {
+  padding: 16px 20px 30px 284px;
+  min-height: 100vh;
+}
+html[data-tema=dasbor] #app::before {
+  content: "";
+  position: fixed;
+  left: 12px;
+  top: 12px;
+  bottom: 12px;
+  width: 248px;
+  z-index: 10;
+  border-radius: 22px;
+  background-color: var(--side);
+  background-image: linear-gradient(180deg,#0000 58%,#061f58d9 100%),linear-gradient(180deg,#0f4cb0 0%,#0b3280 46%,#0b328000 100%),var(--fotosek);
+  background-size: 100% 100%,100% 100%,cover;
+  background-position: 0 0,0 0,center bottom;
+  background-repeat: no-repeat;
+  box-shadow: 0 10px 30px #0b2a6b33;
+}
+html[data-tema=dasbor] .top {
+  display: contents;
+}
+html[data-tema=dasbor] .brand {
+  position: fixed;
+  left: 12px;
+  top: 12px;
+  z-index: 12;
+  width: 248px;
+  padding: 18px 16px 10px;
+  gap: 10px;
+}
+html[data-tema=dasbor] .brand img.lg {
+  height: 42px;
+  width: auto;
+  max-width: 46px;
+  object-fit: contain;
+}
+html[data-tema=dasbor] .brand b {
+  font: 800 15px/1.2 'Plus Jakarta Sans',sans-serif;
+  color: #fff;
+}
+html[data-tema=dasbor] .brand small {
+  color: #a9c2f2;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .4px;
+  display: block;
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+html[data-tema=dasbor] .menu {
+  position: fixed;
+  left: 12px;
+  top: 84px;
+  bottom: 12px;
+  width: 248px;
+  z-index: 11;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 4px;
+  margin: 0;
+  max-width: none;
+  padding: 8px 12px 14px;
+  background: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+html[data-tema=dasbor] .menu::-webkit-scrollbar {
+  display: none;
+}
+html[data-tema=dasbor] .nv {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  height: 44px;
+  flex: none;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: #dbe7ff;
+  font: 600 13.5px 'Plus Jakarta Sans',sans-serif;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+html[data-tema=dasbor] .nv .ni {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  font-size: 17px;
+  flex: none;
+}
+html[data-tema=dasbor] .nv:not(.on) .ni {
+  filter: grayscale(1) brightness(2.2);
+}
+html[data-tema=dasbor] .nv:hover {
+  background: #ffffff1c;
+  border: 0;
+}
+html[data-tema=dasbor] .nv.on {
+  background: linear-gradient(135deg,#3a86f2,#1f6fe0);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 6px 16px #0a2a7a66;
+}
+html[data-tema=dasbor] .sbx {
+  display: none;
+}
+html[data-tema=dasbor] .cu {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  margin: 0 0 14px auto;
+  padding: 6px 8px 6px 6px;
+  background: #fff;
+  border: 1px solid var(--ln);
+  border-radius: 16px;
+  box-shadow: var(--sh);
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--navy);
+}
+html[data-tema=dasbor] .cu .btn {
+  background: #fff;
+  color: var(--navy);
+  border: 1.5px solid var(--ln);
+  box-shadow: none;
+  padding: 6px 14px;
+  border-radius: 10px;
+}
+html[data-tema=dasbor] .av {
+  border: 0;
+  box-shadow: 0 0 0 3px var(--soft);
+}
+html[data-tema=dasbor] .page {
+  max-width: none;
+  margin: 0;
+  padding: 0 0 30px;
+}
+html[data-tema=dasbor] .pt {
+  font: 800 24px/1.2 'Plus Jakarta Sans',sans-serif;
+  color: var(--navy);
+  margin: 4px 0 16px;
+}
+html[data-tema=dasbor] .sec {
+  text-align: left;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--navy);
+  margin: 6px 0 12px;
+}
+html[data-tema=dasbor] .sec::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--blue);
+  margin-right: 10px;
+  vertical-align: -3px;
+}
+html[data-tema=dasbor] .sec.w {
+  color: var(--navy);
+}
+html[data-tema=dasbor] .btn {
+  background: var(--blue);
+  color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px #1f6fe033;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 20px;
+}
+html[data-tema=dasbor] .btn.s {
+  padding: 6px 14px;
+  font-size: 13px;
+}
+html[data-tema=dasbor] .btn:active {
+  transform: scale(.97);
+  box-shadow: none;
+}
+html[data-tema=dasbor] .btn.y {
+  background: #f5a623;
+  color: #3b2a00;
+  box-shadow: 0 4px 12px #f5a62340;
+}
+html[data-tema=dasbor] .btn.o {
+  background: #fff;
+  color: var(--blued);
+  border: 1.5px solid var(--blue);
+  box-shadow: none;
+}
+html[data-tema=dasbor] .btn.gh {
+  background: var(--soft);
+  color: var(--blued);
+  box-shadow: none;
+}
+html[data-tema=dasbor] .btn.rd {
+  background: #fde8ec;
+  color: #c2185b;
+  box-shadow: none;
+}
+html[data-tema=dasbor] .hero {
+  display: block;
+  margin: 0 0 18px;
+  padding: 0;
+}
+html[data-tema=dasbor] .hero h1 {
+  font-size: 26px;
+  line-height: 1.25;
+  color: var(--navy);
+  font-weight: 800;
+}
+html[data-tema=dasbor] .hero .c1 {
+  color: var(--blue);
+}
+html[data-tema=dasbor] .hero .h2l {
+  display: none;
+}
+html[data-tema=dasbor] .hero p {
+  margin: 4px 0 14px;
+  max-width: none;
+  color: var(--mut);
+  font-size: 14px;
+  font-weight: 600;
+}
+html[data-tema=dasbor] .hero:not(.hf) .scene {
+  display: none;
+}
+html[data-tema=dasbor] .hero.hf {
+  min-height: 200px;
+  padding: 26px 28px;
+  border-radius: 20px;
+  background: var(--side);
+}
+html[data-tema=dasbor] .hero.hf h1,
+html[data-tema=dasbor] .hero.hf p,
+html[data-tema=dasbor] .hero.hf .c1 {
+  color: #fff;
+}
+html[data-tema=dasbor] .strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(190px,1fr));
+  gap: 12px;
+  background: none;
+  box-shadow: none;
+  padding: 0;
+  border-radius: 0;
+  margin: 0 0 20px;
+}
+html[data-tema=dasbor] .sti {
+  border-radius: 16px;
+  padding: 14px 16px;
+  border: 1px solid transparent;
+}
+html[data-tema=dasbor] .sti:nth-child(1) {
+  background: #eaf1ff;
+  border-color: #d6e4ff;
+}
+html[data-tema=dasbor] .sti:nth-child(2) {
+  background: #e6f6ec;
+  border-color: #cdeedb;
+}
+html[data-tema=dasbor] .sti:nth-child(3) {
+  background: #fff4d6;
+  border-color: #fbe5a6;
+}
+html[data-tema=dasbor] .sti:nth-child(4) {
+  background: #fde8ea;
+  border-color: #f8cdd3;
+}
+html[data-tema=dasbor] .sti i {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  font-size: 22px;
+}
+html[data-tema=dasbor] .sti:nth-child(1) i {
+  background: #2f6df0!important;
+}
+html[data-tema=dasbor] .sti:nth-child(2) i {
+  background: #1fa75a!important;
+}
+html[data-tema=dasbor] .sti:nth-child(3) i {
+  background: #f5a623!important;
+}
+html[data-tema=dasbor] .sti:nth-child(4) i {
+  background: #ef4d6a!important;
+}
+html[data-tema=dasbor] .sti b {
+  font: 800 26px/1.1 'Plus Jakarta Sans',sans-serif;
+  color: var(--navy);
+}
+html[data-tema=dasbor] .sti small {
+  color: var(--mut);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+html[data-tema=dasbor] .pgs {
+  grid-template-columns: repeat(auto-fill,minmax(240px,1fr));
+  gap: 12px;
+}
+html[data-tema=dasbor] :is(.pg,.pg.c0,.pg.c1,.pg.c2,.pg.c3) {
+  position: relative;
+  flex-direction: row;
+  align-items: center;
+  text-align: left;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid var(--ln);
+  box-shadow: var(--sh);
+}
+html[data-tema=dasbor] .pg:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px #0b2a6b1a;
+}
+html[data-tema=dasbor] .pg .em {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  margin: 0;
+  flex: none;
+  background: #eaf1ff;
+}
+html[data-tema=dasbor] .pg.c1 .em {
+  background: #e6f6ec;
+}
+html[data-tema=dasbor] .pg.c2 .em {
+  background: #fff4d6;
+}
+html[data-tema=dasbor] .pg.c3 .em {
+  background: #efe9fd;
+}
+html[data-tema=dasbor] .pi {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+html[data-tema=dasbor] .pg b {
+  font: 700 14px 'Plus Jakarta Sans',sans-serif;
+  color: var(--navy);
+}
+html[data-tema=dasbor] .pg small {
+  color: var(--mut);
+}
+html[data-tema=dasbor] .pg .nn {
+  color: var(--blued);
+}
+html[data-tema=dasbor] .pg .ln {
+  position: absolute;
+  right: 14px;
+  top: 12px;
+  margin: 0;
+  font-size: 11px;
+}
+html[data-tema=dasbor] .band {
+  background: none;
+  width: auto;
+  margin: 22px 0 0;
+  padding: 0;
+}
+html[data-tema=dasbor] .band .wv,
+html[data-tema=dasbor] .foot {
+  display: none;
+}
+html[data-tema=dasbor] .bi {
+  max-width: none;
+  padding: 0;
+}
+html[data-tema=dasbor] .card {
+  border: 1px solid var(--ln);
+  border-radius: 16px;
+  box-shadow: var(--sh);
+}
+html[data-tema=dasbor] .card h3 {
+  font-size: 16px;
+  font-weight: 800;
+}
+html[data-tema=dasbor] .jh {
+  background: #fff;
+  border: 1px solid var(--ln);
+  border-radius: 16px;
+  box-shadow: var(--sh);
+}
+html[data-tema=dasbor] .jh .em {
+  background: var(--soft);
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+}
+html[data-tema=dasbor] .rc .ico,
+html[data-tema=dasbor] .stp button,
+html[data-tema=dasbor] .ukb {
+  background: var(--soft);
+}
+html[data-tema=dasbor] .tabs {
+  background: var(--soft);
+}
+html[data-tema=dasbor] .tabs button.on {
+  background: #0f3a8a;
+  box-shadow: none;
+}
+html[data-tema=dasbor] .rt.ap th {
+  background: var(--soft);
+}
+html[data-tema=dasbor] .md {
+  background: #0a1f5199;
+}
+html[data-tema=dasbor] input:focus,
+html[data-tema=dasbor] textarea:focus {
+  box-shadow: 0 0 0 4px #1f6fe026;
+}
+html[data-tema=dasbor] .op span {
+  box-shadow: none;
+  border-radius: 12px;
+}
+html[data-tema=dasbor] .op input:checked+span {
+  box-shadow: none;
+}
+@media(max-width:820px) {
+  html[data-tema=dasbor] #app {
+    padding: 0;
+  }
+  html[data-tema=dasbor] #app::before {
+    display: none;
+  }
+  html[data-tema=dasbor] .top {
+    display: flex;
+    background: var(--side);
+    padding: 8px 12px;
+  }
+  html[data-tema=dasbor] .brand {
+    position: static;
+    width: auto;
+    padding: 0;
+  }
+  html[data-tema=dasbor] .menu {
+    position: static;
+    width: auto;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    background: var(--side);
+    padding: 4px 10px 10px;
+    gap: 6px;
+  }
+  html[data-tema=dasbor] .nv {
+    width: auto;
+    flex: 0 0 auto;
+    height: auto;
+    padding: 7px 12px;
+    border-radius: 99px;
+  }
+  html[data-tema=dasbor] .cu {
+    margin: 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    box-shadow: none;
+    color: #fff;
+  }
+  html[data-tema=dasbor] .cu .btn {
+    background: none;
+    color: #fff;
+    border: 1.5px solid #ffffff55;
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+  html[data-tema=dasbor] .page {
+    padding: 12px 12px 24px;
+  }
+  html[data-tema=dasbor] .hero h1 {
+    font-size: 21px;
+  }
+  html[data-tema=dasbor] .hero.hf {
+    padding: 20px 16px;
+    min-height: 0;
+  }
+  html[data-tema=dasbor] .pgs {
+    grid-template-columns: 1fr;
+  }
+  html[data-tema=dasbor] .strip {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media print {
+  html[data-tema=dasbor] body {
+    background: #fff;
+  }
+  html[data-tema=dasbor] #app {
+    padding: 0;
+  }
+  html[data-tema=dasbor] #app::before {
+    display: none;
+  }
+}
