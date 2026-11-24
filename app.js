@@ -871,7 +871,7 @@ $('#ls').innerHTML=rs.length?rs.map(r=>`<div class="card row kc"><small>${fmt(r.
 isiFoto($('#ls'));
 $('#ls').onclick=async e=>{const bf=e.target.closest('img.ft');if(bf&&bf.dataset.loaded)return lihatFoto(bf.src);const be=e.target.closest('[data-e]'),bd=e.target.closest('[data-d]');
 if(be)bukaForm(k,ROWS[k].find(r=>r.ID===be.dataset.e));
-if(bd&&await tanya('Hapus catatan?','Catatan ini akan dihapus dan tidak bisa dikembalikan.','Hapus')){try{const rh=await api('hapus',{jenis:k,id:bd.dataset.d});ROWS[k]=ROWS[k].filter(r=>r.ID!==bd.dataset.d);cRows(k);if(k==='kehadiran')presSegar();tampil(k);if(!(rh&&rh.queued)){toast('Catatan berhasil dihapus');ucap('Catatan berhasil dihapus')}}catch(er){toast(er.message,1)}}}}
+if(bd&&await tanya('Hapus catatan?','Catatan ini akan dihapus dan tidak bisa dikembalikan.','Hapus')){bd.disabled=true;bd.textContent='Menghapus...';try{const rh=await api('hapus',{jenis:k,id:bd.dataset.d});ROWS[k]=ROWS[k].filter(r=>r.ID!==bd.dataset.d);cRows(k);if(k==='kehadiran')presSegar();tampil(k);if(!(rh&&rh.queued)){toast('Catatan berhasil dihapus');ucap('Catatan berhasil dihapus')}}catch(er){toast(er.message,1);bd.disabled=false;bd.textContent='🗑️ Hapus'}}}}
 
 /* ---------- hapus semua catatan dalam 1 hari ---------- */
 async function hapusSehari(k,d){try{await api('hapusHari',{jenis:k,tanggal:d})}catch(e){if(!/tidak dikenal/i.test(e.message))throw e;for(const r of ROWS[k].filter(x=>x.tanggal===d))await api('hapus',{jenis:k,id:r.ID})}}
