@@ -1432,28 +1432,8 @@ if(k==='penilaian'){
  }
 }
 if(k==='kehadiran'||k==='harian'){await (md._mu||(k==='harian'?(ROWS.harian||JRmuat('harian')):(ROWS.kehadiran||KHmuat())));const dx=cekDup();if(dx){toast('Tidak bisa disimpan: '+(k==='harian'?'Jurnal Harian ':'Jurnal Kehadiran ')+E('kelas').value+' tanggal '+tgl(E('tanggal').value)+' sudah ada.',1);b.disabled=false;b.textContent='Simpan';return}}
-if(k==='harian'&&!row&&!Fo.baru.length){
-  d.foto=Fo.lama.join(' ');
-  const sem={...d,ID:'tmp'+Date.now(),GuruID:S.guru.id};delete sem.kbc;
-  if(!ROWS[k])ROWS[k]=[];
-  ROWS[k].unshift(sem);ROWS[k]=urut(ROWS[k]);
-  md.remove();if(S.view===k&&$('#ls'))tampil(k);
-  toast('Menyimpan jurnal...');
-  api('simpan',{jenis:k,data:d}).then(rs=>{
-    const ix=ROWS[k].findIndex(x=>x.ID===sem.ID);
-    if(ix>=0)ROWS[k][ix]={...ROWS[k][ix],ID:rs.ID};
-    cRows(k);KBDT=0;
-    if(S.view===k&&$('#ls'))tampil(k);
-    if(rs&&rs.queued)return;
-    toast(rs.kbcError?'Jurnal tersimpan, tetapi KBC belum tersimpan: '+rs.kbcError:'Jurnal tersimpan',!!rs.kbcError);
-    if(!rs.kbcError)ucap('Catatan berhasil disimpan');
-  }).catch(er=>{
-    ROWS[k]=ROWS[k].filter(x=>x.ID!==sem.ID);
-    if(S.view===k&&$('#ls'))tampil(k);
-    toast('Gagal menyimpan, catatan dibatalkan: '+er.message,1);
-  });
-  return;
-}
+// Jurnal Harian baru kini memakai alur yang sama dengan jurnal lain: tombol 'Menyimpan...' sampai server menjawab,
+// lalu daftar, toast, dan suara muncul bersamaan (tidak lagi tampil dulu baru server dan suara menyusul).
 try{if(DOKK.includes(k)&&md._dokSimpan){await md._dokSimpan(b,list,d)}else if(FOTO[k]){if(list&&k==='perkembangan'){for(const x of list){const a=FA[x.nama];x.foto='';if(a){await kirimFoto(a,b);x.foto=a.lama.join(' ')}}}
 else{await kirimFoto(Fo,b);d.foto=Fo.lama.join(' ');if(list)list.forEach(x=>x.foto=d.foto)}}
 let kbE='',antri=false,rs=null;if(list){const sb=await simpanBanyak(k,list);kbE=(sb&&sb.kbcError)||'';antri=!!(sb&&sb.queued)}else{rs=await api('simpan',{jenis:k,data:d});kbE=rs.kbcError||'';antri=!!rs.queued}md.remove();toast(kbE?'Jurnal tersimpan, tetapi KBC belum tersimpan: '+kbE:(row?'Catatan berhasil diubah':(list?`${list.length} catatan tersimpan`:'Jurnal tersimpan')),!!kbE);if(!kbE&&!antri)ucap(row?'Catatan berhasil diubah':'Catatan berhasil disimpan'); // saat offline, ucapan "tersimpan di perangkat" diberikan oleh offline.js
