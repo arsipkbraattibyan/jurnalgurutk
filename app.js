@@ -1438,9 +1438,9 @@ try{if(DOKK.includes(k)&&md._dokSimpan){await md._dokSimpan(b,list,d)}else if(FO
 else{await kirimFoto(Fo,b);d.foto=Fo.lama.join(' ');if(list)list.forEach(x=>x.foto=d.foto)}}
 let kbE='',antri=false,rs=null,sb0=null;if(list){const sb=await simpanBanyak(k,list);sb0=sb;kbE=(sb&&sb.kbcError)||'';antri=!!(sb&&sb.queued)}else{rs=await api('simpan',{jenis:k,data:d});kbE=rs.kbcError||'';antri=!!rs.queued}md.remove();toast(kbE?'Jurnal tersimpan, tetapi KBC belum tersimpan: '+kbE:(row?'Catatan berhasil diubah':(list?`${list.length} catatan tersimpan`:'Jurnal tersimpan')),!!kbE);if(!kbE&&!antri)ucap(row?'Catatan berhasil diubah':'Catatan berhasil disimpan'); // saat offline, ucapan "tersimpan di perangkat" diberikan oleh offline.js
 KBDT=0;try{if(list&&sb0&&Array.isArray(sb0.ids)&&sb0.ids.length===list.length&&ROWS[k]){list.forEach((x,i)=>{const o={...x,ID:sb0.ids[i],GuruID:S.guru.id};delete o.kbc;const ix=ROWS[k].findIndex(y=>String(y.ID)===String(o.ID));if(ix>=0)ROWS[k][ix]={...ROWS[k][ix],...o};else ROWS[k].unshift(o)});ROWS[k]=urut(ROWS[k]);cRows(k)}}catch(e){} // simpan banyak (perkembangan): daftar langsung terisi dari data lokal, tanpa menunggu muat ulang dari server
-try{if(!list&&rs&&rs.ID&&ROWS[k]){const o={...d,ID:rs.ID,GuruID:S.guru.id};delete o.kbc;const ix=ROWS[k].findIndex(x=>String(x.ID)===String(rs.ID));if(ix>=0)ROWS[k][ix]={...ROWS[k][ix],...o};else ROWS[k].unshift(o);ROWS[k]=urut(ROWS[k]);cRows(k)}}catch(e){} // tampil langsung; viewJurnal menyegarkan dari server di latar
+try{if(!list&&rs&&rs.ID&&ROWS[k]){const o={...d,ID:rs.ID,GuruID:S.guru.id};delete o.kbc;delete o.pcobs;const ix=ROWS[k].findIndex(x=>String(x.ID)===String(rs.ID));if(ix>=0)ROWS[k][ix]={...ROWS[k][ix],...o};else ROWS[k].unshift(o);ROWS[k]=urut(ROWS[k]);cRows(k)}}catch(e){} // tampil langsung; viewJurnal menyegarkan dari server di latar
 if(k==='kehadiran')presSegar();
-if(k==='harian'&&!list&&rs&&rs.ID&&S.view===k&&$('#ls'))tampil(k); // daftar langsung tampil dari data lokal, tanpa muat ulang dari server
+if((k==='harian'||k==='penilaian')&&!list&&rs&&rs.ID&&S.view===k&&$('#ls'))tampil(k); // langsung tampil dari data lokal, tanpa muat ulang dari server
 else viewJurnal(k)}
 catch(er){toast(er.message,1);gFoto();b.disabled=false;b.textContent='Simpan'}}}}
 
