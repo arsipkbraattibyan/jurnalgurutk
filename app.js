@@ -501,7 +501,7 @@ function go(v){if(!ngajar()&&!VIEW_PIMPINAN.includes(v)&&!(v==='siswa'&&bolehSis
 $('#pt').textContent=v==='laporan'?'Laporan':v==='siswa'?'Data siswa dan presensi':v==='portofolio'?'Portofolio perkembangan anak':v==='kalender'?'Kalender pendidikan':v==='identitas'?J.identitas.n:v==='pengaturan'?'Pengaturan':v==='lihat'?'Lihat jurnal guru':'';
 $('#pt').style.display=['laporan','siswa','portofolio','kalender','identitas','pengaturan','lihat'].includes(v)?'':'none';
 if(v!=='identitas'&&v!=='laporan')segarAkad();
-v==='beranda'?viewBeranda():v==='identitas'?viewIdentitas():v==='pengaturan'?viewPengaturan():v==='laporan'?segarAkad().then(()=>{if(S.view==='laporan')viewLaporan()}):v==='siswa'?viewSiswa():v==='portofolio'?viewPortofolio():v==='kalender'?viewKalender():v==='lihat'?viewLihat():viewJurnal(v)}
+v==='beranda'?viewBeranda():v==='identitas'?viewIdentitas():v==='pengaturan'?viewPengaturan():v==='laporan'?($('#main').innerHTML=muat(),segarAkad().then(()=>{if(S.view==='laporan')viewLaporan()})):v==='siswa'?viewSiswa():v==='portofolio'?viewPortofolio():v==='kalender'?viewKalender():v==='lihat'?viewLihat():viewJurnal(v)}
 const muat=()=>'<div class="empty">Memuat data...</div>';
 
 /* ---------- wajib pilih kelompok jika belum diisi ---------- */
