@@ -1559,6 +1559,28 @@ function sdBuangLokal(lid){try{if(!SD||!Array.isArray(SD.lokalId))return;const i
 function sdSegarkanHalus(){svBersih();segarSiswa();if(S.view!=='siswa'||SISTAB!=='data')return;const kc='ds_'+(klf()||nilai('sk')||'');api('dataSiswa',{kelas:klf()||nilai('sk')}).then(j=>{cSet(kc,j);if(S.view!=='siswa'||SISTAB!=='data')return;SD=j;renderDataSiswa()}).catch(()=>{})}
 const NAIK={'KB':['Kelompok A'],'Kelompok A':['Kelompok B']};
 function sdTujuan(dari){return boleh('siswa.pindah')?['KB',...KELAS].filter(x=>x!==dari):[]}
+
+// ubah satu tampilan data siswa (SD atau cache): keluarkan anak dari daftar lama, masukkan ke kelompok tujuan jika tampilannya memuat kelompok itu
+function sdPatch(o,g,lid,ke,row,pr){
+if(!o||!Array.isArray(o.rows)||!Array.isArray(o.lokalId))return o;
+const L=o.rows.map((r,n)=>({r,l:(o.lokal||[])[n]||0,i:o.lokalId[n],p:(o.pindah&&o.pindah[n])||[]})),k=L.findIndex(x=>x.i===lid);
+if(k>=0)L.splice(k,1);
+if(!g||g===ke)L.push({r:row,l:1,i:lid,p:pr});
+L.sort((a,b)=>(a.r[o.iKelas]+a.r[o.iNama]).localeCompare(b.r[o.iKelas]+b.r[o.iNama]));
+return{...o,rows:L.map(x=>x.r),lokal:L.map(x=>x.l),lokalId:L.map(x=>x.i),pindah:L.map(x=>x.p)}}
+// dipanggil setelah siswaPindah berhasil: tampilan langsung berubah, server disegarkan diam-diam
+function sdSetelahPindah(i,lid,ke,ef){
+const asal=SD.rows[i],dari=asal[SD.iKelas],nama=asal[SD.iNama],row=asal.slice();row[SD.iKelas]=ke;
+const pr=((SD.pindah&&SD.pindah[i])||[]).concat([{dari:dari,ke:ke,efektif:ef}]),kv=klf()||nilai('sk')||'';
+['','KB','Kelompok A','Kelompok B'].forEach(g=>{const c=cGet('ds_'+g);if(c)cSet('ds_'+g,sdPatch(c,g,lid,ke,row,pr))});
+SD=sdPatch(SD,kv,lid,ke,row,pr);cSet('ds_'+kv,SD);
+try{(SISWA||[]).forEach(s=>{if(kunci(s.nama)===kunci(nama))s.kelas=ke});cSet('siswa',SISWA)}catch(e){}
+presSegar();renderDataSiswa();
+// kelompok tujuan disiapkan di latar belakang agar langsung tampil saat dibuka
+if(kv&&kv!==ke)api('dataSiswa',{kelas:ke}).then(j=>cSet('ds_'+ke,j)).catch(()=>{});
+// segarkan dari server; hasil dipakai hanya jika sudah memuat perpindahan (mencegah data lama menimpa)
+api('dataSiswa',{kelas:kv}).then(j=>{const x=(j.lokalId||[]).indexOf(lid),ok=(kv===''||kv===ke)?(x>=0&&j.rows[x][j.iKelas]===ke):x<0;
+if(!ok)return;cSet('ds_'+kv,j);if(S.view==='siswa'&&SISTAB==='data'&&(klf()||nilai('sk')||'')===kv){SD=j;renderDataSiswa()}}).catch(()=>{})}
 function sdPindah(i){const r=SD.rows[i],nama=r[SD.iNama],dari=r[SD.iKelas],lid=(SD.lokalId&&SD.lokalId[i])||'',tj=sdTujuan(dari);
 if(!tj.length)return toast('Tidak ada kelompok tujuan dari '+dari,1);
 const md=document.createElement('div');md.className='md';
@@ -1568,7 +1590,7 @@ const ke=md.querySelector('[name=ke]').value,ef=md.querySelector('[name=ef]').va
 if(!ef)return toast('Tanggal efektif wajib diisi',1);
 if(!await tanya('Pindahkan kelompok?',nama+': '+dari+' → '+ke+', efektif '+tgl(ef)+'. Riwayat sebelumnya tidak berubah.','Ya, pindahkan',false))return;
 b.disabled=true;b.textContent='Memindahkan...';
-try{await api('siswaPindah',{data:{id:lid,nama,ke,efektif:ef}});md.remove();sdSegarkan();toast(nama+' dipindahkan ke '+ke)}
+try{await api('siswaPindah',{data:{id:lid,nama,ke,efektif:ef}});md.remove();sdSetelahPindah(i,lid,ke,ef);toast(nama+' dipindahkan ke '+ke)}
 catch(er){toast(/tidak dikenal/i.test(er.message)?'Backend belum diperbarui. Pasang Code.gs dan Pindah.gs terbaru.':er.message,1);b.disabled=false;b.textContent='Pindahkan'}};
 document.body.appendChild(md)}
 async function sdHapus(lid,nama,aktif){
