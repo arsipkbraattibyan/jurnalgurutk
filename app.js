@@ -1553,6 +1553,10 @@ try{const j=await api('siswaGantiNama',{data:{id:lid,nama,namabaru:nb,konfirmasi
 catch(er){toast(gnPesan(er.message),1);balik()}};
 document.body.appendChild(md)}
 function sdSegarkan(){svBersih();try{Object.keys(localStorage).filter(x=>x.indexOf(CK())===0&&/^(ds_|pr_)/.test(x.slice(CK().length))).forEach(x=>localStorage.removeItem(x))}catch(e){}SD=null;segarSiswa();if(S.view==='siswa'&&SISTAB==='data')muatDataSiswa()}
+/* hapus siswa cepat: baris langsung hilang dari layar, data disegarkan diam-diam, sinkron Presensi/KBC jalan di latar belakang */
+function sdSusulan(j){if(j&&j.susulan)api('siswaHapusSusulan',{data:j.susulan}).catch(()=>{})}
+function sdBuangLokal(lid){try{if(!SD||!Array.isArray(SD.lokalId))return;const i=SD.lokalId.indexOf(String(lid));if(i<0)return;['rows','lokal','lokalId','pindah'].forEach(k=>{if(Array.isArray(SD[k]))SD[k].splice(i,1)});if(S.view==='siswa'&&SISTAB==='data')renderDataSiswa()}catch(e){}}
+function sdSegarkanHalus(){svBersih();segarSiswa();if(S.view!=='siswa'||SISTAB!=='data')return;const kc='ds_'+(klf()||nilai('sk')||'');api('dataSiswa',{kelas:klf()||nilai('sk')}).then(j=>{cSet(kc,j);if(S.view!=='siswa'||SISTAB!=='data')return;SD=j;renderDataSiswa()}).catch(()=>{})}
 const NAIK={'KB':['Kelompok A'],'Kelompok A':['Kelompok B']};
 function sdTujuan(dari){return boleh('siswa.pindah')?['KB',...KELAS].filter(x=>x!==dari):[]}
 function sdPindah(i){const r=SD.rows[i],nama=r[SD.iNama],dari=r[SD.iKelas],lid=(SD.lokalId&&SD.lokalId[i])||'',tj=sdTujuan(dari);
@@ -1569,6 +1573,7 @@ catch(er){toast(/tidak dikenal/i.test(er.message)?'Backend belum diperbarui. Pas
 document.body.appendChild(md)}
 async function sdHapus(lid,nama,aktif){
   let c;
+  toast('Memeriksa riwayat...');
   try{c=await api('siswaHapus',{data:{id:lid,nama,cek:true}})}
   catch(er){toast(/tidak dikenal/i.test(er.message)?'Backend belum diperbarui. Pasang HapusSiswa.gs dan Code.gs terbaru.':er.message,1);return false}
 
@@ -1577,13 +1582,13 @@ async function sdHapus(lid,nama,aktif){
   // Tanpa riwayat: hapus permanen seperti biasa
   if(c.langsung){
     if(!await tanya('Hapus permanen?',nama+' belum memiliki riwayat jurnal, kehadiran, penilaian, atau perkembangan. Siswa akan dihapus permanen dan tidak dapat dikembalikan.','Ya, hapus permanen'))return false;
-    try{await api('siswaHapus',{data:{id:lid,nama,konfirmasi:'ya'}});sdSegarkan();toast('Siswa dihapus permanen');ucap('Siswa berhasil dihapus');return true}
+    try{await api('siswaHapus',{data:{id:lid,nama,konfirmasi:'ya',total:0}});sdBuangLokal(lid);sdSegarkanHalus();toast('Siswa dihapus permanen');ucap('Siswa berhasil dihapus');return true}
     catch(er){toast(er.message,1);return false}
   }
 
   // Punya riwayat: dipindah ke Sampah (bisa dipulihkan admin)
   if(!await tanya('Pindahkan ke Sampah?',nama+' memiliki riwayat ('+rw+'). Siswa akan dipindah ke Sampah dan hilang dari semua daftar. Admin Sekolah dapat memulihkannya dalam '+(c.hari||30)+' hari, setelah itu dihapus permanen. Datanya tidak diubah.','Ya, pindahkan',true))return false;
-  try{const j=await api('siswaHapus',{data:{id:lid,nama,konfirmasi:'ya'}});sdSegarkan();toast(j.pesan||'Siswa dipindahkan ke Sampah');ucap('Siswa dipindahkan ke Sampah');return true}
+  try{const j=await api('siswaHapus',{data:{id:lid,nama,konfirmasi:'ya',total:c.total,tunda:true}});sdBuangLokal(lid);sdSegarkanHalus();sdSusulan(j);toast(j.pesan||'Siswa dipindahkan ke Sampah');ucap('Siswa dipindahkan ke Sampah');return true}
   catch(er){toast(er.message,1);return false}
 }
 function sdNonaktif(){const md=document.createElement('div');md.className='md';let L=[];
@@ -1629,7 +1634,7 @@ function sdPermanen(x,rw,sesudah){
     const k=md.querySelector('[name=kt]').value.trim();
     if(!k)return toast('Ketik nama anak dulu',1);
     b.disabled=true;b.textContent='Menghapus...';
-    try{const j=await api('siswaHapusPermanen',{data:{id:x.id,ketik:k}});md.remove();toast(j.pesan||'Siswa dihapus permanen');sesudah()}
+    try{const j=await api('siswaHapusPermanen',{data:{id:x.id,ketik:k,tunda:true}});md.remove();toast(j.pesan||'Siswa dihapus permanen');sdSusulan(j);sesudah()}
     catch(er){toast(er.message,1);b.disabled=false;b.textContent='Hapus permanen'}}
   document.body.appendChild(md)}
 function sdBaru(){const md=document.createElement('div'),kf=klf();md.className='md';
