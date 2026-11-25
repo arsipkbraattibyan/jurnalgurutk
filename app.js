@@ -423,8 +423,22 @@ const opts=()=>[...U.options].filter(o=>o.value);
 const sync=()=>{const o=U.options[U.selectedIndex];t.textContent=o?o.text:'';b.disabled=U.disabled;b.classList.toggle('ph',!U.value);
 l.innerHTML=opts().map(o=>`<li role="option" data-v="${esc(o.value)}" aria-selected="${o.value===U.value}" class="${o.value===U.value?'on':''}"><span class="dd-a">${esc((o.text.trim()[0]||'?').toUpperCase())}</span><span class="dd-n">${esc(o.text)}</span><i class="dd-k">✓</i></li>`).join('')};
 const tandai=()=>{[...l.children].forEach((li,i)=>li.classList.toggle('hl',i===ix));const li=l.children[ix];if(li&&li.scrollIntoView)li.scrollIntoView({block:'nearest'})};
-const buka=()=>{if(b.disabled||!opts().length)return;l.hidden=false;w.classList.add('open');b.setAttribute('aria-expanded','true');ix=Math.max(0,opts().findIndex(o=>o.value===U.value));tandai()};
-const tutup=()=>{l.hidden=true;w.classList.remove('open');b.setAttribute('aria-expanded','false')};
+// Daftar nama dipotong oleh kartu login (overflow:hidden) bila penggunanya banyak: saat dibuka, pemotongan dilepas sementara,
+// tinggi daftar disesuaikan dengan sisa layar (bisa digulir), dan membuka ke atas jika ruang di bawah sempit.
+let ov=[];
+const lepas=()=>{ov=[];for(let n=w.parentElement;n&&!n.classList.contains('lgx');n=n.parentElement){const c=getComputedStyle(n);if(c.overflowX!=='visible'||c.overflowY!=='visible'){ov.push([n,n.style.overflow]);n.style.overflow='visible'}}
+const card=w.closest('.lgx-card');if(card){const c=getComputedStyle(card),hd=card.querySelector('.lgx-hd'),bd=card.querySelector('.lgx-body');
+if(hd){hd.dataset.br=hd.style.borderRadius;hd.style.borderRadius=c.borderTopLeftRadius+' '+c.borderTopRightRadius+' 0 0'}
+if(bd){bd.dataset.br=bd.style.borderRadius;bd.style.borderRadius='0 0 '+c.borderBottomRightRadius+' '+c.borderBottomLeftRadius}}};
+const pulih=()=>{ov.forEach(x=>{x[0].style.overflow=x[1]});ov=[];
+const card=w.closest('.lgx-card');if(card)['.lgx-hd','.lgx-body'].forEach(q=>{const e=card.querySelector(q);if(e&&e.dataset.br!==undefined){e.style.borderRadius=e.dataset.br;delete e.dataset.br}});
+l.style.maxHeight='';l.style.overflowY='';l.style.overscrollBehavior='';l.style.top='';l.style.bottom=''};
+const ukur=()=>{const r=b.getBoundingClientRect(),vh=window.innerHeight||document.documentElement.clientHeight,bawah=vh-r.bottom-20,atas=r.top-20;
+const naik=bawah<220&&atas>bawah;l.style.overflowY='auto';l.style.overscrollBehavior='contain';
+l.style.maxHeight=Math.max(160,Math.min(naik?atas:bawah,420))+'px';
+if(naik){l.style.top='auto';l.style.bottom='calc(100% + 8px)'}else{l.style.top='';l.style.bottom=''}};
+const buka=()=>{if(b.disabled||!opts().length)return;lepas();ukur();l.hidden=false;w.classList.add('open');b.setAttribute('aria-expanded','true');ix=Math.max(0,opts().findIndex(o=>o.value===U.value));tandai()};
+const tutup=()=>{l.hidden=true;w.classList.remove('open');b.setAttribute('aria-expanded','false');pulih()};
 const pilih=v=>{U.value=v;U.dispatchEvent(new Event('change'));sync();tutup()};
 b.onclick=()=>l.hidden?buka():tutup();
 l.onclick=e=>{const li=e.target.closest('li');if(li)pilih(li.dataset.v)};
