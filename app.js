@@ -2544,15 +2544,42 @@ function selarasSek(g){const o=S.guru;if(!o||!g)return false;const ks=SEK_ALL.co
 function segarPeran(){return api('profil').then(j=>{const o=S.guru,g=j.guru;if(!o||!g)return false;const b=JSON.stringify([o.peran,o.izin,o.mengajar])!==JSON.stringify([g.peran,g.izin,g.mengajar]);o.peran=g.peran;o.izin=g.izin;o.mengajar=g.mengajar;selarasSek(g);simpanSesi();return b}).catch(()=>false)}
 function dialogPengguna(){
 const md=document.createElement('div');md.className='md';
-md.innerHTML=`<div class="sheet"><h2>👥 Manajemen Pengguna</h2><p class="sub" style="margin-bottom:10px">Perubahan langsung berlaku pada permintaan berikutnya. Akun yang dihapus tidak bisa masuk lagi, tetapi jurnal yang pernah dibuat tetap tersimpan.</p><div id="kpl">${muat()}</div><div class="act"><button class="btn gh" data-x>Tutup</button><button class="btn" data-add type="button">+ Tambah pengguna</button></div></div>`;
+md.innerHTML=`<div class="sheet"><h2>👥 Manajemen Pengguna</h2><p class="sub" style="margin-bottom:10px">Perubahan langsung berlaku pada permintaan berikutnya. Akun yang dihapus tidak bisa masuk lagi, tetapi jurnal yang pernah dibuat tetap tersimpan.</p><div id="kpl">${muat()}</div><div class="act"><button class="btn gh" data-x type="button">Tutup</button><button class="btn" data-add type="button">+ Tambah pengguna</button></div></div>`;
 document.body.appendChild(md);
 let L=[];
 const el=()=>md.querySelector('#kpl');
 const gambar=()=>{el().innerHTML=L.map((u,i)=>`<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--ln)"><span style="flex:1;min-width:0"><b>${esc(u.nama||u.id)}</b><br><small class="sub">${esc(u.id)}${u.kelas?' · '+esc(kelTampil(u.kelas)):''}</small><br><span class="abg ${u.peran==='admin'?'izin':u.peran==='kepsek'?'sakit':'hadir'}">${esc(PERAN_L[u.peran]||u.peran)}</span>${u.aktif==='tidak'?' <span class="abg alpha">Nonaktif</span>':''}${u.wajibpin==='ya'?' <span class="abg sakit">Wajib ganti PIN</span>':''}${u.punyaPin?'':' <span class="abg alpha">Belum ada PIN</span>'}</span><button class="btn gh s" type="button" data-u="${i}">Ubah</button></div>`).join('')||'<div class="empty">Belum ada pengguna.</div>'};
 const muatUlang=()=>api('pengguna').then(j=>{L=j.rows||[];gambar()}).catch(er=>{el().innerHTML=`<div class="empty">${esc(er.message)}<br><button class="btn s" data-re type="button" style="margin-top:10px">Coba lagi</button></div>`});
-md.onclick=e=>{if(e.target===md||e.target.closest('[data-x]'))return md.remove();if(e.target.closest('[data-re]'))return muatUlang();if(e.target.closest('[data-add]'))return dialogTambahPengguna(muatUlang);const b=e.target.closest('[data-u]');if(b)dialogUbahPengguna(L[+b.dataset.u],muatUlang)};
+md.onclick=e=>{
+if(e.target===md||e.target.closest('[data-x]'))return md.remove();
+if(e.target.closest('[data-re]'))return muatUlang();
+if(e.target.closest('[data-add]'))return dialogTambahPengguna(muatUlang);
+const b=e.target.closest('[data-u]');if(b)dialogUbahPengguna(L[+b.dataset.u],muatUlang)};
 muatUlang()}
-function dialogUbahPengguna(u, sesudah){
+
+function dialogTambahPengguna(sesudah){
+const md=document.createElement('div');md.className='md';md.style.zIndex=40;
+md.innerHTML=`<div class="sheet" style="max-width:460px"><h2>Tambah pengguna</h2><p class="sub" style="margin-bottom:10px">Pengguna baru tampil di daftar nama pada halaman login. Kosongkan PIN agar dibuat otomatis. Pengguna diminta mengganti PIN saat pertama masuk.</p><div class="fg"><div class="fd"><label>Nama lengkap</label><input type="text" name="nama" maxlength="60" autocomplete="off"></div><div class="fd"><label>Peran</label><select name="peran"><option value="guru">Guru</option><option value="kepsek">Kepala Sekolah</option><option value="admin">Admin Sekolah</option></select></div><div class="fd"><label>Mengisi jurnal sendiri</label><select name="mengajar"><option value="ya">Ya</option><option value="tidak">Tidak</option></select></div><div class="fd"><label>PIN awal (6 angka, boleh kosong)</label><input type="password" inputmode="numeric" maxlength="6" autocomplete="new-password" name="pin"></div></div><div class="act"><button class="btn gh" data-x type="button">Batal</button><button class="btn" data-s type="button">Simpan</button></div></div>`;
+document.body.appendChild(md);
+const g=n=>md.querySelector(`[name=${n}]`);
+g('pin').oninput=e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,6)};
+const atur=()=>{const p=g('peran').value;g('mengajar').value=p==='guru'?'ya':'tidak';g('mengajar').disabled=p==='kepsek'};
+g('peran').onchange=atur;
+md.onclick=async e=>{
+if(e.target===md||e.target.closest('[data-x]'))return md.remove();
+const b=e.target.closest('[data-s]');if(!b)return;
+const nama=g('nama').value.trim().replace(/\s+/g,' '),pin=g('pin').value;
+if(!nama)return toast('Nama pengguna wajib diisi',1);
+if(pin&&!/^\d{6}$/.test(pin))return toast('PIN harus tepat 6 angka',1);
+b.disabled=true;b.textContent='Menyimpan...';
+try{
+const j=await api('penggunaBaru',{data:{nama,peran:g('peran').value,mengajar:g('mengajar').value,pin}});
+md.remove();toast('Pengguna ditambahkan');
+if(j.pin)tampilPinSementara({id:j.id,nama:j.nama,pin:j.pin});
+if(sesudah)sesudah()}
+catch(er){toast(er.message,1);b.disabled=false;b.textContent='Simpan'}}}
+
+function dialogUbahPengguna(u,sesudah){
 if(!u)return;
 const md=document.createElement('div');md.className='md';md.style.zIndex=40;
 const sendiri=S.guru&&String(S.guru.id)===String(u.id);
@@ -2561,7 +2588,7 @@ document.body.appendChild(md);
 const g=n=>md.querySelector(`[name=${n}]`);
 g('peran').value=u.peran;g('mengajar').value=u.mengajar==='tidak'?'tidak':'ya';g('aktif').value=u.aktif==='tidak'?'tidak':'ya';g('wajibpin').value=u.wajibpin==='ya'?'ya':'tidak';
 const kunciMengajar=()=>{if(g('peran').value==='kepsek'){g('mengajar').value='tidak';g('mengajar').disabled=true}else g('mengajar').disabled=false};
-g('peran').onchange=()=>{if(g('peran').value==='guru')g('mengajar').value='ya';else if(g('peran').value!=='admin')g('mengajar').value='tidak';kunciMengajar()};
+g('peran').onchange=()=>{const p=g('peran').value;if(p==='guru')g('mengajar').value='ya';else if(p==='kepsek')g('mengajar').value='tidak';kunciMengajar()};
 kunciMengajar();
 md.onclick=async e=>{
 if(e.target===md||e.target.closest('[data-x]'))return md.remove();
@@ -2579,19 +2606,24 @@ try{await api('penggunaHapus',{id:u.id,konfirmasi:'ya'});md.remove();toast('Akun
 catch(er){toast(er.message,1);hp.disabled=false}
 return}
 if(sv){
-const nama=g('nama').value.trim();
+const nama=g('nama').value.trim().replace(/\s+/g,' ');
 if(!nama)return toast('Nama pengguna wajib diisi',1);
 const d={nama,peran:g('peran').value,mengajar:g('mengajar').value,aktif:g('aktif').value,wajibpin:g('wajibpin').value};
 sv.disabled=true;sv.textContent='Menyimpan...';
-try{await api('simpanPengguna',{id:u.id,data:d});md.remove();toast('Perubahan tersimpan');
+try{
+await api('simpanPengguna',{id:u.id,data:d});
+md.remove();toast('Perubahan tersimpan');
 if(sendiri){const b=await segarPeran();if(b)shell()}
 if(sesudah)sesudah()}
 catch(er){toast(er.message,1);sv.disabled=false;sv.textContent='Simpan'}}}}
+
 function tampilPinSementara(j){
 const md=document.createElement('div');md.className='md';md.style.zIndex=50;
-md.innerHTML=`<div class="sheet" style="max-width:420px"><h2>PIN sementara</h2><p class="sub" style="margin-bottom:10px;color:var(--ink)">Berikan PIN ini kepada <b>${esc(j.nama||j.id)}</b>. PIN hanya tampil sekali dan tidak bisa dilihat lagi setelah jendela ini ditutup. Saat masuk, guru diminta membuat PIN baru.</p><div style="font:800 34px/1.2 Nunito,sans-serif;letter-spacing:6px;text-align:center;padding:16px;border-radius:16px;background:#eef5ff;color:var(--navy)">${esc(j.pin)}</div><div class="act"><button class="btn gh" data-c type="button">Salin</button><button class="btn" data-x type="button">Sudah saya catat</button></div></div>`;
+md.innerHTML=`<div class="sheet" style="max-width:420px"><h2>PIN sementara</h2><p class="sub" style="margin-bottom:10px;color:var(--ink)">Berikan PIN ini kepada <b>${esc(j.nama||j.id)}</b>. PIN hanya tampil sekali dan tidak bisa dilihat lagi setelah jendela ini ditutup. Saat masuk, pengguna diminta membuat PIN baru.</p><div style="font:800 34px/1.2 Nunito,sans-serif;letter-spacing:6px;text-align:center;padding:16px;border-radius:16px;background:#eef5ff;color:var(--navy)">${esc(j.pin)}</div><div class="act"><button class="btn gh" data-c type="button">Salin</button><button class="btn" data-x type="button">Sudah saya catat</button></div></div>`;
 document.body.appendChild(md);
-md.onclick=async e=>{if(e.target.closest('[data-x]'))return md.remove();if(e.target.closest('[data-c]')){try{await navigator.clipboard.writeText(j.pin);toast('PIN disalin')}catch(er){toast('Tidak bisa menyalin, catat manual',1)}}}}
+md.onclick=async e=>{
+if(e.target.closest('[data-x]'))return md.remove();
+if(e.target.closest('[data-c]')){try{await navigator.clipboard.writeText(j.pin);toast('PIN disalin')}catch(er){toast('Tidak bisa menyalin, catat manual',1)}}}}
 async function dialogLog(){
 const md=document.createElement('div');md.className='md';
 md.innerHTML=`<div class="sheet"><h2>📜 Log Akses</h2><p class="sub" style="margin-bottom:10px">Maksimal 5.000 catatan terakhir. Login gagal baru dicatat mulai percobaan ke-3. Simpan dan hapus jurnal juga dicatat, lengkap dengan nama pengguna.</p><div class="fd" style="margin-bottom:8px"><label>Tampilkan</label><select id="lgf"><option value="">Semua hasil</option><option value="ok">Berhasil (ok)</option><option value="gagal">Login gagal</option><option value="ditolak">Ditolak</option><option value="nonaktif">Akun nonaktif</option></select></div><div id="lgl">${muat()}</div><div class="act"><button class="btn gh" data-x type="button">Tutup</button></div></div>`;
