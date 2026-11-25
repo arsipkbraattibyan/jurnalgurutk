@@ -1556,7 +1556,7 @@ function sdSegarkan(){svBersih();try{Object.keys(localStorage).filter(x=>x.index
 /* hapus siswa cepat: baris langsung hilang dari layar, data disegarkan diam-diam, sinkron Presensi/KBC jalan di latar belakang */
 function sdSusulan(j){if(j&&j.susulan)api('siswaHapusSusulan',{data:j.susulan}).catch(()=>{})}
 function sdBuangLokal(lid){try{if(!SD||!Array.isArray(SD.lokalId))return;const i=SD.lokalId.indexOf(String(lid));if(i<0)return;['rows','lokal','lokalId','pindah'].forEach(k=>{if(Array.isArray(SD[k]))SD[k].splice(i,1)});if(S.view==='siswa'&&SISTAB==='data')renderDataSiswa()}catch(e){}}
-function sdSegarkanHalus(){svBersih();segarSiswa();if(S.view!=='siswa'||SISTAB!=='data')return;const kc='ds_'+(klf()||nilai('sk')||'');api('dataSiswa',{kelas:klf()||nilai('sk')}).then(j=>{cSet(kc,j);if(S.view!=='siswa'||SISTAB!=='data')return;SD=j;renderDataSiswa()}).catch(()=>{})}
+function sdSegarkanHalus(){svBersih();segarSiswa();if(S.view!=='siswa'||SISTAB!=='data')return;const kc='ds_'+(klf()||nilai('sk')||'');api('dataSiswa',{kelas:klf()||nilai('sk')}).then(j=>{cSet(kc,j);if(S.view!=='siswa'||SISTAB!=='data'||('ds_'+(klf()||nilai('sk')||''))!==kc)return;SD=j;renderDataSiswa()}).catch(()=>{})}
 const NAIK={'KB':['Kelompok A'],'Kelompok A':['Kelompok B']};
 function sdTujuan(dari){return boleh('siswa.pindah')?['KB',...KELAS].filter(x=>x!==dari):[]}
 
@@ -1582,15 +1582,15 @@ if(kv&&kv!==ke)api('dataSiswa',{kelas:ke}).then(j=>cSet('ds_'+ke,j)).catch(()=>{
 api('dataSiswa',{kelas:kv}).then(j=>{const x=(j.lokalId||[]).indexOf(lid),ok=(kv===''||kv===ke)?(x>=0&&j.rows[x][j.iKelas]===ke):x<0;
 if(!ok)return;cSet('ds_'+kv,j);if(S.view==='siswa'&&SISTAB==='data'&&(klf()||nilai('sk')||'')===kv){SD=j;renderDataSiswa()}}).catch(()=>{})}
 function sdPindah(i){const r=SD.rows[i],nama=r[SD.iNama],dari=r[SD.iKelas],lid=(SD.lokalId&&SD.lokalId[i])||'',tj=sdTujuan(dari);
-if(!tj.length)return toast('Tidak ada kelompok tujuan dari '+dari,1);
+if(!tj.length)return toast('Tidak ada kelompok tujuan dari '+kelTampil(dari),1);
 const md=document.createElement('div');md.className='md';
-md.innerHTML=`<div class="sheet"><h2>⬆️ Naik Kelas / Pindah Kelompok</h2><p class="sub" style="font-size:13px;margin-bottom:6px">Identitas siswa tidak berubah dan tidak dibuat siswa baru. Jurnal, kehadiran, penilaian, dan perkembangan yang sudah ada tetap tercatat di kelompok lamanya. Catatan baru memakai kelompok yang berlaku saat dibuat.</p><div class="fg"><div class="fd full"><label>Nama</label><input value="${esc(nama)}" disabled></div><div class="fd"><label>Kelompok asal</label><input value="${esc(dari)}" disabled></div><div class="fd"><label>Kelompok tujuan</label><select name="ke">${tj.map(x=>`<option>${esc(x)}</option>`).join('')}</select></div><div class="fd"><label>Tanggal efektif</label><input type="date" name="ef" value="${hari()}" max="${hari()}"></div></div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn y" data-sv>Pindahkan</button></div></div>`;
+md.innerHTML=`<div class="sheet"><h2>⬆️ Naik Kelas / Pindah Kelompok</h2><p class="sub" style="font-size:13px;margin-bottom:6px">Identitas siswa tidak berubah dan tidak dibuat siswa baru. Jurnal, kehadiran, penilaian, dan perkembangan yang sudah ada tetap tercatat di kelompok lamanya. Catatan baru memakai kelompok yang berlaku saat dibuat.</p><div class="fg"><div class="fd full"><label>Nama</label><input value="${esc(nama)}" disabled></div><div class="fd"><label>Kelompok asal</label><input value="${esc(kelTampil(dari))}" disabled></div><div class="fd"><label>Kelompok tujuan</label><select name="ke">${tj.map(x=>`<option value="${esc(x)}">${esc(kelTampil(x))}</option>`).join('')}</select></div><div class="fd"><label>Tanggal efektif</label><input type="date" name="ef" value="${hari()}" max="${hari()}"></div></div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn y" data-sv>Pindahkan</button></div></div>`;
 md.onclick=async e=>{if(e.target===md||e.target.closest('[data-x]'))return md.remove();const b=e.target.closest('[data-sv]');if(!b)return;
 const ke=md.querySelector('[name=ke]').value,ef=md.querySelector('[name=ef]').value;
 if(!ef)return toast('Tanggal efektif wajib diisi',1);
-if(!await tanya('Pindahkan kelompok?',nama+': '+dari+' → '+ke+', efektif '+tgl(ef)+'. Riwayat sebelumnya tidak berubah.','Ya, pindahkan',false))return;
+if(!await tanya('Pindahkan kelompok?',nama+': '+kelTampil(dari)+' → '+kelTampil(ke)+', efektif '+tgl(ef)+'. Riwayat sebelumnya tidak berubah.','Ya, pindahkan',false))return;
 b.disabled=true;b.textContent='Memindahkan...';
-try{await api('siswaPindah',{data:{id:lid,nama,ke,efektif:ef}});md.remove();sdSetelahPindah(i,lid,ke,ef);toast(nama+' dipindahkan ke '+ke)}
+try{await api('siswaPindah',{data:{id:lid,nama,ke,efektif:ef}});md.remove();sdSetelahPindah(i,lid,ke,ef);toast(nama+' dipindahkan ke '+kelTampil(ke))}
 catch(er){toast(/tidak dikenal/i.test(er.message)?'Backend belum diperbarui. Pasang Code.gs dan Pindah.gs terbaru.':er.message,1);b.disabled=false;b.textContent='Pindahkan'}};
 document.body.appendChild(md)}
 async function sdHapus(lid,nama,aktif){
@@ -1828,7 +1828,7 @@ return`<button type="button" class="scard" data-i="${i}">${SD.lokal&&SD.lokal[i]
 $('#sr').innerHTML=`<p class="sdc"><b>${ix.length}</b> anak. Ketuk kartu untuk melihat data lengkap: alamat, orang tua/wali, dan kontak.</p>${ix.length?`<div class="sgrid">${ix.map(kartu).join('')}</div>`:'<div class="empty">Data tidak ditemukan</div>'}`;
 const LP2=$('#lap');if(LP2)LP2.innerHTML=dataSiswaPaper()}
 async function muatDataSiswa(){const kc='ds_'+(klf()||nilai('sk')||''),cd=cGet(kc);if(cd){SD=cd;renderDataSiswa()}else $('#sr').innerHTML=muat();
-try{const j=await api('dataSiswa',{kelas:klf()||nilai('sk')});cSet(kc,j);if(S.view!=='siswa'||SISTAB!=='data')return;SD=j;renderDataSiswa();faSinkron(j.rows,j.iNama).then(()=>fotoSumberOtomatis())}
+try{const j=await api('dataSiswa',{kelas:klf()||nilai('sk')});cSet(kc,j);if(S.view!=='siswa'||SISTAB!=='data'||('ds_'+(klf()||nilai('sk')||''))!==kc)return;SD=j;renderDataSiswa();faSinkron(j.rows,j.iNama).then(()=>fotoSumberOtomatis())}
 catch(e){if(!cd&&S.view==='siswa'&&SISTAB==='data')$('#sr').innerHTML=`<div class="empty">${esc(/tidak dikenal/i.test(e.message)?'Backend belum diperbarui. Pasang Code.gs versi terbaru lalu Deploy > Manage deployments > Edit > Version baru.':e.message)}</div>`}}
 let PJ=null; // hasil presensi terakhir; nama anak dan status disaring di sini, tanpa memanggil server lagi
 function presTampil(){const sr=$('#sr'),n=$('#sn'),s=$('#st'),j=PJ;if(!sr||!n||!s||!j||S.view!=='siswa'||SISTAB!=='pres')return;
