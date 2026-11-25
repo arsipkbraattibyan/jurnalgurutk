@@ -1035,7 +1035,7 @@ Q('#tkpwrap').style.display=J==='ind'?'':'none';Q('#tkh').textContent=J==='ind'?
 Q('#tkx').placeholder='Tulis '+nm();Q('#tkl').innerHTML=tampil.length?tampil.map((d,n)=>`<div style="display:flex;gap:6px;align-items:center;padding:8px 0;border-top:1px solid var(--ln)"><span style="flex:1;min-width:0;font-size:14px">${esc(d.teks)}${d.diubah?' <small class="sub">(diubah)</small>':d.tambah?' <small class="sub">(tambahan)</small>':''}</span><button type="button" class="btn gh s" data-e="${n}">Ubah</button><button type="button" class="btn gh s" data-d="${n}">Hapus</button></div>`).join(''):`<div class="empty">Belum ada ${nm()}.</div>`;
 const pul=Q('[data-tp]');pul.hidden=!rs.length;pul.textContent='↩️ Pulihkan bawaan ('+rs.length+')';Q('#tkt').textContent=(edit?'Ubah ':'Tambah ')+nm();Q('[data-ts]').textContent=edit?'Simpan perubahan':'+ Tambah';Q('[data-tb]').hidden=!edit;};
 const kirim=async(act,data,ok)=>{try{const j=await api(act,{data});TPD=j.rows||[];cSet('tp',TPD);edit=null;Q('#tkx').value='';render();toast(ok)}catch(er){toast(tpGalat(er),1)}};
-md.onclick=async e=>{if(e.target===md||e.target.closest('[data-x]')){md.remove();if(onTutup)onTutup();return}const i=sel(),p=pid(),daf=J==='ind'?indGabung(i,p?[p]:[]):tpGabung(i),tampil=daf.filter(d=>J!=='ind'||(p?String(d.tpid||'')===p:!!d.umum)),X=Q('#tkx');
+md.onclick=async e=>{if(e.target.closest('[data-x]')){md.remove();if(onTutup)onTutup();return}const i=sel(),p=pid(),daf=J==='ind'?indGabung(i,p?[p]:[]):tpGabung(i),tampil=daf.filter(d=>J!=='ind'||(p?String(d.tpid||'')===p:!!d.umum)),X=Q('#tkx');
 if(e.target.closest('[data-ts]')){let v=X.value.trim().replace(/\s+/g,' ');if(!v||v.length<3)return toast('Tulis '+nm()+'nya dulu',1);if(J==='tp'&&/;/.test(v))return toast('Tanda titik koma (;) tidak boleh dipakai',1);if(/^[=+\-@]/.test(v))return toast('Tidak boleh diawali tanda = + - @',1);if(tampil.some(d=>d.teks.toLowerCase()===v.toLowerCase()&&!(edit&&d.bid===edit.bid&&d.id===edit.id)))return toast('Isian itu sudah ada',1);
 const data=edit?(edit.id?{id:edit.id,teks:v,...(J==='ind'?{tpid:p||''}:{})}:{bid:edit.bid,teks:v,...(J==='ind'?{tpid:p||''}:{})}):{jenis:J,elemen:String(i),teks:v,...(J==='ind'?{tpid:p||''}:{})};return kirim('tpSimpan',data,edit?'Perubahan tersimpan':'Ditambahkan')}
 const be=e.target.closest('[data-e]');if(be){edit=tampil[+be.dataset.e];X.value=edit.teks;render();X.focus();return}if(e.target.closest('[data-tb]')){edit=null;X.value='';render();return}
@@ -1524,7 +1524,7 @@ return`<div class="fd">${L}<input ${sdTel(k)?'type="tel" inputmode="tel"':''} na
 function sdEdit(i){const r=SD.rows[i],md=document.createElement('div');md.className='md';
 const g=[[],[],[],[]];SD.kolom.forEach((k,n)=>g[sdGrup(k)].push(n));
 md.innerHTML=`<div class="sheet"><h2>✏️ Ubah data: ${esc(r[SD.iNama])}</h2><p class="sub" style="font-size:13px;margin-bottom:6px">${SD.lokal&&SD.lokal[i]?'Nama tidak dapat diubah di sini karena menjadi penghubung ke riwayat jurnal; gunakan tombol Ganti nama di lembar detail siswa. Kelompok diubah lewat Naik Kelas / Pindah.':'Siswa otomatis: nama dan kelompok mengikuti spreadsheet absensi (sheet Data Siswa) dan tidak dapat diubah dari aplikasi.'} Data lengkap ini disimpan di spreadsheet Jurnal Guru, presensi tetap dari Rekap Absen.</p>${SDG.map(([jd],gi)=>g[gi].length?`<h3 class="sdh">${jd}</h3><div class="fg">${g[gi].map(n=>sdField(SD.kolom[n],r[n],n)).join('')}</div>`:'').join('')}<div class="act"><button class="btn gh" data-x>Batal</button><button class="btn y" data-sv>Simpan</button></div></div>`;
-md.onclick=async e=>{if(e.target===md||e.target.closest('[data-x]'))return md.remove();
+md.onclick=async e=>{if(e.target.closest('[data-x]'))return md.remove();
 const b=e.target.closest('[data-sv]');if(!b)return;
 const data={};md.querySelectorAll('[name^=c]').forEach(el=>{const n=+el.name.slice(1);let o=String(r[n]||'');if(sdTel(SD.kolom[n])&&/^8\d{7,12}$/.test(o))o='0'+o;if(el.value.trim()!==o)data[n]=el.value.trim()});
 if(!Object.keys(data).length){md.remove();return toast('Tidak ada perubahan')}
@@ -1538,7 +1538,7 @@ function gnBersih(lama,baru){['kehadiran','perkembangan','penilaian'].forEach(st
 try{const f=faGet(lama),p=faPend(),kl=kunci(lama),kb=kunci(baru);faSet(lama,'');if(f&&!faGet(baru))faSet(baru,f);if(p[kl]){delete p[kl];p[kb]=1;faPendSet(p)}}catch(e){}}
 function sdGanti(i){const r=SD.rows[i],nama=String(r[SD.iNama]||''),lid=(SD.lokalId&&SD.lokalId[i])||'',md=document.createElement('div');md.className='md';
 md.innerHTML=`<div class="sheet"><h2>🔤 Ganti nama siswa</h2><p class="sub" style="font-size:13px;margin-bottom:6px">Hanya untuk siswa manual. Nama menjadi penghubung ke riwayat, jadi sistem mengganti nama ini sekaligus di Jurnal Perkembangan, Kehadiran, Penilaian, data lengkap, foto, dan KBC. Siswa yang belum punya riwayat dapat diganti oleh guru kelompoknya; yang sudah punya riwayat hanya oleh Admin Sekolah. Proses tercatat di Log Akses.</p><div class="fg"><div class="fd full"><label>Nama sekarang</label><input value="${esc(nama)}" disabled></div><div class="fd full"><label>Nama baru</label><input name="nb" maxlength="60" autocomplete="off" value="${esc(nama)}"></div></div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn y" data-sv>Lanjut</button></div></div>`;
-md.onclick=async e=>{if(e.target===md||e.target.closest('[data-x]'))return md.remove();const b=e.target.closest('[data-sv]');if(!b)return;
+md.onclick=async e=>{if(e.target.closest('[data-x]'))return md.remove();const b=e.target.closest('[data-sv]');if(!b)return;
 const nb=md.querySelector('[name=nb]').value.trim().replace(/\s+/g,' ');
 if(!nb)return toast('Nama baru wajib diisi',1);
 if(nb===nama)return toast('Nama baru sama dengan nama sekarang',1);
@@ -1585,7 +1585,7 @@ function sdPindah(i){const r=SD.rows[i],nama=r[SD.iNama],dari=r[SD.iKelas],lid=(
 if(!tj.length)return toast('Tidak ada kelompok tujuan dari '+kelTampil(dari),1);
 const md=document.createElement('div');md.className='md';
 md.innerHTML=`<div class="sheet"><h2>⬆️ Naik Kelas / Pindah Kelompok</h2><p class="sub" style="font-size:13px;margin-bottom:6px">Identitas siswa tidak berubah dan tidak dibuat siswa baru. Jurnal, kehadiran, penilaian, dan perkembangan yang sudah ada tetap tercatat di kelompok lamanya. Catatan baru memakai kelompok yang berlaku saat dibuat.</p><div class="fg"><div class="fd full"><label>Nama</label><input value="${esc(nama)}" disabled></div><div class="fd"><label>Kelompok asal</label><input value="${esc(kelTampil(dari))}" disabled></div><div class="fd"><label>Kelompok tujuan</label><select name="ke">${tj.map(x=>`<option value="${esc(x)}">${esc(kelTampil(x))}</option>`).join('')}</select></div><div class="fd"><label>Tanggal efektif</label><input type="date" name="ef" value="${hari()}" max="${hari()}"></div></div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn y" data-sv>Pindahkan</button></div></div>`;
-md.onclick=async e=>{if(e.target===md||e.target.closest('[data-x]'))return md.remove();const b=e.target.closest('[data-sv]');if(!b)return;
+md.onclick=async e=>{if(e.target.closest('[data-x]'))return md.remove();const b=e.target.closest('[data-sv]');if(!b)return;
 const ke=md.querySelector('[name=ke]').value,ef=md.querySelector('[name=ef]').value;
 if(!ef)return toast('Tanggal efektif wajib diisi',1);
 if(!await tanya('Pindahkan kelompok?',nama+': '+kelTampil(dari)+' → '+kelTampil(ke)+', efektif '+tgl(ef)+'. Riwayat sebelumnya tidak berubah.','Ya, pindahkan',false))return;
@@ -1618,7 +1618,7 @@ md.innerHTML=`<div class="sheet"><h2>🗂️ Siswa manual nonaktif</h2><div id="
 const isi=async()=>{const w=md.querySelector('#nkl');try{const j=await api('siswaNonaktifDaftar');L=j.rows;
 w.innerHTML=L.length?`<div class="ov"><table class="rt ap"><thead><tr><th>Nama</th><th>Kelompok</th><th>Aksi</th></tr></thead><tbody>${L.map((x,n)=>`<tr><td>${esc(x.nama)}</td><td>${esc(x.kelas)}</td><td><button class="btn y" data-ak="${n}">Aktifkan</button> <button class="btn gh" data-hp="${n}">Hapus</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Tidak ada siswa manual nonaktif.</div>'}
 catch(er){w.innerHTML=`<div class="empty">${esc(/tidak dikenal/i.test(er.message)?'Backend belum diperbarui. Pasang Code.gs dan Pindah.gs terbaru.':er.message)}</div>`}};
-md.onclick=async e=>{if(e.target===md||e.target.closest('[data-x]'))return md.remove();
+md.onclick=async e=>{if(e.target.closest('[data-x]'))return md.remove();
 const a=e.target.closest('[data-ak]'),h=e.target.closest('[data-hp]');
 if(a){const x=L[+a.dataset.ak];if(!await tanya('Aktifkan kembali?',x.nama+' ('+x.kelas+') akan tampil lagi di daftar anak dan Jurnal Kehadiran.','Ya, aktifkan',false))return;
 try{await api('siswaAktifkan',{data:{id:x.id,nama:x.nama}});sdSegarkan();toast('Siswa diaktifkan kembali');isi()}catch(er){toast(er.message,1)}}
@@ -1632,7 +1632,7 @@ function sdSampah(){
       w.innerHTML=L.length?`<div class="ov"><table class="rt ap"><thead><tr><th>Nama</th><th>Kelompok</th><th>Dihapus</th><th>Sisa</th><th>Aksi</th></tr></thead><tbody>${L.map((x,n)=>`<tr><td>${esc(x.nama)}</td><td>${esc(kelTampil(x.kelas))}</td><td>${esc(x.dihapus)}<br><small class="sub">oleh ${esc(x.oleh||'-')}</small></td><td class="c">${x.sisaHari>0?x.sisaHari+' hari':'Habis'}</td><td><button class="btn y s" data-pl="${n}">Pulihkan</button> <button class="btn rd s" data-pm="${n}">Hapus permanen</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Sampah kosong.</div>'}
     catch(er){w.innerHTML=`<div class="empty">${esc(/tidak dikenal/i.test(er.message)?'Backend belum diperbarui. Pasang HapusSiswa.gs dan Code.gs terbaru.':er.message)}</div>`}};
   md.onclick=async e=>{
-    if(e.target===md||e.target.closest('[data-x]'))return md.remove();
+    if(e.target.closest('[data-x]'))return md.remove();
     const pl=e.target.closest('[data-pl]'),pm=e.target.closest('[data-pm]');
     if(pl){const x=L[+pl.dataset.pl];
       if(!await tanya('Pulihkan siswa?',x.nama+' ('+kelTampil(x.kelas)+') dikembalikan ke daftar siswa nonaktif. Setelah itu aktifkan lewat tombol Nonaktif.','Ya, pulihkan',false))return;
@@ -1651,7 +1651,7 @@ function sdPermanen(x,rw,sesudah){
   const md=document.createElement('div');md.className='md';md.style.zIndex=45;
   md.innerHTML=`<div class="sheet" style="max-width:460px"><h2>⚠️ Hapus permanen</h2><p class="sub" style="color:var(--ink);margin-bottom:8px">Yang akan dibuang untuk <b>${esc(x.nama)}</b>: ${esc(rw)}, data lengkap, foto, catatan KBC, dan barisnya di spreadsheet Presensi. Tidak bisa dibatalkan, tetapi salinan isinya disimpan di sheet <b>Sampah_Arsip</b>.</p><div class="fd full"><label>Ketik nama anak dengan tepat untuk melanjutkan</label><input name="kt" autocomplete="off" placeholder="${esc(x.nama)}"></div><div class="act"><button class="btn gh" data-x>Batal</button><button class="btn rd" data-s>Hapus permanen</button></div></div>`;
   md.onclick=async e=>{
-    if(e.target===md||e.target.closest('[data-x]'))return md.remove();
+    if(e.target.closest('[data-x]'))return md.remove();
     const b=e.target.closest('[data-s]');if(!b)return;
     const k=md.querySelector('[name=kt]').value.trim();
     if(!k)return toast('Ketik nama anak dulu',1);
@@ -2628,7 +2628,7 @@ async function dialogLog(){
 const md=document.createElement('div');md.className='md';
 md.innerHTML=`<div class="sheet"><h2>📜 Log Akses</h2><p class="sub" style="margin-bottom:10px">Maksimal 5.000 catatan terakhir. Login gagal baru dicatat mulai percobaan ke-3. Simpan dan hapus jurnal juga dicatat, lengkap dengan nama pengguna.</p><div class="fd" style="margin-bottom:8px"><label>Tampilkan</label><select id="lgf"><option value="">Semua hasil</option><option value="ok">Berhasil (ok)</option><option value="gagal">Login gagal</option><option value="ditolak">Ditolak</option><option value="nonaktif">Akun nonaktif</option></select></div><div id="lgl">${muat()}</div><div class="act"><button class="btn gh" data-x type="button">Tutup</button></div></div>`;
 document.body.appendChild(md);
-md.onclick=e=>{if(e.target===md||e.target.closest('[data-x]'))md.remove()};
+md.onclick=e=>{if(e.target.closest('[data-x]'))md.remove()};
 let J2={rows:[],nama:{}};
 const gambar=()=>{const f=md.querySelector('#lgf').value,r=J2.rows.filter(x=>!f||x[3]===f),box=md.querySelector('#lgl');
 box.innerHTML=(r.slice(0,200).map(x=>{const nm=J2.nama[x[1]];return`<div style="padding:8px 0;border-top:1px solid var(--ln);font-size:13px"><b>${esc(nm?nm+' ('+x[1]+')':x[1])}</b> <span class="abg ${x[3]==='ok'?'hadir':x[3]==='nonaktif'||x[3]==='gagal'||x[3]==='ditolak'?'alpha':'sakit'}">${esc(x[3])}</span> ${esc(x[2])}<br><small class="sub">${esc(x[0])}${x[4]?' · '+esc(x[4]):''}</small></div>`}).join('')||'<div class="empty">Tidak ada catatan.</div>')+(r.length>200?`<p class="sub" style="font-size:12px;margin-top:8px">Menampilkan 200 dari ${r.length} catatan terbaru.</p>`:'')};
