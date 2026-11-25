@@ -2551,7 +2551,7 @@ const el=()=>md.querySelector('#kpl');
 const gambar=()=>{el().innerHTML=L.map((u,i)=>`<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--ln)"><span style="flex:1;min-width:0"><b>${esc(u.nama||u.id)}</b><br><small class="sub">${esc(u.id)}${u.kelas?' · '+esc(kelTampil(u.kelas)):''}</small><br><span class="abg ${u.peran==='admin'?'izin':u.peran==='kepsek'?'sakit':'hadir'}">${esc(PERAN_L[u.peran]||u.peran)}</span>${u.aktif==='tidak'?' <span class="abg alpha">Nonaktif</span>':''}${u.wajibpin==='ya'?' <span class="abg sakit">Wajib ganti PIN</span>':''}${u.punyaPin?'':' <span class="abg alpha">Belum ada PIN</span>'}</span><button class="btn gh s" type="button" data-u="${i}">Ubah</button></div>`).join('')||'<div class="empty">Belum ada pengguna.</div>'};
 const muatUlang=()=>api('pengguna').then(j=>{L=j.rows||[];gambar()}).catch(er=>{el().innerHTML=`<div class="empty">${esc(er.message)}<br><button class="btn s" data-re type="button" style="margin-top:10px">Coba lagi</button></div>`});
 md.onclick=e=>{
-if(e.target===md||e.target.closest('[data-x]'))return md.remove();
+if(e.target.closest('[data-x]'))return md.remove(); // klik di luar tidak menutup
 if(e.target.closest('[data-re]'))return muatUlang();
 if(e.target.closest('[data-add]'))return dialogTambahPengguna(muatUlang);
 const b=e.target.closest('[data-u]');if(b)dialogUbahPengguna(L[+b.dataset.u],muatUlang)};
@@ -2566,7 +2566,7 @@ g('pin').oninput=e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,6)}
 const atur=()=>{const p=g('peran').value;g('mengajar').value=p==='guru'?'ya':'tidak';g('mengajar').disabled=p==='kepsek'};
 g('peran').onchange=atur;
 md.onclick=async e=>{
-if(e.target===md||e.target.closest('[data-x]'))return md.remove();
+if(e.target.closest('[data-x]'))return md.remove(); // klik di luar dialog tidak menutup (agar isian tidak hilang)
 const b=e.target.closest('[data-s]');if(!b)return;
 const nama=g('nama').value.trim().replace(/\s+/g,' '),pin=g('pin').value;
 if(!nama)return toast('Nama pengguna wajib diisi',1);
@@ -2591,7 +2591,7 @@ const kunciMengajar=()=>{if(g('peran').value==='kepsek'){g('mengajar').value='ti
 g('peran').onchange=()=>{const p=g('peran').value;if(p==='guru')g('mengajar').value='ya';else if(p==='kepsek')g('mengajar').value='tidak';kunciMengajar()};
 kunciMengajar();
 md.onclick=async e=>{
-if(e.target===md||e.target.closest('[data-x]'))return md.remove();
+if(e.target.closest('[data-x]'))return md.remove(); // klik di luar tidak menutup
 const rp=e.target.closest('[data-rp]'),hp=e.target.closest('[data-hp]'),sv=e.target.closest('[data-s]');
 if(rp){
 if(!await tanya('Reset PIN?','PIN '+(u.nama||u.id)+' diganti dengan PIN sementara baru. PIN lama tidak berlaku lagi dan pengguna wajib membuat PIN baru saat masuk.','Ya, reset',false))return;
