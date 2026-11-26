@@ -511,7 +511,16 @@ catch(er){toast(er.message,1);b.disabled=false;b.textContent='Simpan PIN'}}}
 
 /* ---------- kerangka ---------- */
 const SHORT=k=>J[k].no+'. '+J[k].n.replace('Jurnal ','').replace(' Guru dan Sekolah','');
-function shell(){S.mode='app';$('#app').classList.remove('lgmode');
+// Sidebar di layar pendek: menu bisa digulir (tidak terpotong), jarak antar menu dirapatkan, kotak promo disembunyikan.
+// Gaya ditambahkan lewat JavaScript di akhir <head> agar menang atas style.css.
+function cssSidebar(){if(document.getElementById('sbfix'))return;const st=document.createElement('style');st.id='sbfix';
+st.textContent='@media (min-width:901px){'
++'.menu{max-height:calc(100vh - 24px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.35) transparent}'
++'.menu::-webkit-scrollbar{width:6px}.menu::-webkit-scrollbar-thumb{background:rgba(255,255,255,.3);border-radius:6px}}'
++'@media (min-width:901px) and (max-height:860px){.menu .nv{min-height:0;padding-top:7px;padding-bottom:7px}.menu .promo{display:none}}'
++'@media (min-width:901px) and (max-height:700px){.menu .nv{padding-top:5px;padding-bottom:5px;font-size:13px}.menu .lo2{padding-top:6px;padding-bottom:6px}}';
+(document.head||document.documentElement).appendChild(st)}
+function shell(){cssSidebar();S.mode='app';$('#app').classList.remove('lgmode');
 const aj=ngajar(),items=[['beranda','🏠','Dashboard'],...(aj?ORDER:['identitas']).map(k=>[k,J[k].ic,SHORT(k)]),...(aj?[['siswa','🧑‍🎓','Data Siswa'],['portofolio','👧','Portofolio Anak'],['kalender','🗓️','Kalender Pendidikan'],['laporan','📄','Laporan']]:bolehSiswa()?[['siswa','🧑‍🎓','Data Siswa']]:[]),...(boleh('guru.lihat')?[['lihat','👁️','Lihat Guru']]:[]),['pengaturan','⚙️','Pengaturan']];
 $('#app').innerHTML=`<header class="top"><div class="brand"><img class="lg" src="${logoSek()}" alt="">  <div><b>Jurnal Guru</b><small>${esc(((S.guru&&S.guru.sekolah)||sekCache().nama||'').toUpperCase())}</small></div></div><div class="cu" id="me"></div></header>
 <nav class="menu" id="nav">${items.map(([v,ic,l])=>`<button class="nv" data-v="${v}"><i class="ni">${ic}</i><span>${l}</span></button>`).join('')}<div class="sbx">${aj?'<button type="button" class="promo" data-v="harian"><b>Catat hari ini</b><small>Isi jurnal harian sebelum pulang agar tidak menumpuk.</small><i>→</i></button>':''}<button type="button" class="lo2" data-lo><i class="ni">🚪</i>Logout</button></div></nav>
