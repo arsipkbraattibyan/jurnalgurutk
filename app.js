@@ -513,12 +513,13 @@ catch(er){toast(er.message,1);b.disabled=false;b.textContent='Simpan PIN'}}}
 const SHORT=k=>J[k].no+'. '+J[k].n.replace('Jurnal ','').replace(' Guru dan Sekolah','');
 // Sidebar di layar pendek: menu bisa digulir (tidak terpotong), jarak antar menu dirapatkan, kotak promo disembunyikan.
 // Gaya ditambahkan lewat JavaScript di akhir <head> agar menang atas style.css.
-function cssSidebar(){if(document.getElementById('sbfix'))return;const st=document.createElement('style');st.id='sbfix';
+function cssSidebar(){const ada=document.getElementById('sbfix');if(ada)ada.remove();const st=document.createElement('style');st.id='sbfix';
+// selector memakai #nav + !important supaya tidak kalah oleh aturan tema (mis. [data-tema=...] .menu) di style.css
 st.textContent='@media (min-width:901px){'
-+'.menu{max-height:calc(100vh - 24px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.35) transparent}'
-+'.menu::-webkit-scrollbar{width:6px}.menu::-webkit-scrollbar-thumb{background:rgba(255,255,255,.3);border-radius:6px}}'
-+'@media (min-width:901px) and (max-height:860px){.menu .nv{min-height:0;padding-top:7px;padding-bottom:7px}.menu .promo{display:none}}'
-+'@media (min-width:901px) and (max-height:700px){.menu .nv{padding-top:5px;padding-bottom:5px;font-size:13px}.menu .lo2{padding-top:6px;padding-bottom:6px}}';
++'#nav.menu{max-height:calc(100vh - 24px) !important;overflow-y:auto !important;overflow-x:hidden !important;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(120,130,150,.5) transparent}'
++'#nav.menu::-webkit-scrollbar{width:6px}#nav.menu::-webkit-scrollbar-thumb{background:rgba(120,130,150,.45);border-radius:6px}}'
++'@media (min-width:901px) and (max-height:860px){#nav .nv{min-height:0 !important;padding-top:6px !important;padding-bottom:6px !important}#nav .promo{display:none !important}}'
++'@media (min-width:901px) and (max-height:700px){#nav .nv{padding-top:4px !important;padding-bottom:4px !important;font-size:13px}#nav .lo2{padding-top:6px !important;padding-bottom:6px !important}}';
 (document.head||document.documentElement).appendChild(st)}
 function shell(){cssSidebar();S.mode='app';$('#app').classList.remove('lgmode');
 const aj=ngajar(),items=[['beranda','🏠','Dashboard'],...(aj?ORDER:['identitas']).map(k=>[k,J[k].ic,SHORT(k)]),...(aj?[['siswa','🧑‍🎓','Data Siswa'],['portofolio','👧','Portofolio Anak'],['kalender','🗓️','Kalender Pendidikan'],['laporan','📄','Laporan']]:bolehSiswa()?[['siswa','🧑‍🎓','Data Siswa']]:[]),...(boleh('guru.lihat')?[['lihat','👁️','Lihat Guru']]:[]),['pengaturan','⚙️','Pengaturan']];
