@@ -12,6 +12,7 @@ const jaringan = m => { const e = new Error(m); e.net = true; return e; };
 
 window.api = async function (action, p) {
   p = p || {};
+  if (typeof jParam === 'function') p = jParam(action, p); // list / semua: hanya semester aktif (app.js); berlaku juga jika offline.js tidak aktif
   const n = ULANG[action] || 1;
   let galat;
   for (let i = 0; i < n; i++) {
@@ -27,6 +28,7 @@ window.api = async function (action, p) {
       try { j = await r.json(); } catch (e) { throw jaringan('Jawaban server tidak valid.'); }
       if (!j.ok) { if (j.auth) keluar(); throw new Error(j.error || 'Terjadi kesalahan'); }
       if (j.sv !== undefined) svCek(j.sv);
+      if (typeof jTerima === 'function') jTerima(action, p, j);
       return j;
     } catch (e) {
       if (!e.net) throw e;            // error dari server (mis. PIN salah): jangan diulang
