@@ -9,6 +9,8 @@
  * Data: hanya MEMBACA ROWS (J2..J8, aksi 'semua'/'list') dan KBC_Jurnal (aksi 'kbcDaftar')
  * yang sama dengan yang diisi guru di jurnal. Tidak ada penyimpanan, tidak ada data ganda.
  * Cetak, PDF, Excel, Word memakai aksiLap() yang sudah ada (membaca elemen "#lap .paper").
+ * Muat per periode: ROWS awalnya hanya berisi semester aktif. Periode yang lebih lama memanggil jRiwayat() (app.js)
+ * sebelum laporan disusun, jadi laporan semester lalu / seluruh periode tetap lengkap.
  */
 (function () {
 'use strict';
@@ -333,6 +335,13 @@ async function gambar() {
   const my = ++RV2, lap = $('#lap');
   if (!lap) return;
   const F = ambilFilter();
+  // riwayat sebelum semester aktif belum ada di perangkat: muat dulu (periode lama, semester lalu, atau seluruh periode)
+  if (typeof jPerlu === 'function' && jPerlu(KEYS, F.rg.dari)) {
+    lap.innerHTML = '<div class="empty">⏳ Memuat riwayat jurnal lama...</div>';
+    const baru = await jRiwayat(KEYS, F.rg.dari);
+    if (my !== RV2 || S.view !== 'laporan') return;
+    if (baru) { try { isiAnak(); } catch (e) {} } // anak yang hanya punya catatan lama ikut muncul di pilihan
+  }
   if (F.jenis === 'kbc' || F.jenis === 'terpadu') {
     lap.innerHTML = muat();
     const r = await ambilKbc(F.rg);
