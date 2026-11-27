@@ -35,6 +35,11 @@
  *   Hanya foto yang SUDAH terunggah, tidak dipakai antrean mana pun, dan berumur > 7 hari yang dibersihkan.
  * - ID Drive foto disimpan di kolom "foto" jurnal (tautan KBC ke Drive ada di kolom "fototautan" KBC_Jurnal).
  * - Status foto (menunggu / sudah di Drive / gagal) tampil di panel sinkronisasi, indikator, dan pesan sinkron.
+ *
+ * MUAT PER PERIODE:
+ * - list / semua diberi periode:'aktif' oleh jParam() di app.js (kecuali riwayat lama sedang dibuka), jadi salinan
+ *   lokal (snap) bisa hanya berisi semester aktif. "dari" ikut disimpan di snap dan dikembalikan saat offline,
+ *   sehingga aplikasi tahu riwayat lama belum ada di perangkat dan memberi tahu guru.
  */
 (function () {
 'use strict';
@@ -174,15 +179,17 @@ function gabungData(lama, baru) {
 /* ---------- baca: salinan lokal + gabung antrean ---------- */
 async function dariSnap(action, p, g) {
   const lokal = (typeof cGet === 'function' && cGet('semua')) || {};
+  // salinan bisa hanya semester aktif ("dari" = tanggal awalnya) atau seluruh riwayat ("dari" kosong)
+  const lokalDari = (typeof cGet === 'function' && cGet('dari')) || {};
   const ambil = async k => {
     const s = await idbGet('snap', g + '|' + k).catch(() => null);
-    if (s && Array.isArray(s.rows)) return s.rows;
-    return Array.isArray(lokal[k]) ? lokal[k] : null;
+    if (s && Array.isArray(s.rows)) return { rows: s.rows, dari: String(s.dari || '') };
+    return Array.isArray(lokal[k]) ? { rows: lokal[k], dari: String(lokalDari[k] || '') } : null;
   };
-  if (action === 'list') { const r = await ambil(p.jenis); return r ? { ok: true, rows: r, offline: true } : null; }
-  const data = {};
-  for (const k of KEYS) { const r = await ambil(k); if (!r) return null; data[k] = r; }
-  return { ok: true, data: data, offline: true };
+  if (action === 'list') { const r = await ambil(p.jenis); return r ? { ok: true, rows: r.rows, dari: r.dari, offline: true } : null; }
+  const data = {}, dariPer = {};
+  for (const k of KEYS) { const r = await ambil(k); if (!r) return null; data[k] = r.rows; dariPer[k] = r.dari; }
+  return { ok: true, data: data, dariPer: dariPer, offline: true };
 }
 async function baca(action, p) {
   await pastikan();
@@ -192,8 +199,8 @@ async function baca(action, p) {
     try { res = await core(action, p, 20000); } catch (e) { if (!e.net) throw e; err = e; }
   } else err = netErr();
   if (res) {
-    if (action === 'list') idbPut('snap', { k: g + '|' + p.jenis, rows: res.rows, t: Date.now() }).catch(() => {});
-    else Object.keys(res.data || {}).forEach(k => idbPut('snap', { k: g + '|' + k, rows: res.data[k], t: Date.now() }).catch(() => {}));
+    if (action === 'list') idbPut('snap', { k: g + '|' + p.jenis, rows: res.rows, dari: res.dari || '', t: Date.now() }).catch(() => {});
+    else Object.keys(res.data || {}).forEach(k => idbPut('snap', { k: g + '|' + k, rows: res.data[k], dari: res.dari || '', t: Date.now() }).catch(() => {}));
   } else {
     res = await dariSnap(action, p, g);
     if (!res) throw err;
@@ -635,7 +642,10 @@ function bukaPanel() {
 /* ---------- pasang pembungkus ---------- */
 window.api = function (action, p) {
   p = p || {};
-  if (action === 'list' || action === 'semua') return baca(action, p);
+  if (action === 'list' || action === 'semua') { // periode: hanya semester aktif, kecuali riwayat lama sedang dibuka (app.js)
+    if (typeof jParam === 'function') p = jParam(action, p);
+    return baca(action, p).then(res => { if (typeof jTerima === 'function') jTerima(action, p, res); return res; });
+  }
   if (action === 'simpan' || action === 'simpanBanyak' || action === 'hapus') return tulis(action, p);
   if (action === 'unggahLampiran') return unggah(p);
   if (action === 'fotoData') return fotoBaca(p);
