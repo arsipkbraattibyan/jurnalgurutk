@@ -138,10 +138,12 @@ if(fd.dataset.m==='combo'&&t.value)fd.querySelectorAll('input[type=radio]').forE
 
 /* ---------- API ---------- */
 async function api(action,p={}){
+p=jParam(action,p);
 const r=await fetch(API_URL,{method:'POST',body:JSON.stringify({action,token:S.token,...p})});
 const j=await r.json();
 if(!j.ok){if(j.auth)keluar();throw new Error(j.error||'Terjadi kesalahan')}
 if(j.sv!==undefined)svCek(j.sv);
+jTerima(action,p,j);
 return j}
 /* versi sumber data: jika admin mengganti sumber, cache siswa / data siswa / presensi di perangkat ini dibuang otomatis */
 function svBersih(){SISWA=null;try{cSet('siswa',null);Object.keys(localStorage).filter(x=>x.indexOf(CK())===0&&/^(ds_|pr_)/.test(x.slice(CK().length))).forEach(x=>localStorage.removeItem(x))}catch(e){}}
@@ -151,7 +153,7 @@ const CK=()=>'jgc_'+((S.guru&&S.guru.id)||'')+'_';
 function cGet(k){try{const x=JSON.parse(localStorage.getItem(CK()+k)||'null');return x?x.d:null}catch(e){return null}}
 function cSet(k,d){try{localStorage.setItem(CK()+k,JSON.stringify({d:d,t:Date.now()}))}catch(e){try{Object.keys(localStorage).filter(x=>x.indexOf('jgc_')===0).forEach(x=>localStorage.removeItem(x))}catch(e2){}}}
 function cHapusSemua(){try{Object.keys(localStorage).filter(x=>x.indexOf('jgc_')===0).forEach(x=>localStorage.removeItem(x))}catch(e){}}
-function cRows(k){const c=cGet('semua')||{};c[k]=ROWS[k]||[];cSet('semua',c)}
+function cRows(k){const c=cGet('semua')||{};c[k]=ROWS[k]||[];cSet('semua',c);if(JDARI)jSimpanDari()}
 function stale(k){KBDT=0;delete ROWS[k];const c=cGet('semua');if(c){delete c[k];cSet('semua',c)}}
 
 /* ---------- dialog konfirmasi di dalam aplikasi (pengganti popup bawaan browser) ---------- */
@@ -167,6 +169,39 @@ try{const j=await api('semua');d=j.data}
 catch(e){if(!/tidak dikenal/i.test(e.message))throw e;
 const r=await Promise.all(KEYS.map(k=>api('list',{jenis:k})));d={};KEYS.forEach((k,i)=>d[k]=r[i].rows)}
 cSet('semua',d);KEYS.forEach(k=>ROWS[k]=urut((d[k]||[]).slice()))}
+
+/* ---------- data jurnal per periode ----------
+   list / semua hanya memuat catatan sejak awal semester aktif (server mengirim "dari"). Riwayat lebih lama dimuat
+   otomatis saat guru membukanya (bulan / tanggal lama di daftar jurnal, laporan, portofolio, presensi, galeri, form).
+   JDARI[k]: tanggal awal data jenis k yang ada di perangkat ("" = seluruh riwayat). JPENUH[k]: sesi ini sudah meminta
+   seluruh riwayat jenis k, jadi penyegaran berikutnya tetap memuat seluruh riwayat (tidak hilang saat disegarkan).
+   JPENUH tidak disimpan: setelah aplikasi dibuka ulang, pemuatan kembali ringan (semester aktif saja). */
+let JDARI=null,JDARI_G=null,JPENUH={};const JMUAT={},JGAGAL={};
+function jDariSemua(){const g=String((S.guru&&S.guru.id)||'');if(!JDARI||JDARI_G!==g){JDARI_G=g;JPENUH={};JDARI=cGet('dari')||{};if(typeof JDARI!=='object')JDARI={}}return JDARI} // per akun: ganti akun = mulai lagi
+const jDari=k=>String(jDariSemua()[k]||'');
+function jSimpanDari(){try{cSet('dari',jDariSemua())}catch(e){}}
+// dipakai api() di sini dan pembungkus api() di offline.js
+function jParam(action,p){p=p||{};jDariSemua();if(p.periode!==undefined)return p;
+if(action==='list')return JPENUH[p.jenis]?p:{...p,periode:'aktif'};
+if(action==='semua')return KEYS.some(k=>JPENUH[k])?p:{...p,periode:'aktif'};
+return p}
+function jTerima(action,p,j){try{if(!j||j.ok===false)return;const D=jDariSemua(),set=(k,d)=>{d=String(d||'');D[k]=d;if(!d)JPENUH[k]=true};
+if(action==='list'&&p&&p.jenis)set(p.jenis,j.dari);
+else if(action==='semua'){const per=j.dariPer||{};KEYS.forEach(k=>set(k,k in per?per[k]:j.dari))}
+else return;jSimpanDari()}catch(e){}}
+// apakah tampilan yang dimulai dari tanggal "sejak" ("" = seluruh riwayat) butuh data yang belum ada di perangkat
+const jPerlu=(keys,sejak)=>keys.some(k=>{const d=jDari(k);return d&&(!sejak||sejak<d)&&!(JGAGAL[k]&&Date.now()-JGAGAL[k]<60000)});
+const jMemuat=k=>Object.keys(JMUAT).some(x=>x.split(',').includes(k));
+// muat seluruh riwayat jenis yang perlu; hasil true jika ada data baru (tampilan sebaiknya digambar ulang)
+function jRiwayat(keys,sejak){const ks=keys.filter(k=>jPerlu([k],sejak));if(!ks.length)return Promise.resolve(false);
+const kk=ks.slice().sort().join(',');if(JMUAT[kk])return JMUAT[kk];
+const d0=ks.map(jDari).sort()[0];
+return JMUAT[kk]=(async()=>{ks.forEach(k=>JPENUH[k]=true);
+try{if(KEYS.every(k=>ks.includes(k)||!jDari(k))){const j=await api('semua');const d=j.data||{};KEYS.forEach(k=>{if(Array.isArray(d[k]))ROWS[k]=urut(d[k].slice())});cSet('semua',d)}
+else await Promise.all(ks.map(async k=>{const r=await api('list',{jenis:k});ROWS[k]=urut(r.rows||[]);cRows(k)}))}catch(e){}
+const sisa=ks.filter(k=>jDari(k));
+if(sisa.length){sisa.forEach(k=>{JGAGAL[k]=Date.now();JPENUH[k]=false});toast('Riwayat sebelum '+tgl(d0)+' belum bisa dimuat'+(navigator.onLine===false?' karena sedang offline':'')+'. Yang tampil hanya data sejak '+tgl(d0)+'.',1)}
+delete JMUAT[kk];return sisa.length<ks.length})()}
 
 /* ---------- foto (diisi admin lewat kolom foto di sheet Guru, boleh kosong) ---------- */
 function fu(u){if(!u)return'';const m=String(u).match(/(?:\/d\/|[?&]id=)([-\w]{20,})/);return m&&!/thumbnail/.test(u)?'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w300':u}
@@ -900,8 +935,11 @@ if(k==='kehadiran'||k==='perkembangan')loadSiswa().then(()=>{if(S.view===k&&$('#
 const cc=cGet('semua');if(!ROWS[k]&&cc&&Array.isArray(cc[k]))ROWS[k]=urut(cc[k].slice());if(ROWS[k])tampil(k);
 try{const r=await api('list',{jenis:k});ROWS[k]=urut(r.rows);cRows(k);if(S.view===k)tampil(k)}
 catch(e){if(!ROWS[k])$('#ls').innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
-function tampil(k){const j=J[k];filSync(k);const rs=filCocok(k);
-$('#ls').innerHTML=rs.length?rs.map(r=>`<div class="card row kc"><small>${fmt(r.tanggal)}</small><h3>${esc(j.t(r))}</h3><div class="kv">${j.f.filter(f=>f.k!=='tanggal'&&r[f.k]!==''&&r[f.k]!==undefined&&!(k==='harian'&&['kelas','tema','kegiatan'].includes(f.k))).map(f=>{const v=esc(fv(f,r));return `<div${v.length>26?' class="w"':''}><small>${f.l}</small>${v}</div>`}).join('')}</div>${fotoHtml(r)}<div class="rbt"><button class="btn gh s" data-e="${r.ID}">✏️ Ubah</button><button class="btn rd s" data-d="${r.ID}">🗑️ Hapus</button></div></div>`).join(''):`<div class="card empty">${(ROWS[k]||[]).length?'Data tidak ditemukan':'Belum ada catatan. Ketuk <b>+ Tambah Catatan</b> untuk mengisi jurnal.'}</div>`;
+const jSejakFil=()=>{const b=($('#bln')||{}).value||'',t=($('#tg')||{}).value||'';return t||(b?b+'-01':'')}; // bulan kosong = seluruh riwayat
+function tampil(k){const j=J[k];filSync(k);
+{const sj=jSejakFil();if(jPerlu([k],sj))jRiwayat([k],sj).then(()=>{if(S.view===k&&$('#ls'))tampil(k)})}
+const rs=filCocok(k),lm=jMemuat(k);
+$('#ls').innerHTML=(lm?'<div class="card empty">⏳ Memuat riwayat lama...</div>':'')+(rs.length?rs.map(r=>`<div class="card row kc"><small>${fmt(r.tanggal)}</small><h3>${esc(j.t(r))}</h3><div class="kv">${j.f.filter(f=>f.k!=='tanggal'&&r[f.k]!==''&&r[f.k]!==undefined&&!(k==='harian'&&['kelas','tema','kegiatan'].includes(f.k))).map(f=>{const v=esc(fv(f,r));return `<div${v.length>26?' class="w"':''}><small>${f.l}</small>${v}</div>`}).join('')}</div>${fotoHtml(r)}<div class="rbt"><button class="btn gh s" data-e="${r.ID}">✏️ Ubah</button><button class="btn rd s" data-d="${r.ID}">🗑️ Hapus</button></div></div>`).join(''):lm?'':`<div class="card empty">${(ROWS[k]||[]).length||jDari(k)?'Data tidak ditemukan':'Belum ada catatan. Ketuk <b>+ Tambah Catatan</b> untuk mengisi jurnal.'}</div>`);
 isiFoto($('#ls'));
 $('#ls').onclick=async e=>{const bf=e.target.closest('img.ft');if(bf&&bf.dataset.loaded)return lihatFoto(bf.src);const be=e.target.closest('[data-e]'),bd=e.target.closest('[data-d]');
 if(be)bukaForm(k,ROWS[k].find(r=>r.ID===be.dataset.e));
@@ -1379,7 +1417,7 @@ if(e2.value!==v){const ex=fd&&fd.querySelector('.ex');if(ex){ex.value=v;syncOpt(
 if(n==='tema'){const r=fd.querySelector('input[type=radio]:checked');if(r)r.dispatchEvent(new Event('change',{bubbles:true}))}};
 const kosong=n=>{const e2=E(n);if(!e2)return;const fd=e2.closest('.fd'),ex=fd&&fd.querySelector('.ex');if(ex)ex.value='';pilih(md,n,'');if(e2.value)e2.value=''};
 const ikutHarian=async()=>{const tg=E('tanggal').value,kl=kelNorm(E('kelas').value);if(!tg||!kl)return;
-try{if(!(ROWS.harian||[]).length){const r=await api('list',{jenis:'harian'});ROWS.harian=urut(r.rows)}}catch(er){return}
+try{if(!(ROWS.harian||[]).length){const r=await api('list',{jenis:'harian'});ROWS.harian=urut(r.rows)}await jRiwayat(['harian'],tg)}catch(er){return}
 if(!md.isConnected||E('tanggal').value!==tg)return;
 const x=(ROWS.harian||[]).find(r=>String(r.tanggal).slice(0,10)===tg&&kelNorm(r.kelas)===kl&&r.tema)||(ROWS.harian||[]).find(r=>String(r.tanggal).slice(0,10)===tg&&kelNorm(r.kelas)===kl);
 if(!x){['tema','subtema','kegiatan'].forEach(kosong);if(hhi)hhi.textContent='Belum ada Jurnal Harian tanggal '+tgl(tg)+' untuk '+kl+'. Tema, subtema, dan kegiatan dikosongkan.';return}
@@ -1391,7 +1429,7 @@ if(k==='penilaian'&&!row){ // tema mengikuti Jurnal Harian pada tanggal dan kelo
 const hhi=md.querySelector('#hhi'),isiTema=v=>{if(!v)return;pilih(md,'tema',v);const e2=E('tema');if(!e2)return;if(e2.value!==v){const fd=e2.closest('.fd'),ex=fd&&fd.querySelector('.ex');if(ex){ex.value=v;syncOpt(fd)}}};
 const kosong=n=>{const e2=E(n);if(!e2)return;const fd=e2.closest('.fd'),ex=fd&&fd.querySelector('.ex');if(ex)ex.value='';pilih(md,n,'');if(e2.value)e2.value=''};
 const ikutHarian=async()=>{const tg=E('tanggal').value,kl=kelNorm(E('kelas').value);if(!tg||!kl)return;
-try{if(!(ROWS.harian||[]).length){const r=await api('list',{jenis:'harian'});ROWS.harian=urut(r.rows)}}catch(er){return}
+try{if(!(ROWS.harian||[]).length){const r=await api('list',{jenis:'harian'});ROWS.harian=urut(r.rows)}await jRiwayat(['harian'],tg)}catch(er){return}
 if(!md.isConnected||E('tanggal').value!==tg)return;
 const x=(ROWS.harian||[]).find(r=>String(r.tanggal).slice(0,10)===tg&&kelNorm(r.kelas)===kl&&r.tema);
 if(!x){kosong('tema');if(hhi)hhi.textContent='Belum ada Jurnal Harian tanggal '+tgl(tg)+' untuk '+kl+'. Tema dikosongkan.';return}
@@ -1461,6 +1499,7 @@ if(k==='harian'){const kb=kbcAmbil(md);if(kb){const er=kbcCek(kb);if(er){const b
 if(k==='penilaian'){if(md._pcpPending&&md._pcpPending()){const pb=md.querySelector('#pcpb');pb.open=true;pb.scrollIntoView({behavior:'smooth',block:'center'});return toast('Pengamatan Panca Cinta belum dimasukkan. Ketuk "Simpan pengamatan anak ini" atau kosongkan isiannya',1)}const pc=md._pcpGet&&md._pcpGet();if(pc!==undefined)d.pcobs=pc}
 if(k==='perkembangan'&&!d.pancacinta&&!(row&&!row.pancacinta)&&!await tanya('Nilai Panca Cinta belum dipilih','Simpan tanpa nilai Panca Cinta?','Simpan saja',false,'Pilih dulu')){const ib=md.querySelector('#pcb');if(ib){ib.open=true;ib.scrollIntoView({behavior:'smooth',block:'center'})}return}
 const b=t.closest('[data-s]');b.disabled=true;b.textContent='Menyimpan...';
+{const tg0=(E('tanggal')||{}).value||'';if(tg0&&['perkembangan','penilaian','kehadiran','harian'].includes(k))try{await jRiwayat([k],tg0)}catch(er){}} // cek data ganda pada tanggal sebelum semester aktif
 if(k==='perkembangan'){if(!ROWS.perkembangan)await JRmuat('perkembangan');const dp=cekDup();if(dp){toast('Tidak bisa disimpan: pengamatan '+dp.join(', ')+' tanggal '+tgl(E('tanggal').value)+' sudah ada.',1);b.disabled=false;b.textContent='Simpan';return}}
 if(k==='penilaian'){
  if(!ROWS.penilaian)await JRmuat('penilaian');
@@ -1867,6 +1906,8 @@ function presBersih(){PRN='';const l=$('#lap');if(l)l.innerHTML='';const u=$('#p
 async function presRinci(r,st){const sr=$('#sr');if(!sr)return;let bx=$('#prr');if(!bx){bx=document.createElement('div');bx.id='prr';bx.style.marginTop='16px';sr.appendChild(bx)}
 const tanda=r.nama+'|'+(($('#sb')||{}).value||'')+'|'+(($('#sd')||{}).value||'')+'|'+(($('#ss')||{}).value||'')+'|'+st;bx.dataset.k=tanda;
 if(!ROWS.kehadiran||!SISWA){bx.innerHTML='<p class="sub">Memuat rincian tanggal...</p>';try{await Promise.all([loadSiswa(),ROWS.kehadiran?0:KHmuat()])}catch(e){}if(!bx.isConnected||bx.dataset.k!==tanda)return}
+{const b0=($('#sb')||{}).value||'',d0=($('#sd')||{}).value||'',s0=($('#ss')||{}).value||'',sj=(d0||s0)?d0:(b0?b0+'-01':'');
+if(jPerlu(['kehadiran'],sj)){bx.innerHTML='<p class="sub">Memuat riwayat lama...</p>';await jRiwayat(['kehadiran'],sj);if(!bx.isConnected||bx.dataset.k!==tanda)return}}
 const b=($('#sb')||{}).value||'',sd=($('#sd')||{}).value||'',ss=($('#ss')||{}).value||'',k=kunci(r.nama),kn=kelNorm(r.kelas),L=[],sw=(SISWA||[]).find(z=>kunci(z.nama)===k&&kelNorm(z.kelas)===kn);
 (ROWS.kehadiran||[]).forEach(x=>{const d=String(x.tanggal).slice(0,10);if(kelNorm(x.kelas)!==kn)return;
 if(sd||ss){if((sd&&d<sd)||(ss&&d>ss))return}else if(b&&d.slice(0,7)!==b)return;
@@ -1943,8 +1984,10 @@ const dn=[...pm.values()].filter(e=>!kl||e.it.some(x=>kelNorm(x.r.kelas)===kl)).
 sel.innerHTML=`<option value="">${dn.length?'Pilih nama anak...':'Belum ada foto'}</option>`+dn.map(e=>`<option value="${esc(kunci(e.nama))}"${kunci(e.nama)===pk?' selected':''}>${esc(e.nama)} (${e.it.length})</option>`).join('');
 const e=pm.get(sel.value),j=$('#gj').value,d1=$('#gd').value,d2=$('#gs').value;
 if(!e){cur=[];sr.innerHTML=`<div class="empty">${dn.length?'Pilih nama anak untuk melihat dokumentasi fotonya.':'Belum ada foto dokumentasi. Tambahkan lewat Jurnal Perkembangan atau Jurnal Penilaian (tombol Dokumentasi foto).'}</div>`;return}
+if(d1&&jPerlu(DOKK,d1))jRiwayat(DOKK,d1).then(x=>{if(x)gbr()});
 cur=e.it.filter(x=>(!j||x.j===j)&&(!d1||x.t>=d1)&&(!d2||x.t<=d2)).sort((a,b)=>String(b.t).localeCompare(String(a.t)));
-sr.innerHTML=cur.length?`<p style="margin:0 0 8px"><b>${esc(e.nama)}</b>: ${cur.length} foto</p><div class="gl">${cur.map((x,i)=>{const lain=x.a.filter(n=>kunci(n)!==kunci(e.nama));return`<figure><img class="ft" data-fid="${esc(x.id)}" src="${BLANK}" alt="Foto"><figcaption><b>${tgl(x.t)}</b> <span class="bdg">${x.j==='perkembangan'?'Perkembangan':'Penilaian'}</span>${x.k?'<br>'+esc(x.k):''}<br><small>${esc((x.j==='perkembangan'?[x.r.aspek,x.r.tingkat]:[x.r.jenis,x.r.aspek]).filter(Boolean).join(' - '))}</small>${lain.length?`<br><small>Bersama: ${esc(lain.slice(0,4).join(', '))}${lain.length>4?' +'+(lain.length-4):''}</small>`:''}<br><button type="button" class="btn gh s" data-bk="${i}">Buka catatan</button></figcaption></figure>`}).join('')}</div>`:'<div class="empty">Data tidak ditemukan</div>';
+{const gd0=DOKK.map(jDari).filter(Boolean).sort()[0];var gHint=gd0&&(!d1||d1<gd0)?`<p class="sub" style="font-size:12px;margin:0 0 8px">${DOKK.some(jMemuat)?'⏳ Memuat foto lama...':'Menampilkan foto sejak '+tgl(gd0)+'. Isi <b>Dari tanggal</b> lebih awal untuk melihat foto yang lebih lama.'}</p>`:''}
+sr.innerHTML=cur.length?gHint+`<p style="margin:0 0 8px"><b>${esc(e.nama)}</b>: ${cur.length} foto</p><div class="gl">${cur.map((x,i)=>{const lain=x.a.filter(n=>kunci(n)!==kunci(e.nama));return`<figure><img class="ft" data-fid="${esc(x.id)}" src="${BLANK}" alt="Foto"><figcaption><b>${tgl(x.t)}</b> <span class="bdg">${x.j==='perkembangan'?'Perkembangan':'Penilaian'}</span>${x.k?'<br>'+esc(x.k):''}<br><small>${esc((x.j==='perkembangan'?[x.r.aspek,x.r.tingkat]:[x.r.jenis,x.r.aspek]).filter(Boolean).join(' - '))}</small>${lain.length?`<br><small>Bersama: ${esc(lain.slice(0,4).join(', '))}${lain.length>4?' +'+(lain.length-4):''}</small>`:''}<br><button type="button" class="btn gh s" data-bk="${i}">Buka catatan</button></figcaption></figure>`}).join('')}</div>`:'<div class="empty">Data tidak ditemukan</div>';
 isiFoto(sr)};
 sr.innerHTML=muat();
 sr.onclick=e=>{const im=e.target.closest('img.ft');if(im&&im.dataset.loaded)return lihatFoto(im.src);const b=e.target.closest('[data-bk]');if(b){const x=cur[+b.dataset.bk];if(x){go(x.j);bukaForm(x.j,x.r)}}};
@@ -1976,6 +2019,7 @@ const inp=()=>{const j=nilai('lj');$('#lt').style.display=j==='harian'||j==='min
 const dariCache=cacheSemua();
 try{if(!dariCache)await muatSemua();if(S.view!=='laporan')return;
 const r=async()=>{inp();const rg=rentang(nilai('lj'),$('#lt').value||hari(),$('#lb').value||hari().slice(0,7)),kc='lp_'+rg.dari+'_'+rg.sampai+'_'+(klf()||''),cd=cGet(kc),my=++RV;
+if(jPerlu(KEYS,rg.dari)){$('#lap').innerHTML=muat();await jRiwayat(KEYS,rg.dari);if(S.view!=='laporan'||my!==RV)return}
 $('#lap').innerHTML=laporan(rg,cd||{loading:1});isiFoto($('#lap'));
 let p;try{p=await api('presensi',{dari:rg.dari,sampai:rg.sampai,kelas:klf()})}catch(e){p={err:e.message}}
 if(S.view!=='laporan'||my!==RV)return;if(!p.err)cSet(kc,p);
@@ -2448,6 +2492,7 @@ if(pakaiFoto&&!foto){
   const siswa=(SISWA||[]).find(s=>kunci(s.nama)===o.k);
   if(siswa)foto=faGet(siswa.nama);
 }
+{const sj=$('#pd').value;if(jPerlu(['perkembangan'],sj)){$('#lap').innerHTML='<div class="card empty">⏳ Memuat riwayat lama...</div>';await jRiwayat(['perkembangan'],sj);if(id!==PF_RENDER_ID||!$('#pa')||$('#pa').value!==k)return}}
 pfInfo(o);
 $('#lap').innerHTML=portofolio(o,$('#pd').value,$('#ps').value,S.pfTuj,foto);
 isiFoto($('#lap'))};
